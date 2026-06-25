@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAVER_FORM_URL } from "@/lib/constants";
+import LogoAnimated from "@/components/LogoAnimated";
 
 const NAV = [
   { href: "/", label: "홈" },
@@ -24,12 +25,7 @@ export default function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-ink/5 bg-white/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-        <Link
-          href="/"
-          className="font-heading text-2xl font-extrabold tracking-tight text-primary"
-        >
-          EVENTORY
-        </Link>
+        <LogoAnimated />
 
         <div className="flex items-center gap-3">
           <a
