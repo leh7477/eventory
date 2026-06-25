@@ -31,7 +31,7 @@ export default function SiteHeader() {
           <a
             href={quoteHref}
             {...quoteProps}
-            className="rounded-full bg-festive px-5 py-2 text-sm font-bold text-white shadow-sm shadow-primary/30 transition hover:brightness-105 active:scale-[0.98]"
+            className="rounded-full bg-ink px-5 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-black active:scale-[0.98]"
           >
             견적문의
           </a>

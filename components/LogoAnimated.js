@@ -4,22 +4,26 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const BASE =
-  "font-heading text-2xl font-extrabold tracking-tight text-primary";
+  "font-heading text-2xl font-extrabold tracking-tight text-ink";
 
 export default function LogoAnimated() {
   // step: 0(초기) → 1(EVENT) → 2(+) → 3(STORY) → 4(EVENTORY로 전환)
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
 
+  // 검토용: 매 로드마다 재생. (확정 후 아래 REPLAY_ONCE = true 로 바꾸면 세션당 1회)
+  const REPLAY_ONCE = false;
+
   useEffect(() => {
-    // 세션당 1회만 재생, 이후엔 정적 표시
-    let played = false;
-    try {
-      played = sessionStorage.getItem("logoPlayed") === "1";
-    } catch {}
-    if (played) {
-      setDone(true);
-      return;
+    if (REPLAY_ONCE) {
+      let played = false;
+      try {
+        played = sessionStorage.getItem("logoPlayed") === "1";
+      } catch {}
+      if (played) {
+        setDone(true);
+        return;
+      }
     }
 
     const timers = [
@@ -61,7 +65,7 @@ export default function LogoAnimated() {
           EVENT
         </span>
         <span
-          className={`text-accent transition-all duration-300 ${
+          className={`transition-all duration-300 ${
             step >= 2 ? "scale-100 opacity-100" : "scale-50 opacity-0"
           }`}
         >
