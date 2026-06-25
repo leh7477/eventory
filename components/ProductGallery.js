@@ -11,7 +11,7 @@ export default function ProductGallery({ images = [], name }) {
   return (
     <div>
       {/* 메인 이미지 */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-navy/5">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-cream">
         {main ? (
           <Image
             src={main}
@@ -22,8 +22,8 @@ export default function ProductGallery({ images = [], name }) {
             className="object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-navy to-[#1b1f4d]">
-            <span className="font-heading text-2xl tracking-widest text-gold/60">
+          <div className="flex h-full w-full items-center justify-center bg-festive">
+            <span className="font-heading text-2xl font-bold tracking-widest text-white/80">
               EVENTORY
             </span>
           </div>
@@ -39,7 +39,7 @@ export default function ProductGallery({ images = [], name }) {
               type="button"
               onClick={() => setActive(i)}
               className={`relative aspect-square overflow-hidden rounded-lg border-2 transition ${
-                i === active ? "border-gold" : "border-transparent opacity-70 hover:opacity-100"
+                i === active ? "border-primary" : "border-transparent opacity-70 hover:opacity-100"
               }`}
             >
               <Image

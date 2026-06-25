@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --navy: #0d0f2b;
-  --gold: #ffd23f;
-  --ink: #111111;
+  --primary: #ff5470;
+  --accent: #ffb627;
+  --ink: #2b2233;
 }
 
 html {
@@ -26,8 +26,8 @@ body {
   .overlay-gradient {
     background: linear-gradient(
       180deg,
-      rgba(13, 15, 43, 0.15) 0%,
-      rgba(13, 15, 43, 0.55) 100%
+      rgba(43, 34, 51, 0.1) 0%,
+      rgba(43, 34, 51, 0.45) 100%
     );
   }
 }

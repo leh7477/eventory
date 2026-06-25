@@ -13,9 +13,9 @@ export default function AboutPage() {
       <SiteHeader />
       <main>
         {/* 인트로 */}
-        <section className="bg-navy text-white">
+        <section className="bg-festive text-white">
           <div className="mx-auto max-w-4xl px-5 py-20 text-center">
-            <p className="font-heading text-lg tracking-[0.35em] text-gold">
+            <p className="font-heading text-lg font-bold tracking-[0.2em] text-white/90">
               ABOUT EVENTORY
             </p>
             <h1 className="mt-4 text-balance text-3xl font-bold sm:text-4xl">
@@ -48,9 +48,9 @@ export default function AboutPage() {
             ].map((item) => (
               <div
                 key={item.t}
-                className="rounded-2xl border border-navy/10 p-6"
+                className="rounded-2xl border border-ink/10 bg-cream p-6"
               >
-                <h3 className="font-bold text-navy">{item.t}</h3>
+                <h3 className="font-bold text-primary">{item.t}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-ink/70">
                   {item.d}
                 </p>
@@ -60,14 +60,14 @@ export default function AboutPage() {
         </section>
 
         {/* 연락 */}
-        <section className="bg-navy/[0.03]">
+        <section className="bg-cream">
           <div className="mx-auto max-w-4xl px-5 py-16 text-center">
-            <h2 className="text-2xl font-bold text-navy">문의하기</h2>
-            <p className="mt-3 text-navy/70">
+            <h2 className="text-2xl font-bold text-ink">문의하기</h2>
+            <p className="mt-3 text-ink/70">
               전화 또는 견적 문의로 편하게 연락 주세요.
             </p>
-            <p className="mt-4 text-2xl font-bold text-navy">
-              <a href={`tel:${SITE.phone}`} className="hover:text-gold">
+            <p className="mt-4 text-2xl font-bold text-primary">
+              <a href={`tel:${SITE.phone}`} className="hover:text-primary-dark">
                 {SITE.phone}
               </a>
             </p>

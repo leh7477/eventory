@@ -1,10 +1,10 @@
-import { Bebas_Neue, Noto_Sans_KR } from "next/font/google";
+import { Poppins, Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 
-const bebas = Bebas_Neue({
-  weight: "400",
+const poppins = Poppins({
+  weight: ["500", "600", "700", "800"],
   subsets: ["latin"],
-  variable: "--font-bebas",
+  variable: "--font-poppins",
   display: "swap",
 });
 
@@ -23,7 +23,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ko" className={`${bebas.variable} ${notoSansKr.variable}`}>
+    <html lang="ko" className={`${poppins.variable} ${notoSansKr.variable}`}>
       <body className="font-sans antialiased">{children}</body>
     </html>
   );

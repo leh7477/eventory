@@ -3,7 +3,6 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import HeroSlider from "@/components/HeroSlider";
 import ProductCard from "@/components/ProductCard";
-import CaseCard from "@/components/CaseCard";
 import QuoteButton from "@/components/QuoteButton";
 import { SITE } from "@/lib/constants";
 import { getActiveBanners, getCategories, getProducts, getCases } from "@/lib/data";
@@ -33,7 +32,7 @@ export default async function Home() {
               <Link
                 key={c.id}
                 href={`/products?category=${c.id}`}
-                className="rounded-full border border-navy/15 px-5 py-2.5 text-sm font-medium text-navy transition hover:border-navy hover:bg-navy hover:text-white"
+                className="rounded-full border border-ink/15 px-5 py-2.5 text-sm font-medium text-ink transition hover:border-primary hover:bg-primary hover:text-white"
               >
                 {c.name}
               </Link>
@@ -42,13 +41,13 @@ export default async function Home() {
         </section>
 
         {/* 인기 장비 */}
-        <section className="bg-navy/[0.03] py-16">
+        <section className="bg-cream py-16">
           <div className="mx-auto max-w-6xl px-5">
             <div className="flex items-end justify-between">
               <SectionTitle eyebrow="POPULAR" title="인기 장비" align="left" />
               <Link
                 href="/products"
-                className="text-sm font-medium text-navy hover:text-gold"
+                className="text-sm font-medium text-ink/70 hover:text-primary"
               >
                 전체보기 →
               </Link>
@@ -71,7 +70,7 @@ export default async function Home() {
             <SectionTitle eyebrow="GALLERY" title="행사 사례" align="left" />
             <Link
               href="/cases"
-              className="text-sm font-medium text-navy hover:text-gold"
+              className="text-sm font-medium text-ink/70 hover:text-primary"
             >
               더보기 →
             </Link>
@@ -80,7 +79,7 @@ export default async function Home() {
             <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
               {cases.map((item) => (
                 <Link key={item.id} href="/cases" className="group block">
-                  <div className="relative aspect-square overflow-hidden rounded-xl bg-navy/5">
+                  <div className="relative aspect-square overflow-hidden rounded-xl bg-cream">
                     {item.image_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -89,8 +88,8 @@ export default async function Home() {
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-navy to-[#1b1f4d]">
-                        <span className="font-heading tracking-widest text-gold/60">
+                      <div className="flex h-full w-full items-center justify-center bg-festive">
+                        <span className="font-heading font-bold tracking-widest text-white/80">
                           EVENTORY
                         </span>
                       </div>
@@ -106,9 +105,9 @@ export default async function Home() {
         </section>
 
         {/* CTA */}
-        <section className="bg-navy">
+        <section className="bg-ink">
           <div className="mx-auto max-w-6xl px-5 py-20 text-center text-white">
-            <p className="font-heading text-lg tracking-[0.3em] text-gold">
+            <p className="font-heading text-base font-bold tracking-[0.25em] text-accent">
               CONTACT
             </p>
             <h2 className="mt-3 text-balance text-2xl font-bold sm:text-4xl">
@@ -121,7 +120,7 @@ export default async function Home() {
               <QuoteButton />
               <a
                 href={`tel:${SITE.phone}`}
-                className="rounded-full border border-white/40 px-6 py-3 text-sm font-medium text-white transition hover:border-gold hover:text-gold"
+                className="rounded-full border border-white/40 px-6 py-3 text-sm font-medium text-white transition hover:border-accent hover:text-accent"
               >
                 전화 {SITE.phone}
               </a>
@@ -137,15 +136,17 @@ export default async function Home() {
 function SectionTitle({ eyebrow, title, align = "center" }) {
   return (
     <div className={align === "center" ? "text-center" : "text-left"}>
-      <p className="font-heading text-sm tracking-[0.3em] text-gold">{eyebrow}</p>
-      <h2 className="mt-1 text-2xl font-bold text-navy sm:text-3xl">{title}</h2>
+      <p className="font-heading text-sm font-bold tracking-[0.25em] text-primary">
+        {eyebrow}
+      </p>
+      <h2 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">{title}</h2>
     </div>
   );
 }
 
 function EmptyNote({ text }) {
   return (
-    <div className="mt-8 rounded-xl border border-dashed border-navy/15 py-16 text-center text-sm text-navy/50">
+    <div className="mt-8 rounded-xl border border-dashed border-ink/15 py-16 text-center text-sm text-ink/50">
       {text}
     </div>
   );

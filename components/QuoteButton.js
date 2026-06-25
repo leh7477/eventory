@@ -5,7 +5,7 @@ import { NAVER_FORM_URL } from "@/lib/constants";
 export default function QuoteButton({ className = "", children }) {
   const label = children ?? "견적 문의하기";
   const base =
-    "inline-flex items-center justify-center rounded-full bg-gold px-6 py-3 text-sm font-bold text-navy transition hover:brightness-95 active:scale-[0.98]";
+    "inline-flex items-center justify-center rounded-full bg-festive px-6 py-3 text-sm font-bold text-white shadow-md shadow-primary/30 transition hover:brightness-105 active:scale-[0.98]";
 
   if (NAVER_FORM_URL) {
     return (

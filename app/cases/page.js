@@ -17,9 +17,11 @@ export default async function CasesPage() {
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-5 py-12">
         <header className="mb-8">
-          <p className="font-heading text-sm tracking-[0.3em] text-gold">GALLERY</p>
-          <h1 className="mt-1 text-3xl font-bold text-navy sm:text-4xl">행사 사례</h1>
-          <p className="mt-3 text-sm text-navy/60">
+          <p className="font-heading text-sm font-bold tracking-[0.25em] text-primary">
+            GALLERY
+          </p>
+          <h1 className="mt-1 text-3xl font-bold text-ink sm:text-4xl">행사 사례</h1>
+          <p className="mt-3 text-sm text-ink/60">
             다양한 행사와 이벤트에서 함께한 Eventory의 현장입니다.
           </p>
         </header>
@@ -31,7 +33,7 @@ export default async function CasesPage() {
             ))}
           </div>
         ) : (
-          <div className="rounded-xl border border-dashed border-navy/15 py-24 text-center text-sm text-navy/50">
+          <div className="rounded-xl border border-dashed border-ink/15 py-24 text-center text-sm text-ink/50">
             행사 사례가 곧 업데이트됩니다.
           </div>
         )}

@@ -22,12 +22,12 @@ export default async function ProductDetailPage({ params }) {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-5 py-10 pb-28">
-        <nav className="mb-6 text-sm text-navy/50">
-          <Link href="/products" className="hover:text-navy">
+        <nav className="mb-6 text-sm text-ink/50">
+          <Link href="/products" className="hover:text-primary">
             장비 목록
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-navy">{product.name}</span>
+          <span className="text-ink">{product.name}</span>
         </nav>
 
         <div className="grid gap-10 lg:grid-cols-2">
@@ -37,11 +37,11 @@ export default async function ProductDetailPage({ params }) {
           {/* 우: 정보 */}
           <div>
             {product.categoryName && (
-              <span className="inline-block rounded-full bg-navy/5 px-3 py-1 text-xs font-medium text-navy/70">
+              <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 {product.categoryName}
               </span>
             )}
-            <h1 className="mt-3 text-3xl font-bold text-navy">{product.name}</h1>
+            <h1 className="mt-3 text-3xl font-bold text-ink">{product.name}</h1>
 
             {product.description && (
               <p className="mt-5 whitespace-pre-line leading-relaxed text-ink/80">
@@ -51,8 +51,8 @@ export default async function ProductDetailPage({ params }) {
 
             {product.specs && (
               <div className="mt-8">
-                <h2 className="text-sm font-bold text-navy">스펙 정보</h2>
-                <p className="mt-2 whitespace-pre-line rounded-xl bg-navy/[0.03] p-4 text-sm leading-relaxed text-ink/80">
+                <h2 className="text-sm font-bold text-ink">스펙 정보</h2>
+                <p className="mt-2 whitespace-pre-line rounded-xl bg-cream p-4 text-sm leading-relaxed text-ink/80">
                   {product.specs}
                 </p>
               </div>
@@ -66,11 +66,11 @@ export default async function ProductDetailPage({ params }) {
       </main>
 
       {/* 하단 고정 견적 문의 바 */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-navy/10 bg-white/95 backdrop-blur lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ink/10 bg-white/95 backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3">
           <a
             href={`tel:${SITE.phone}`}
-            className="text-sm font-medium text-navy"
+            className="text-sm font-medium text-ink"
           >
             {SITE.phone}
           </a>

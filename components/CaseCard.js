@@ -5,7 +5,7 @@ export default function CaseCard({ item }) {
   const { title, image_url, tags } = item;
 
   return (
-    <figure className="mb-4 break-inside-avoid overflow-hidden rounded-xl bg-navy/5">
+    <figure className="mb-4 break-inside-avoid overflow-hidden rounded-xl bg-cream shadow-sm">
       <div className="relative w-full">
         {image_url ? (
           <Image
@@ -17,8 +17,8 @@ export default function CaseCard({ item }) {
             className="h-auto w-full object-cover"
           />
         ) : (
-          <div className="flex aspect-[3/4] items-center justify-center bg-gradient-to-br from-navy to-[#1b1f4d]">
-            <span className="font-heading tracking-widest text-gold/60">
+          <div className="flex aspect-[3/4] items-center justify-center bg-festive">
+            <span className="font-heading font-bold tracking-widest text-white/80">
               EVENTORY
             </span>
           </div>
@@ -31,7 +31,7 @@ export default function CaseCard({ item }) {
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-navy/5 px-2.5 py-1 text-xs text-navy/70"
+                className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
               >
                 #{tag}
               </span>
