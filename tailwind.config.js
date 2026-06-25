@@ -8,8 +8,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        navy: "#0D0F2B",
+        gold: "#FFD23F",
+        ink: "#111111",
+      },
+      fontFamily: {
+        heading: ["var(--font-bebas)", "sans-serif"],
+        sans: ["var(--font-noto-sans-kr)", "sans-serif"],
+      },
+      aspectRatio: {
+        "4/3": "4 / 3",
       },
     },
   },
