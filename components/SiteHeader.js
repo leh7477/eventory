@@ -31,25 +31,7 @@ export default function SiteHeader() {
           EVENTORY
         </Link>
 
-        {/* 데스크탑 네비 */}
-        <nav className="hidden items-center gap-8 md:flex">
-          {NAV.map((item) => {
-            const active =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`text-sm font-medium transition hover:text-primary ${
-                  active ? "text-primary" : "text-ink/70"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+        <div className="flex items-center gap-3">
           <a
             href={quoteHref}
             {...quoteProps}
@@ -57,53 +39,56 @@ export default function SiteHeader() {
           >
             견적문의
           </a>
-        </nav>
 
-        {/* 모바일 햄버거 */}
-        <button
-          type="button"
-          aria-label="메뉴 열기"
-          onClick={() => setOpen((v) => !v)}
-          className="flex flex-col gap-1.5 p-2 md:hidden"
-        >
-          <span
-            className={`h-0.5 w-6 bg-ink transition ${
-              open ? "translate-y-2 rotate-45" : ""
-            }`}
-          />
-          <span
-            className={`h-0.5 w-6 bg-ink transition ${open ? "opacity-0" : ""}`}
-          />
-          <span
-            className={`h-0.5 w-6 bg-ink transition ${
-              open ? "-translate-y-2 -rotate-45" : ""
-            }`}
-          />
-        </button>
+          {/* 햄버거 (모든 화면에서 표시) */}
+          <button
+            type="button"
+            aria-label="메뉴 열기"
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+            className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-full transition hover:bg-ink/5"
+          >
+            <span
+              className={`h-0.5 w-6 bg-ink transition ${
+                open ? "translate-y-2 rotate-45" : ""
+              }`}
+            />
+            <span
+              className={`h-0.5 w-6 bg-ink transition ${
+                open ? "opacity-0" : ""
+              }`}
+            />
+            <span
+              className={`h-0.5 w-6 bg-ink transition ${
+                open ? "-translate-y-2 -rotate-45" : ""
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
-      {/* 모바일 메뉴 패널 */}
+      {/* 메뉴 패널 */}
       {open && (
-        <div className="border-t border-ink/5 bg-white md:hidden">
-          <nav className="mx-auto flex max-w-6xl flex-col px-5 py-3">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="py-3 text-sm font-medium text-ink/80 hover:text-primary"
-              >
-                {item.label}
-              </Link>
-            ))}
-            <a
-              href={quoteHref}
-              {...quoteProps}
-              onClick={() => setOpen(false)}
-              className="mt-2 rounded-full bg-festive px-4 py-2.5 text-center text-sm font-bold text-white"
-            >
-              견적문의
-            </a>
+        <div className="border-t border-ink/5 bg-white">
+          <nav className="mx-auto flex max-w-6xl flex-col px-5 py-2">
+            {NAV.map((item) => {
+              const active =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={`border-b border-ink/5 py-3.5 text-sm font-medium transition last:border-0 hover:text-primary ${
+                    active ? "text-primary" : "text-ink/80"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       )}
