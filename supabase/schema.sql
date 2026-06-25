@@ -1,0 +1,137 @@
+-- =============================================================
+-- Eventory DB 스키마
+-- Supabase 대시보드 → SQL Editor 에 전체 붙여넣고 Run 하세요.
+-- 여러 번 실행해도 안전하도록 작성되어 있습니다 (IF NOT EXISTS / DROP POLICY).
+-- =============================================================
+
+-- gen_random_uuid() 사용을 위한 확장 (Supabase 기본 활성화돼 있으나 안전하게)
+create extension if not exists pgcrypto;
+
+-- -------------------------------------------------------------
+-- 테이블
+-- -------------------------------------------------------------
+
+-- 배너
+create table if not exists banners (
+  id uuid default gen_random_uuid() primary key,
+  image_url text not null,
+  title text,
+  subtitle text,
+  order_num integer default 0,
+  is_active boolean default true,
+  created_at timestamptz default now()
+);
+
+-- 카테고리
+create table if not exists categories (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  order_num integer default 0
+);
+
+-- 제품
+create table if not exists products (
+  id uuid default gen_random_uuid() primary key,
+  category_id uuid references categories(id) on delete set null,
+  name text not null,
+  description text,
+  specs text,
+  is_active boolean default true,
+  order_num integer default 0,
+  created_at timestamptz default now()
+);
+
+-- 제품 이미지 (여러 장)
+create table if not exists product_images (
+  id uuid default gen_random_uuid() primary key,
+  product_id uuid references products(id) on delete cascade,
+  image_url text not null,
+  order_num integer default 0
+);
+
+-- 시공/행사 사례
+create table if not exists cases (
+  id uuid default gen_random_uuid() primary key,
+  title text not null,
+  description text,
+  image_url text not null,
+  tags text[],
+  order_num integer default 0,
+  created_at timestamptz default now()
+);
+
+-- 문의 내역
+create table if not exists inquiries (
+  id uuid default gen_random_uuid() primary key,
+  name text,
+  phone text,
+  event_date text,
+  message text,
+  created_at timestamptz default now(),
+  is_read boolean default false
+);
+
+-- -------------------------------------------------------------
+-- 인덱스 (정렬/조회 성능)
+-- -------------------------------------------------------------
+create index if not exists idx_banners_order on banners (order_num);
+create index if not exists idx_categories_order on categories (order_num);
+create index if not exists idx_products_category on products (category_id);
+create index if not exists idx_products_order on products (order_num);
+create index if not exists idx_product_images_product on product_images (product_id, order_num);
+create index if not exists idx_cases_order on cases (order_num);
+create index if not exists idx_inquiries_created on inquiries (created_at desc);
+
+-- -------------------------------------------------------------
+-- RLS (Row Level Security)
+--   읽기 전용 공개 데이터: 누구나(anon) SELECT 가능
+--   문의(inquiries): 누구나 INSERT 가능, 읽기는 불가
+--   모든 쓰기(관리자)는 service_role 키로 수행 → RLS 우회되므로 별도 정책 불필요
+-- -------------------------------------------------------------
+alter table banners enable row level security;
+alter table categories enable row level security;
+alter table products enable row level security;
+alter table product_images enable row level security;
+alter table cases enable row level security;
+alter table inquiries enable row level security;
+
+-- 공개 읽기 정책
+drop policy if exists "public read banners" on banners;
+create policy "public read banners" on banners
+  for select to anon, authenticated using (true);
+
+drop policy if exists "public read categories" on categories;
+create policy "public read categories" on categories
+  for select to anon, authenticated using (true);
+
+drop policy if exists "public read products" on products;
+create policy "public read products" on products
+  for select to anon, authenticated using (true);
+
+drop policy if exists "public read product_images" on product_images;
+create policy "public read product_images" on product_images
+  for select to anon, authenticated using (true);
+
+drop policy if exists "public read cases" on cases;
+create policy "public read cases" on cases
+  for select to anon, authenticated using (true);
+
+-- 문의: 누구나 등록(INSERT) 가능, SELECT 정책은 없음 → 관리자(service_role)만 조회
+drop policy if exists "public insert inquiries" on inquiries;
+create policy "public insert inquiries" on inquiries
+  for insert to anon, authenticated with check (true);
+
+-- -------------------------------------------------------------
+-- 기본 카테고리 시드 (이미 있으면 중복 삽입하지 않음)
+-- -------------------------------------------------------------
+insert into categories (name, order_num)
+select v.name, v.order_num
+from (values
+  ('가챠머신', 1),
+  ('에어볼추첨기', 2),
+  ('스톱워치', 3),
+  ('룰렛', 4),
+  ('사격게임기', 5),
+  ('캡슐뽑기', 6)
+) as v(name, order_num)
+where not exists (select 1 from categories c where c.name = v.name);
