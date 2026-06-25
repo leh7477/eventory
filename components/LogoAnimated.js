@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const BASE =
-  "font-heading text-2xl font-extrabold tracking-tight text-ink";
+  "font-heading text-2xl font-extrabold tracking-tight text-ink sm:text-4xl";
 
 export default function LogoAnimated() {
   // step: 0(초기) → 1(EVENT) → 2(+) → 3(STORY) → 4(EVENTORY로 전환)

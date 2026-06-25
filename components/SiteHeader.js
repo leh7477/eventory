@@ -24,14 +24,14 @@ export default function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-ink/5 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+      <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-5">
         <LogoAnimated />
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3 pl-3">
           <a
             href={quoteHref}
             {...quoteProps}
-            className="rounded-full bg-ink px-5 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-black active:scale-[0.98]"
+            className="whitespace-nowrap rounded-full bg-ink px-5 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-black active:scale-[0.98]"
           >
             견적문의
           </a>
