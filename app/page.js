@@ -2,12 +2,49 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import HeroSlider from "@/components/HeroSlider";
-import ProductCard from "@/components/ProductCard";
 import QuoteButton from "@/components/QuoteButton";
 import { SITE } from "@/lib/constants";
 import { getActiveBanners, getCategories, getProducts, getCases } from "@/lib/data";
 
 export const revalidate = 0;
+
+// 사례 데이터가 없을 때 보여줄 샘플 카드 (실제 등록 시 교체됨)
+const SAMPLE_CASES = [
+  {
+    id: "s1",
+    bg: "bg-gradient-to-br from-[#FF7A59] to-[#FF4D8D]",
+    title: "기업 행사 부스 운영",
+    desc: "가챠머신·룰렛으로 현장 참여 이벤트 진행",
+  },
+  {
+    id: "s2",
+    bg: "bg-gradient-to-br from-[#C04A6A] to-[#5B2A48]",
+    title: "지역 축제 게임존",
+    desc: "사격게임기·에어볼추첨기 세팅",
+  },
+  {
+    id: "s3",
+    bg: "bg-gradient-to-br from-[#7A2F5A] to-[#2B2233]",
+    title: "매장 오픈 프로모션",
+    desc: "핀볼게임으로 방문 고객 사은 이벤트",
+  },
+  {
+    id: "s4",
+    bg: "bg-gradient-to-br from-[#E8345A] to-[#9B3B6E]",
+    title: "가족 행사 이벤트",
+    desc: "다양한 장비로 남녀노소 즐기는 현장",
+  },
+];
+
+// 제품 데이터가 없을 때 보여줄 샘플 (쇼츠 스타일 세로 카드)
+const SAMPLE_PRODUCTS = [
+  { id: "p1", bg: "bg-gradient-to-br from-[#FF7A59] to-[#FF4D8D]", name: "가챠머신", cat: "가챠머신" },
+  { id: "p2", bg: "bg-gradient-to-br from-[#7A2F5A] to-[#2B2233]", name: "에어볼 추첨기", cat: "에어볼추첨기" },
+  { id: "p3", bg: "bg-gradient-to-br from-[#E8345A] to-[#9B3B6E]", name: "스톱워치", cat: "스톱워치" },
+  { id: "p4", bg: "bg-gradient-to-br from-[#C04A6A] to-[#5B2A48]", name: "룰렛", cat: "룰렛" },
+  { id: "p5", bg: "bg-gradient-to-br from-[#FF6B4A] to-[#C03A5A]", name: "사격게임기", cat: "사격게임기" },
+  { id: "p6", bg: "bg-gradient-to-br from-[#9B3B6E] to-[#3A2540]", name: "핀볼게임", cat: "핀볼게임" },
+];
 
 export default async function Home() {
   const [banners, categories, products, cases] = await Promise.all([
@@ -24,15 +61,14 @@ export default async function Home() {
         {/* 히어로 */}
         <HeroSlider banners={banners} />
 
-        {/* 카테고리 */}
+        {/* 카테고리 (제목 없이 가로 나열, 인기장비와 동일 너비로 꽉 차게) */}
         <section className="mx-auto max-w-6xl px-5 py-16">
-          <SectionTitle eyebrow="CATEGORY" title="장비 카테고리" />
-          <div className="mt-8 flex flex-wrap justify-center gap-3 sm:gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-5 sm:justify-between sm:gap-x-4">
             {categories.map((c) => (
               <Link
                 key={c.id}
                 href={`/products?category=${c.id}`}
-                className="rounded-full border border-ink/15 px-5 py-2.5 text-sm font-medium text-ink transition hover:border-primary hover:bg-primary hover:text-white"
+                className="text-lg font-bold text-ink transition hover:text-primary sm:text-2xl"
               >
                 {c.name}
               </Link>
@@ -40,87 +76,141 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* 인기 장비 */}
-        <section className="bg-cream py-16">
-          <div className="mx-auto max-w-6xl px-5">
-            <div className="flex items-end justify-between">
-              <SectionTitle eyebrow="POPULAR" title="인기 장비" align="left" />
-              <Link
-                href="/products"
-                className="text-sm font-medium text-ink/70 hover:text-primary"
-              >
-                전체보기 →
-              </Link>
+        {/* 인기 장비 (쇼츠 스타일 세로 카드 가로 스크롤) */}
+        <section className="py-14">
+          <div className="mx-auto max-w-6xl">
+            <div className="flex gap-4 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {products.length > 0
+                ? products.map((p) => (
+                    <Link
+                      key={p.id}
+                      href={`/products/${p.id}`}
+                      className="group relative block w-40 shrink-0 sm:w-44"
+                    >
+                      <div className="relative aspect-[9/16] overflow-hidden rounded-2xl bg-cream">
+                        {p.thumbnail ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={p.thumbnail}
+                            alt={p.name}
+                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-festive">
+                            <span className="font-heading font-bold tracking-widest text-white/80">
+                              EVENTORY
+                            </span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/15 to-transparent" />
+                        {p.categoryName && (
+                          <span className="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                            {p.categoryName}
+                          </span>
+                        )}
+                        <h3 className="absolute inset-x-0 bottom-0 p-3 text-sm font-bold text-white">
+                          {p.name}
+                        </h3>
+                      </div>
+                    </Link>
+                  ))
+                : SAMPLE_PRODUCTS.map((p) => (
+                    <div
+                      key={p.id}
+                      className="group relative block w-40 shrink-0 sm:w-44"
+                    >
+                      <div
+                        className={`relative aspect-[9/16] overflow-hidden rounded-2xl ${p.bg}`}
+                      >
+                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-heading text-[11px] font-bold tracking-[0.4em] text-white/25">
+                          SAMPLE
+                        </span>
+                        <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
+                        <span className="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                          {p.cat}
+                        </span>
+                        <h3 className="absolute inset-x-0 bottom-0 p-3 text-sm font-bold text-white">
+                          {p.name}
+                        </h3>
+                      </div>
+                    </div>
+                  ))}
             </div>
-            {products.length > 0 ? (
-              <div className="mt-8 grid grid-cols-2 gap-5 md:grid-cols-3">
-                {products.map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
-            ) : (
-              <EmptyNote text="등록된 장비가 곧 업데이트됩니다." />
-            )}
           </div>
         </section>
 
-        {/* 행사사례 미리보기 */}
-        <section className="mx-auto max-w-6xl px-5 py-16">
-          <div className="flex items-end justify-between">
-            <SectionTitle eyebrow="GALLERY" title="행사 사례" align="left" />
-            <Link
-              href="/cases"
-              className="text-sm font-medium text-ink/70 hover:text-primary"
-            >
-              더보기 →
-            </Link>
-          </div>
-          {cases.length > 0 ? (
-            <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-              {cases.map((item) => (
-                <Link key={item.id} href="/cases" className="group block">
-                  <div className="relative aspect-square overflow-hidden rounded-xl bg-cream">
-                    {item.image_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.image_url}
-                        alt={item.title}
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-festive">
-                        <span className="font-heading font-bold tracking-widest text-white/80">
-                          EVENTORY
-                        </span>
-                      </div>
+        {/* 행사 사례 (제목 없이 사진 바로, 가로 스크롤) */}
+        <section className="py-14">
+          <div className="mx-auto max-w-6xl">
+            <div className="flex gap-4 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {cases.length > 0
+                ? cases.map((item) => (
+                  <Link key={item.id} href="/cases" className="group block w-60 shrink-0">
+                    <div className="relative aspect-square overflow-hidden rounded-xl bg-cream">
+                      {item.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={item.image_url}
+                          alt={item.title}
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-festive">
+                          <span className="font-heading font-bold tracking-widest text-white/80">
+                            EVENTORY
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="mt-3 text-center text-sm font-semibold text-ink sm:text-base">
+                      {item.title}
+                    </h3>
+                    {item.description && (
+                      <p className="mt-1 line-clamp-1 text-center text-xs text-ink/60 sm:text-sm">
+                        {item.description}
+                      </p>
                     )}
+                  </Link>
+                ))
+                : SAMPLE_CASES.map((s, i) => (
+                  <div key={s.id} className="block w-60 shrink-0">
+                    <div
+                      className={`relative flex aspect-square items-center justify-center overflow-hidden rounded-xl ${s.bg}`}
+                    >
+                      <span className="font-heading text-xs font-bold tracking-[0.4em] text-white/30">
+                        SAMPLE {String(i + 1).padStart(2, "0")}
+                      </span>
+                    </div>
+                    <h3 className="mt-3 text-center text-sm font-semibold text-ink sm:text-base">
+                      {s.title}
+                    </h3>
+                    <p className="mt-1 line-clamp-1 text-center text-xs text-ink/60 sm:text-sm">
+                      {s.desc}
+                    </p>
                   </div>
-                  <p className="mt-2 text-sm text-ink">{item.title}</p>
-                </Link>
-              ))}
+                ))}
             </div>
-          ) : (
-            <EmptyNote text="행사 사례가 곧 업데이트됩니다." />
-          )}
+          </div>
         </section>
 
         {/* CTA */}
-        <section className="bg-ink">
-          <div className="mx-auto max-w-6xl px-5 py-20 text-center text-white">
-            <p className="font-heading text-base font-bold tracking-[0.25em] text-accent">
-              CONTACT
-            </p>
-            <h2 className="mt-3 text-balance text-2xl font-bold sm:text-4xl">
-              행사 준비, 무엇이 필요하세요?
+        <section className="bg-white">
+          <div className="mx-auto max-w-3xl px-5 py-24 text-center">
+            <h2 className="text-balance text-2xl font-bold leading-snug text-ink sm:text-3xl">
+              행사의 규모보다 중요한 것은 참여자의 경험입니다.
             </h2>
-            <p className="mt-4 text-white/70">
-              원하는 장비와 일정을 알려주시면 빠르게 견적을 보내드립니다.
+            <p className="mt-6 leading-relaxed text-ink/70 sm:text-lg">
+              이벤토리는 가챠머신, 에어볼추첨기, 룰렛, 사격게임, 핀볼게임 등 다양한
+              이벤트 장비를 통해{" "}
+              <br className="hidden sm:block" />
+              브랜드 프로모션, 팝업스토어, 박람회, 기업행사, 지역축제까지 목적에 맞는
+              솔루션을 제공합니다.
             </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-              <QuoteButton />
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+              <QuoteButton variant="dark" />
               <a
                 href={`tel:${SITE.phone}`}
-                className="rounded-full border border-white/40 px-6 py-3 text-sm font-medium text-white transition hover:border-accent hover:text-accent"
+                className="rounded-full border border-ink px-6 py-3 text-sm font-medium text-ink transition hover:bg-ink hover:text-white"
               >
                 전화 {SITE.phone}
               </a>
@@ -130,24 +220,5 @@ export default async function Home() {
       </main>
       <SiteFooter />
     </>
-  );
-}
-
-function SectionTitle({ eyebrow, title, align = "center" }) {
-  return (
-    <div className={align === "center" ? "text-center" : "text-left"}>
-      <p className="font-heading text-sm font-bold tracking-[0.25em] text-primary">
-        {eyebrow}
-      </p>
-      <h2 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">{title}</h2>
-    </div>
-  );
-}
-
-function EmptyNote({ text }) {
-  return (
-    <div className="mt-8 rounded-xl border border-dashed border-ink/15 py-16 text-center text-sm text-ink/50">
-      {text}
-    </div>
   );
 }

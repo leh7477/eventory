@@ -18,9 +18,25 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* 히어로: 사진이 옆으로 계속 흐르는 마퀴 */
+@keyframes hero-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .animate-hero-marquee {
+    animation: hero-marquee 30s linear infinite;
+  }
+  .animate-hero-marquee:hover {
+    animation-play-state: paused;
   }
   /* 히어로 등에서 사진 위 텍스트 가독성 확보용 그라데이션 오버레이 */
   .overlay-gradient {

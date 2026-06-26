@@ -1,91 +1,75 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import { SITE } from "@/lib/constants";
 import QuoteButton from "@/components/QuoteButton";
 
+// 배너가 없을 때 보여줄 데모 폴백 슬라이드 4종 (브랜드 톤: 코랄·핑크·플럼 계열로 통일)
+const FALLBACKS = [
+  "bg-gradient-to-br from-[#FF7A59] to-[#FF4D8D]",
+  "bg-gradient-to-br from-[#C04A6A] to-[#5B2A48]",
+  "bg-gradient-to-br from-[#7A2F5A] to-[#2B2233]",
+  "bg-gradient-to-br from-[#E8345A] to-[#9B3B6E]",
+];
+
 export default function HeroSlider({ banners = [] }) {
-  const [index, setIndex] = useState(0);
   const hasBanners = banners.length > 0;
-
-  useEffect(() => {
-    if (banners.length <= 1) return;
-    const t = setInterval(() => {
-      setIndex((i) => (i + 1) % banners.length);
-    }, 5000);
-    return () => clearInterval(t);
-  }, [banners.length]);
-
-  const current = hasBanners ? banners[index] : null;
+  // 마퀴 seamless 루프를 위해 슬라이드를 2배로 복제
+  const slides = hasBanners ? banners : FALLBACKS.map((bg, i) => ({ id: `fb-${i}`, bg }));
+  const loop = [...slides, ...slides];
 
   return (
-    <section className="relative h-[100svh] min-h-[560px] w-full overflow-hidden bg-ink">
-      {/* 배경 이미지 슬라이드 */}
-      {hasBanners ? (
-        banners.map((b, i) => (
+    <section className="relative h-[82vh] min-h-[520px] w-full overflow-hidden bg-ink">
+      {/* 흐르는 사진 트랙 */}
+      <div className="absolute inset-0 flex w-max animate-hero-marquee">
+        {loop.map((s, i) => (
           <div
-            key={b.id}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
-              i === index ? "opacity-100" : "opacity-0"
-            }`}
+            key={`${s.id}-${i}`}
+            className="relative h-full w-[85vw] shrink-0 sm:w-[48vw] lg:w-[38vw]"
           >
-            <Image
-              src={b.image_url}
-              alt={b.title ?? "배너"}
-              fill
-              priority={i === 0}
-              sizes="100vw"
-              className="object-cover"
-            />
+            {s.image_url ? (
+              <Image
+                src={s.image_url}
+                alt={s.title ?? "행사 장비"}
+                fill
+                priority={i === 0}
+                sizes="(max-width: 640px) 85vw, (max-width: 1024px) 48vw, 38vw"
+                className="object-cover"
+              />
+            ) : (
+              <div className={`flex h-full w-full items-center justify-center ${s.bg}`}>
+                <span className="font-heading text-xs font-bold tracking-[0.4em] text-white/25">
+                  SAMPLE {String((i % FALLBACKS.length) + 1).padStart(2, "0")}
+                </span>
+              </div>
+            )}
           </div>
-        ))
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-ink via-[#4a2a44] to-ink" />
-      )}
+        ))}
+      </div>
 
-      {/* 가독성 오버레이 */}
+      {/* 가독성 오버레이 (데모 슬라이드가 보이도록 옅게) */}
+      <div className="absolute inset-0 bg-ink/25" />
       <div className="absolute inset-0 overlay-gradient" />
 
       {/* 텍스트 */}
-      <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col items-start justify-center px-6 text-white">
-        <p className="font-heading text-xl font-bold tracking-[0.2em] text-accent sm:text-2xl">
+      <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col items-start justify-end px-6 pb-16 text-white sm:pb-20">
+        <p className="font-heading text-sm font-bold tracking-[0.35em] text-white/70 sm:text-base">
           EVENTORY
         </p>
-        <h1 className="mt-3 max-w-2xl text-balance text-3xl font-bold leading-tight sm:text-5xl">
-          {current?.title ?? "이벤트의 완성, 장비 렌탈"}
-        </h1>
-        <p className="mt-4 max-w-xl text-balance text-base text-white/80 sm:text-lg">
-          {current?.subtitle ??
-            "가챠머신부터 룰렛·사격게임기까지, 행사에 필요한 모든 장비를 한 곳에서."}
+        <p className="mt-1.5 font-heading text-base font-semibold tracking-wide text-white/85 sm:text-lg">
+          Every Event Has a Story
         </p>
-        <div className="mt-8 flex flex-wrap items-center gap-4">
-          <QuoteButton />
+        <h1 className="mt-1 max-w-3xl text-balance font-handwriting text-4xl leading-[1.2] sm:text-6xl">
+          이벤트를 완성하는 모든 순간
+        </h1>
+        <div className="mt-7 flex flex-wrap items-center gap-3">
+          <QuoteButton variant="light" />
           <a
             href={`tel:${SITE.phone}`}
-            className="rounded-full border border-white/40 px-6 py-3 text-sm font-medium text-white transition hover:border-accent hover:text-accent"
+            className="rounded-full border border-white/40 px-6 py-3 text-sm font-medium text-white transition hover:border-white hover:bg-white/10"
           >
             {SITE.phone}
           </a>
         </div>
       </div>
-
-      {/* 인디케이터 */}
-      {banners.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-2">
-          {banners.map((b, i) => (
-            <button
-              key={b.id}
-              type="button"
-              aria-label={`${i + 1}번 배너`}
-              onClick={() => setIndex(i)}
-              className={`h-2 rounded-full transition-all ${
-                i === index ? "w-6 bg-accent" : "w-2 bg-white/50"
-              }`}
-            />
-          ))}
-        </div>
-      )}
     </section>
   );
 }

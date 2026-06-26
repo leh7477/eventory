@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const BASE =
-  "font-heading text-2xl font-extrabold tracking-tight text-ink sm:text-4xl";
+  "font-logo text-2xl font-extrabold tracking-tight text-ink sm:text-4xl";
 
 export default function LogoAnimated() {
-  // step: 0(초기) → 1(EVENT) → 2(+) → 3(STORY) → 4(EVENTORY로 전환)
+  // step: 0 → 1(EVENT) → 2(+) → 3(STORY) → 4(모핑: +,ST 사라지고 ORY가 EVENT에 붙음)
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
 
-  // 검토용: 매 로드마다 재생. (확정 후 아래 REPLAY_ONCE = true 로 바꾸면 세션당 1회)
+  // 검토용: 매 로드마다 재생. (확정 후 true로 바꾸면 세션당 1회)
   const REPLAY_ONCE = false;
 
   useEffect(() => {
@@ -28,15 +28,15 @@ export default function LogoAnimated() {
 
     const timers = [
       setTimeout(() => setStep(1), 200),
-      setTimeout(() => setStep(2), 700),
-      setTimeout(() => setStep(3), 1100),
+      setTimeout(() => setStep(2), 650),
+      setTimeout(() => setStep(3), 1050),
       setTimeout(() => setStep(4), 1800),
       setTimeout(() => {
         setDone(true);
         try {
           sessionStorage.setItem("logoPlayed", "1");
         } catch {}
-      }, 2300),
+      }, 2700),
     ];
     return () => timers.forEach(clearTimeout);
   }, []);
@@ -49,44 +49,44 @@ export default function LogoAnimated() {
     );
   }
 
+  const morph = step >= 4;
+
   return (
-    <Link href="/" aria-label="EVENTORY" className={`relative ${BASE}`}>
-      {/* 단계 A: EVENT + STORY */}
+    <Link href="/" aria-label="EVENTORY" className={`${BASE} inline-flex items-baseline`}>
+      {/* EVENT — 끝까지 고정 */}
       <span
-        className={`inline-flex items-center gap-1.5 transition-opacity duration-300 ${
-          step >= 4 ? "opacity-0" : "opacity-100"
+        className={`transition-opacity duration-300 ${
+          step >= 1 ? "opacity-100" : "opacity-0"
         }`}
       >
-        <span
-          className={`transition-all duration-300 ${
-            step >= 1 ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"
-          }`}
-        >
-          EVENT
-        </span>
-        <span
-          className={`transition-all duration-300 ${
-            step >= 2 ? "scale-100 opacity-100" : "scale-50 opacity-0"
-          }`}
-        >
-          +
-        </span>
-        <span
-          className={`transition-all duration-300 ${
-            step >= 3 ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"
-          }`}
-        >
-          STORY
-        </span>
+        EVENT
       </span>
 
-      {/* 단계 B: EVENTORY (겹쳐서 크로스페이드) */}
+      {/* + — 등장했다가 모핑 때 폭이 줄며 사라짐 */}
       <span
-        className={`absolute inset-0 flex items-center transition-opacity duration-500 ${
-          step >= 4 ? "opacity-100" : "opacity-0"
+        className={`inline-block overflow-hidden whitespace-nowrap transition-all duration-500 ${
+          step >= 2 && !morph ? "mx-2 max-w-[2em] opacity-100" : "mx-0 max-w-0 opacity-0"
         }`}
       >
-        EVENTORY
+        +
+      </span>
+
+      {/* ST — STORY로 등장했다가 모핑 때 사라짐 */}
+      <span
+        className={`inline-block overflow-hidden whitespace-nowrap transition-all duration-500 ${
+          step >= 3 && !morph ? "max-w-[3em] opacity-100" : "max-w-0 opacity-0"
+        }`}
+      >
+        ST
+      </span>
+
+      {/* ORY — STORY 일부로 등장, 모핑 후 EVENT에 붙어 EVENTORY 완성 */}
+      <span
+        className={`inline-block overflow-hidden whitespace-nowrap transition-all duration-500 ${
+          step >= 3 ? "max-w-[3em] opacity-100" : "max-w-0 opacity-0"
+        }`}
+      >
+        ORY
       </span>
     </Link>
   );

@@ -19,8 +19,10 @@ module.exports = {
         ink: "#2B2233", // 텍스트 / 딥 앵커
       },
       fontFamily: {
-        heading: ["var(--font-poppins)", "var(--font-noto-sans-kr)", "sans-serif"],
-        sans: ["var(--font-noto-sans-kr)", "sans-serif"],
+        sans: ["var(--font-pretendard)", "sans-serif"],
+        heading: ["var(--font-pretendard)", "sans-serif"],
+        logo: ["var(--font-poppins)", "sans-serif"],
+        handwriting: ["var(--font-handwriting)", "var(--font-pretendard)", "cursive"],
       },
       aspectRatio: {
         "4/3": "4 / 3",

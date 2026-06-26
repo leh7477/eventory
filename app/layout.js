@@ -1,17 +1,27 @@
-import { Poppins, Noto_Sans_KR } from "next/font/google";
+import { Poppins } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
+// 본문/메뉴 등 전역 기본 폰트
+const pretendard = localFont({
+  src: "./fonts/PretendardVariable.woff2",
+  variable: "--font-pretendard",
+  display: "swap",
+  weight: "45 920",
+});
+
+// 손글씨 — 히어로 한글 헤드라인 전용
+const handwriting = localFont({
+  src: "./fonts/NanumGeumeunbohwa.ttf",
+  variable: "--font-handwriting",
+  display: "swap",
+});
+
+// 로고 전용 (영문 워드마크)
 const poppins = Poppins({
   weight: ["500", "600", "700", "800"],
   subsets: ["latin"],
   variable: "--font-poppins",
-  display: "swap",
-});
-
-const notoSansKr = Noto_Sans_KR({
-  weight: ["400", "500", "700"],
-  subsets: ["latin"],
-  variable: "--font-noto-sans-kr",
   display: "swap",
 });
 
@@ -23,7 +33,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ko" className={`${poppins.variable} ${notoSansKr.variable}`}>
+    <html
+      lang="ko"
+      className={`${pretendard.variable} ${poppins.variable} ${handwriting.variable}`}
+    >
       <body className="font-sans antialiased">{children}</body>
     </html>
   );
