@@ -36,8 +36,9 @@ export default function SiteHeader() {
   }, [open]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-ink/5 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-5">
+    <>
+      <header className="sticky top-0 z-40 border-b border-ink/5 bg-white/80 backdrop-blur-md">
+        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-5">
         <LogoAnimated />
 
         <div className="flex shrink-0 items-center gap-3 pl-3">
@@ -63,6 +64,7 @@ export default function SiteHeader() {
           </button>
         </div>
       </div>
+      </header>
 
       {/* 배경 딤 */}
       <div
@@ -75,7 +77,7 @@ export default function SiteHeader() {
 
       {/* 우측 드로어 */}
       <aside
-        className={`fixed right-0 top-0 z-[60] flex h-full w-72 max-w-[82vw] flex-col bg-white shadow-2xl transition-transform duration-300 ${
+        className={`fixed inset-y-0 right-0 z-[60] flex w-72 max-w-[82vw] flex-col bg-white shadow-2xl transition-transform duration-300 ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -106,8 +108,8 @@ export default function SiteHeader() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className={`border-b border-ink/5 py-4 text-[15px] font-medium transition last:border-0 hover:text-primary ${
-                  active ? "text-primary" : "text-ink/80"
+                className={`border-b border-ink/5 py-4 text-base font-semibold transition last:border-0 hover:text-primary ${
+                  active ? "text-primary" : "text-ink"
                 }`}
               >
                 {item.label}
@@ -125,6 +127,6 @@ export default function SiteHeader() {
           견적문의
         </a>
       </aside>
-    </header>
+    </>
   );
 }

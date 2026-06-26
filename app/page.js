@@ -3,6 +3,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import HeroSlider from "@/components/HeroSlider";
 import QuoteButton from "@/components/QuoteButton";
+import DragScroll from "@/components/DragScroll";
 import { SITE } from "@/lib/constants";
 import { getActiveBanners, getCategories, getProducts, getCases } from "@/lib/data";
 
@@ -78,14 +79,14 @@ export default async function Home() {
 
         {/* 인기 장비 (쇼츠 스타일 세로 카드 가로 스크롤) */}
         <section className="py-14">
-          <div className="mx-auto max-w-6xl">
-            <div className="flex gap-4 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mx-auto max-w-6xl px-5">
+            <DragScroll className="flex gap-4 pb-2">
               {products.length > 0
                 ? products.map((p) => (
                     <Link
                       key={p.id}
                       href={`/products/${p.id}`}
-                      className="group relative block w-40 shrink-0 sm:w-44"
+                      className="group relative block shrink-0 basis-[calc((100%-1rem)/2)] sm:basis-[calc((100%-2rem)/3)] lg:basis-[calc((100%-4rem)/5)]"
                     >
                       <div className="relative aspect-[9/16] overflow-hidden rounded-2xl bg-cream">
                         {p.thumbnail ? (
@@ -103,11 +104,6 @@ export default async function Home() {
                           </div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/15 to-transparent" />
-                        {p.categoryName && (
-                          <span className="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
-                            {p.categoryName}
-                          </span>
-                        )}
                         <h3 className="absolute inset-x-0 bottom-0 p-3 text-sm font-bold text-white">
                           {p.name}
                         </h3>
@@ -117,7 +113,7 @@ export default async function Home() {
                 : SAMPLE_PRODUCTS.map((p) => (
                     <div
                       key={p.id}
-                      className="group relative block w-40 shrink-0 sm:w-44"
+                      className="group relative block shrink-0 basis-[calc((100%-1rem)/2)] sm:basis-[calc((100%-2rem)/3)] lg:basis-[calc((100%-4rem)/5)]"
                     >
                       <div
                         className={`relative aspect-[9/16] overflow-hidden rounded-2xl ${p.bg}`}
@@ -126,26 +122,23 @@ export default async function Home() {
                           SAMPLE
                         </span>
                         <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
-                        <span className="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
-                          {p.cat}
-                        </span>
                         <h3 className="absolute inset-x-0 bottom-0 p-3 text-sm font-bold text-white">
                           {p.name}
                         </h3>
                       </div>
                     </div>
                   ))}
-            </div>
+            </DragScroll>
           </div>
         </section>
 
         {/* 행사 사례 (제목 없이 사진 바로, 가로 스크롤) */}
         <section className="py-14">
-          <div className="mx-auto max-w-6xl">
-            <div className="flex gap-4 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mx-auto max-w-6xl px-5">
+            <DragScroll className="flex gap-4 pb-2">
               {cases.length > 0
                 ? cases.map((item) => (
-                  <Link key={item.id} href="/cases" className="group block w-60 shrink-0">
+                  <Link key={item.id} href="/cases" className="group block shrink-0 basis-[calc((100%-1rem)/2)] sm:basis-[calc((100%-2rem)/3)]">
                     <div className="relative aspect-square overflow-hidden rounded-xl bg-cream">
                       {item.image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -173,7 +166,7 @@ export default async function Home() {
                   </Link>
                 ))
                 : SAMPLE_CASES.map((s, i) => (
-                  <div key={s.id} className="block w-60 shrink-0">
+                  <div key={s.id} className="block shrink-0 basis-[calc((100%-1rem)/2)] sm:basis-[calc((100%-2rem)/3)]">
                     <div
                       className={`relative flex aspect-square items-center justify-center overflow-hidden rounded-xl ${s.bg}`}
                     >
@@ -189,7 +182,7 @@ export default async function Home() {
                     </p>
                   </div>
                 ))}
-            </div>
+            </DragScroll>
           </div>
         </section>
 
