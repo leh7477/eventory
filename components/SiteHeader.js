@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NAVER_FORM_URL } from "@/lib/constants";
 import LogoAnimated from "@/components/LogoAnimated";
 
 const NAV = [
@@ -16,11 +15,6 @@ const NAV = [
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-
-  const quoteHref = NAVER_FORM_URL || "/about";
-  const quoteProps = NAVER_FORM_URL
-    ? { target: "_blank", rel: "noopener noreferrer" }
-    : {};
 
   // 드로어 열렸을 때 body 스크롤 잠금 + ESC 닫기
   useEffect(() => {
@@ -42,13 +36,12 @@ export default function SiteHeader() {
         <LogoAnimated />
 
         <div className="flex shrink-0 items-center gap-3 pl-3">
-          <a
-            href={quoteHref}
-            {...quoteProps}
+          <Link
+            href="/contact"
             className="whitespace-nowrap rounded-full bg-ink px-5 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-black active:scale-[0.98]"
           >
             견적문의
-          </a>
+          </Link>
 
           {/* 햄버거 → 우측 드로어 열기 */}
           <button
@@ -118,14 +111,13 @@ export default function SiteHeader() {
           })}
         </nav>
 
-        <a
-          href={quoteHref}
-          {...quoteProps}
+        <Link
+          href="/contact"
           onClick={() => setOpen(false)}
           className="mx-5 mt-3 rounded-full bg-ink px-4 py-3 text-center text-sm font-bold text-white"
         >
           견적문의
-        </a>
+        </Link>
       </aside>
     </>
   );

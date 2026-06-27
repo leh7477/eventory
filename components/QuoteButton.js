@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { NAVER_FORM_URL } from "@/lib/constants";
 
 // variant: "gradient"(기본, festive) | "light"(어두운 배경용 흰 버튼) | "dark"(밝은 배경용 검정 버튼)
 const VARIANTS = {
@@ -19,21 +18,9 @@ export default function QuoteButton({
     "inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-bold transition active:scale-[0.98]";
   const styles = `${base} ${VARIANTS[variant] ?? VARIANTS.gradient} ${className}`;
 
-  if (NAVER_FORM_URL) {
-    return (
-      <a
-        href={NAVER_FORM_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={styles}
-      >
-        {label}
-      </a>
-    );
-  }
-
+  // 사이트 내부 견적문의 페이지로 이동
   return (
-    <Link href="/about" className={styles}>
+    <Link href="/contact" className={styles}>
       {label}
     </Link>
   );

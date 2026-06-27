@@ -72,6 +72,19 @@ create table if not exists inquiries (
 );
 
 -- -------------------------------------------------------------
+-- 견적문의 폼 확장 컬럼 (기존 inquiries 테이블에 추가)
+-- -------------------------------------------------------------
+alter table inquiries add column if not exists company_name text;    -- 업체명
+alter table inquiries add column if not exists contact_name text;     -- 담당자명
+alter table inquiries add column if not exists email text;            -- 이메일
+alter table inquiries add column if not exists product text;          -- 문의 제품
+alter table inquiries add column if not exists usage text;            -- 제품 용도(임대/제작)
+alter table inquiries add column if not exists event_start date;      -- 행사 시작일
+alter table inquiries add column if not exists event_end date;        -- 행사 종료일
+alter table inquiries add column if not exists address text;          -- 장소 주소
+alter table inquiries add column if not exists address_detail text;   -- 상세주소
+
+-- -------------------------------------------------------------
 -- 인덱스 (정렬/조회 성능)
 -- -------------------------------------------------------------
 create index if not exists idx_banners_order on banners (order_num);
