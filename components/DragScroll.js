@@ -48,7 +48,8 @@ export default function DragScroll({ children, className = "" }) {
       onMouseUp={end}
       onMouseLeave={end}
       onClickCapture={onClickCapture}
-      className={`cursor-grab select-none overflow-x-auto [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden ${className}`}
+      onDragStart={(e) => e.preventDefault()}
+      className={`cursor-grab select-none overflow-x-auto [scrollbar-width:none] active:cursor-grabbing [&::-webkit-scrollbar]:hidden [&_img]:pointer-events-none ${className}`}
     >
       {children}
     </div>

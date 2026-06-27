@@ -4,38 +4,12 @@ import SiteFooter from "@/components/SiteFooter";
 import HeroSlider from "@/components/HeroSlider";
 import QuoteButton from "@/components/QuoteButton";
 import DragScroll from "@/components/DragScroll";
+import CaseGallery from "@/components/CaseGallery";
+import { normalizeCases } from "@/lib/samples";
 import { SITE } from "@/lib/constants";
 import { getActiveBanners, getCategories, getProducts, getCases } from "@/lib/data";
 
 export const revalidate = 0;
-
-// 사례 데이터가 없을 때 보여줄 샘플 카드 (실제 등록 시 교체됨)
-const SAMPLE_CASES = [
-  {
-    id: "s1",
-    bg: "bg-gradient-to-br from-[#FF7A59] to-[#FF4D8D]",
-    title: "기업 행사 부스 운영",
-    desc: "가챠머신·룰렛으로 현장 참여 이벤트 진행",
-  },
-  {
-    id: "s2",
-    bg: "bg-gradient-to-br from-[#C04A6A] to-[#5B2A48]",
-    title: "지역 축제 게임존",
-    desc: "사격게임기·에어볼추첨기 세팅",
-  },
-  {
-    id: "s3",
-    bg: "bg-gradient-to-br from-[#7A2F5A] to-[#2B2233]",
-    title: "매장 오픈 프로모션",
-    desc: "핀볼게임으로 방문 고객 사은 이벤트",
-  },
-  {
-    id: "s4",
-    bg: "bg-gradient-to-br from-[#E8345A] to-[#9B3B6E]",
-    title: "가족 행사 이벤트",
-    desc: "다양한 장비로 남녀노소 즐기는 현장",
-  },
-];
 
 // 제품 데이터가 없을 때 보여줄 샘플 (쇼츠 스타일 세로 카드)
 const SAMPLE_PRODUCTS = [
@@ -52,8 +26,11 @@ export default async function Home() {
     getActiveBanners(),
     getCategories(),
     getProducts({ limit: 6 }),
-    getCases({ limit: 4 }),
+    getCases({ limit: 8 }),
   ]);
+
+  // 사례: 실제 데이터 정규화, 없으면 샘플
+  const caseItems = normalizeCases(cases);
 
   return (
     <>
@@ -132,57 +109,10 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* 행사 사례 (제목 없이 사진 바로, 가로 스크롤) */}
+        {/* 행사 사례 (제목 없이 사진 바로, 가로 스크롤 + 클릭 시 상세 모달) */}
         <section className="py-14">
           <div className="mx-auto max-w-6xl px-5">
-            <DragScroll className="flex gap-4 pb-2">
-              {cases.length > 0
-                ? cases.map((item) => (
-                  <Link key={item.id} href="/cases" className="group block shrink-0 basis-[calc((100%-1rem)/2)] sm:basis-[calc((100%-2rem)/3)]">
-                    <div className="relative aspect-square overflow-hidden rounded-xl bg-cream">
-                      {item.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={item.image_url}
-                          alt={item.title}
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-festive">
-                          <span className="font-heading font-bold tracking-widest text-white/80">
-                            EVENTORY
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="mt-3 text-center text-sm font-semibold text-ink sm:text-base">
-                      {item.title}
-                    </h3>
-                    {item.description && (
-                      <p className="mt-1 line-clamp-1 text-center text-xs text-ink/60 sm:text-sm">
-                        {item.description}
-                      </p>
-                    )}
-                  </Link>
-                ))
-                : SAMPLE_CASES.map((s, i) => (
-                  <div key={s.id} className="block shrink-0 basis-[calc((100%-1rem)/2)] sm:basis-[calc((100%-2rem)/3)]">
-                    <div
-                      className={`relative flex aspect-square items-center justify-center overflow-hidden rounded-xl ${s.bg}`}
-                    >
-                      <span className="font-heading text-xs font-bold tracking-[0.4em] text-white/30">
-                        SAMPLE {String(i + 1).padStart(2, "0")}
-                      </span>
-                    </div>
-                    <h3 className="mt-3 text-center text-sm font-semibold text-ink sm:text-base">
-                      {s.title}
-                    </h3>
-                    <p className="mt-1 line-clamp-1 text-center text-xs text-ink/60 sm:text-sm">
-                      {s.desc}
-                    </p>
-                  </div>
-                ))}
-            </DragScroll>
+            <CaseGallery items={caseItems} />
           </div>
         </section>
 
