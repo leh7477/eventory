@@ -123,6 +123,22 @@ create index if not exists idx_cases_order on cases (order_num);
 create index if not exists idx_inquiries_created on inquiries (created_at desc);
 
 -- -------------------------------------------------------------
+-- 사이트 설정 (단일 행) — 홈 Stories 자동 롤링 등
+-- -------------------------------------------------------------
+create table if not exists settings (
+  id int primary key default 1,
+  home_stories_autoplay boolean default false,
+  home_stories_mode text default 'off',   -- off | marquee | carousel
+  home_stories_speed int default 30
+);
+insert into settings (id) values (1) on conflict (id) do nothing;
+alter table settings add column if not exists home_stories_mode text default 'off';
+alter table settings enable row level security;
+drop policy if exists "public read settings" on settings;
+create policy "public read settings" on settings
+  for select to anon, authenticated using (true);
+
+-- -------------------------------------------------------------
 -- RLS (Row Level Security)
 --   읽기 전용 공개 데이터: 누구나(anon) SELECT 가능
 --   문의(inquiries): 누구나 INSERT 가능, 읽기는 불가

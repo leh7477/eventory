@@ -1,13 +1,15 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import CaseManager from "@/components/admin/CaseManager";
+import StoriesSettings from "@/components/admin/StoriesSettings";
 
 export const revalidate = 0;
 
 export default async function AdminCasesPage() {
   const admin = createAdminClient();
-  const [{ data: cases }, { data: categories }] = await Promise.all([
+  const [{ data: cases }, { data: categories }, { data: settings }] = await Promise.all([
     admin.from("cases").select("*").order("order_num", { ascending: true }),
     admin.from("categories").select("*").order("order_num", { ascending: true }),
+    admin.from("settings").select("*").eq("id", 1).maybeSingle(),
   ]);
 
   return (
@@ -18,7 +20,8 @@ export default async function AdminCasesPage() {
         쭉 노출됩니다.
       </p>
 
-      <div className="mt-6">
+      <div className="mt-6 space-y-6">
+        <StoriesSettings settings={settings ?? {}} />
         <CaseManager cases={cases ?? []} categories={categories ?? []} />
       </div>
     </div>

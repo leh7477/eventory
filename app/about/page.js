@@ -7,73 +7,76 @@ export const metadata = {
   title: "회사소개 | Eventory",
 };
 
+const POINTS = [
+  {
+    t: "맞춤 장비 제안",
+    d: "행사 성격·공간·참여 인원을 분석해 가장 효과적인 장비를 큐레이션합니다.",
+  },
+  {
+    t: "브랜드 맞춤 제작",
+    d: "로고·컬러·디자인 랩핑으로 행사 콘셉트에 꼭 맞게 연출해 드립니다.",
+  },
+  {
+    t: "설치부터 운영까지",
+    d: "현장 세팅·운영·철수까지 원스톱으로 지원해 행사에만 집중하실 수 있습니다.",
+  },
+];
+
 export default function AboutPage() {
   return (
     <>
       <SiteHeader />
-      <main>
+      <main className="mx-auto max-w-5xl px-5 py-12">
         {/* 인트로 */}
-        <section className="bg-festive text-white">
-          <div className="mx-auto max-w-4xl px-5 py-20 text-center">
-            <p className="font-heading text-lg font-bold tracking-[0.2em] text-white/90">
-              ABOUT EVENTORY
-            </p>
-            <h1 className="mt-4 text-balance text-3xl font-bold sm:text-4xl">
-              이벤트의 모든 순간을 채우는 장비 파트너
-            </h1>
-            <p className="mt-6 text-balance leading-relaxed text-white/75">
-              Eventory는 가챠머신, 에어볼추첨기, 룰렛, 사격게임기 등 다양한 이벤트
-              장비를 보유한 렌탈 전문 업체입니다. 기업 행사, 축제, 프로모션, 매장
-              이벤트까지 — 현장에 꼭 맞는 장비를 빠르고 깔끔하게 제공합니다.
-            </p>
-          </div>
-        </section>
+        <header className="max-w-2xl">
+          <p className="font-heading text-sm font-bold tracking-[0.25em] text-primary">
+            ABOUT EVENTORY
+          </p>
+          <h1 className="mt-2 font-heading text-4xl font-extrabold leading-tight text-ink sm:text-5xl">
+            EVENT <span className="text-primary">+</span> STORY
+          </h1>
+          <p className="mt-6 leading-relaxed text-ink/70">
+            단순한 장비 대여를 넘어 행사 성격과 공간, 참여 인원에 맞는 장비를
+            제안하며,{" "}
+            <br className="hidden sm:block" />
+            철저한 장비 관리와 신속한 대응으로 고객이 행사에만 집중할 수 있는 환경을
+            만들어드립니다.
+          </p>
+          <p className="mt-3 leading-relaxed text-ink/70">
+            성공적인 이벤트를 위한 경험과 솔루션, 그것이 EVENTORY가 추구하는
+            가치입니다.
+          </p>
+        </header>
 
         {/* 강점 */}
-        <section className="mx-auto max-w-5xl px-5 py-16">
-          <div className="grid gap-6 sm:grid-cols-3">
-            {[
-              {
-                t: "다양한 장비 보유",
-                d: "트렌디한 이벤트 장비를 폭넓게 보유해 행사 콘셉트에 맞게 제안합니다.",
-              },
-              {
-                t: "빠른 견적·상담",
-                d: "원하는 일정과 장비만 알려주시면 신속하게 견적을 안내드립니다.",
-              },
-              {
-                t: "깔끔한 설치·운영",
-                d: "현장 세팅부터 운영까지 매끄럽게 진행되도록 지원합니다.",
-              },
-            ].map((item) => (
-              <div
-                key={item.t}
-                className="rounded-2xl border border-ink/10 bg-cream p-6"
-              >
-                <h3 className="font-bold text-primary">{item.t}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink/70">
-                  {item.d}
-                </p>
-              </div>
-            ))}
-          </div>
+        <section className="mt-12 grid gap-5 sm:grid-cols-3">
+          {POINTS.map((item, i) => (
+            <div
+              key={item.t}
+              className="rounded-2xl border border-ink/10 p-6 transition hover:border-primary/40"
+            >
+              <span className="font-heading text-sm font-bold text-primary">
+                0{i + 1}
+              </span>
+              <h3 className="mt-2 font-bold text-ink">{item.t}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-ink/60">{item.d}</p>
+            </div>
+          ))}
         </section>
 
         {/* 연락 */}
-        <section className="bg-cream">
-          <div className="mx-auto max-w-4xl px-5 py-16 text-center">
-            <h2 className="text-2xl font-bold text-ink">문의하기</h2>
-            <p className="mt-3 text-ink/70">
-              전화 또는 견적 문의로 편하게 연락 주세요.
-            </p>
-            <p className="mt-4 text-2xl font-bold text-primary">
-              <a href={`tel:${SITE.phone}`} className="hover:text-primary-dark">
-                {SITE.phone}
-              </a>
-            </p>
-            <div className="mt-8 flex justify-center">
-              <QuoteButton />
-            </div>
+        <section className="mt-12 rounded-2xl bg-cream px-6 py-9 text-center">
+          <h2 className="text-lg font-bold text-ink">문의하기</h2>
+          <p className="mt-1.5 text-sm text-ink/60">
+            전화 또는 견적 문의로 편하게 연락 주세요.
+          </p>
+          <p className="mt-2 text-xl font-bold text-ink">
+            <a href={`tel:${SITE.phone}`} className="hover:text-primary">
+              {SITE.phone}
+            </a>
+          </p>
+          <div className="mt-5 flex justify-center">
+            <QuoteButton variant="dark" />
           </div>
         </section>
       </main>

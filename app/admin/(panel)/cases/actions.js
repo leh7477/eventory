@@ -75,6 +75,30 @@ export async function deleteCase(id) {
   return { ok: true };
 }
 
+// 홈 Stories 표시 방식 설정 (off | marquee | carousel)
+export async function updateStoriesMode(mode, speed) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin.from("settings").upsert({
+    id: 1,
+    home_stories_mode: mode,
+    home_stories_autoplay: mode !== "off", // 하위 호환
+    home_stories_speed: speed,
+  });
+  if (error) {
+    if (/home_stories_mode|schema cache|column/i.test(error.message)) {
+      return {
+        error:
+          "DB에 표시 방식 컬럼이 아직 없습니다. 안내된 SQL(alter table settings ...)을 먼저 실행해주세요.",
+      };
+    }
+    return { error: "설정 저장에 실패했습니다. 잠시 후 다시 시도해주세요." };
+  }
+  revalidatePath("/admin/cases");
+  revalidatePath("/");
+  return { ok: true };
+}
+
 export async function swapCaseOrder(a, b) {
   await requireAdmin();
   const admin = createAdminClient();

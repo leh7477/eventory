@@ -7,7 +7,7 @@ import ShortsRow from "@/components/ShortsRow";
 import CaseGallery from "@/components/CaseGallery";
 import { normalizeCases } from "@/lib/samples";
 import { SITE } from "@/lib/constants";
-import { getActiveBanners, getCategories, getProducts, getCases } from "@/lib/data";
+import { getActiveBanners, getCategories, getProducts, getCases, getSettings } from "@/lib/data";
 
 export const revalidate = 0;
 
@@ -22,11 +22,12 @@ const SAMPLE_PRODUCTS = [
 ];
 
 export default async function Home() {
-  const [banners, categories, products, cases] = await Promise.all([
+  const [banners, categories, products, cases, settings] = await Promise.all([
     getActiveBanners(),
     getCategories(),
     getProducts({ limit: 6 }),
     getCases({ limit: 8 }),
+    getSettings(),
   ]);
 
   // 사례: 실제 데이터 정규화, 없으면 샘플
@@ -81,7 +82,11 @@ export default async function Home() {
         {/* 행사 사례 (제목 없이 사진 바로, 가로 스크롤 + 클릭 시 상세 모달) */}
         <section className="py-14">
           <div className="mx-auto max-w-6xl px-5">
-            <CaseGallery items={caseItems} />
+            <CaseGallery
+              items={caseItems}
+              mode={settings.home_stories_mode || "off"}
+              speed={settings.home_stories_speed || 30}
+            />
           </div>
         </section>
 
