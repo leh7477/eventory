@@ -49,6 +49,9 @@ create table if not exists product_images (
   order_num integer default 0
 );
 
+-- 제품 유튜브 영상 URL (쇼츠) — 선택
+alter table products add column if not exists video_url text;
+
 -- 시공/행사 사례
 create table if not exists cases (
   id uuid default gen_random_uuid() primary key,
@@ -85,8 +88,23 @@ alter table inquiries add column if not exists address text;          -- 장소 
 alter table inquiries add column if not exists address_detail text;   -- 상세주소
 
 -- -------------------------------------------------------------
+-- 사례 이미지 (여러 장 = 포트폴리오 현장 사진)
+-- -------------------------------------------------------------
+create table if not exists case_images (
+  id uuid default gen_random_uuid() primary key,
+  case_id uuid references cases(id) on delete cascade,
+  image_url text not null,
+  order_num integer default 0
+);
+alter table case_images enable row level security;
+drop policy if exists "public read case_images" on case_images;
+create policy "public read case_images" on case_images
+  for select to anon, authenticated using (true);
+
+-- -------------------------------------------------------------
 -- 인덱스 (정렬/조회 성능)
 -- -------------------------------------------------------------
+create index if not exists idx_case_images_case on case_images (case_id, order_num);
 create index if not exists idx_banners_order on banners (order_num);
 create index if not exists idx_categories_order on categories (order_num);
 create index if not exists idx_products_category on products (category_id);

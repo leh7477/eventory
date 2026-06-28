@@ -3,7 +3,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import HeroSlider from "@/components/HeroSlider";
 import QuoteButton from "@/components/QuoteButton";
-import DragScroll from "@/components/DragScroll";
+import ShortsRow from "@/components/ShortsRow";
 import CaseGallery from "@/components/CaseGallery";
 import { normalizeCases } from "@/lib/samples";
 import { SITE } from "@/lib/constants";
@@ -32,6 +32,23 @@ export default async function Home() {
   // 사례: 실제 데이터 정규화, 없으면 샘플
   const caseItems = normalizeCases(cases);
 
+  // 쇼츠(인기 장비): 실제 제품 정규화, 없으면 샘플
+  const shortsItems =
+    products.length > 0
+      ? products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          thumbnail: p.thumbnail,
+          videoUrl: p.video_url,
+          isSample: false,
+        }))
+      : SAMPLE_PRODUCTS.map((p) => ({
+          id: p.id,
+          name: p.name,
+          bg: p.bg,
+          isSample: true,
+        }));
+
   return (
     <>
       <SiteHeader />
@@ -57,55 +74,7 @@ export default async function Home() {
         {/* 인기 장비 (쇼츠 스타일 세로 카드 가로 스크롤) */}
         <section className="py-14">
           <div className="mx-auto max-w-6xl px-5">
-            <DragScroll className="flex gap-4 pb-2">
-              {products.length > 0
-                ? products.map((p) => (
-                    <Link
-                      key={p.id}
-                      href={`/products/${p.id}`}
-                      className="group relative block shrink-0 basis-[calc((100%-1rem)/2)] sm:basis-[calc((100%-2rem)/3)] lg:basis-[calc((100%-4rem)/5)]"
-                    >
-                      <div className="relative aspect-[9/16] overflow-hidden rounded-2xl bg-cream">
-                        {p.thumbnail ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={p.thumbnail}
-                            alt={p.name}
-                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-festive">
-                            <span className="font-heading font-bold tracking-widest text-white/80">
-                              EVENTORY
-                            </span>
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/15 to-transparent" />
-                        <h3 className="absolute inset-x-0 bottom-0 p-3 text-sm font-bold text-white">
-                          {p.name}
-                        </h3>
-                      </div>
-                    </Link>
-                  ))
-                : SAMPLE_PRODUCTS.map((p) => (
-                    <div
-                      key={p.id}
-                      className="group relative block shrink-0 basis-[calc((100%-1rem)/2)] sm:basis-[calc((100%-2rem)/3)] lg:basis-[calc((100%-4rem)/5)]"
-                    >
-                      <div
-                        className={`relative aspect-[9/16] overflow-hidden rounded-2xl ${p.bg}`}
-                      >
-                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-heading text-[11px] font-bold tracking-[0.4em] text-white/25">
-                          SAMPLE
-                        </span>
-                        <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
-                        <h3 className="absolute inset-x-0 bottom-0 p-3 text-sm font-bold text-white">
-                          {p.name}
-                        </h3>
-                      </div>
-                    </div>
-                  ))}
-            </DragScroll>
+            <ShortsRow items={shortsItems} />
           </div>
         </section>
 
