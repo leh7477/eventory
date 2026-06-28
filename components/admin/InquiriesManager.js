@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   setInquiryRead,
+  setInquiryHandled,
   deleteInquiry,
 } from "@/app/admin/(panel)/inquiries/actions";
 
@@ -54,6 +55,15 @@ export default function InquiriesManager({ inquiries }) {
 
   return (
     <div className="overflow-hidden rounded-xl border border-ink/10 bg-white">
+      {/* 컬럼 헤더 */}
+      <div className="flex items-center gap-4 border-b border-ink/10 bg-ink/[0.02] px-4 py-2.5 text-xs font-semibold text-ink/40">
+        <span className="w-16 shrink-0">상태</span>
+        <span className="w-32 shrink-0">접수일</span>
+        <span className="flex-1">업체 · 담당자</span>
+        <span className="hidden w-32 shrink-0 sm:block">연락처</span>
+        <span className="w-4 shrink-0" />
+      </div>
+
       <ul className="divide-y divide-ink/5">
         {inquiries.map((q) => {
           const open = openId === q.id;
@@ -68,22 +78,40 @@ export default function InquiriesManager({ inquiries }) {
               <button
                 type="button"
                 onClick={() => onOpen(q)}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-ink/[0.02]"
+                className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-ink/[0.02]"
               >
-                {!q.is_read && (
-                  <span className="h-2 w-2 shrink-0 rounded-full bg-primary" title="안읽음" />
-                )}
-                <span className="w-36 shrink-0 text-xs text-ink/50">
+                {/* 1. 상태 */}
+                <span className="w-16 shrink-0">
+                  {q.handled ? (
+                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold text-green-700">
+                      완료
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+                      미처리
+                    </span>
+                  )}
+                </span>
+                {/* 2. 날짜 */}
+                <span className="w-32 shrink-0 text-xs text-ink/50">
                   {fmtDate(q.created_at)}
                 </span>
+                {/* 3. 업체 · 담당자 */}
                 <span className={`flex-1 truncate text-sm ${q.is_read ? "text-ink/70" : "font-semibold text-ink"}`}>
+                  {!q.is_read && (
+                    <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-primary align-middle" title="안읽음" />
+                  )}
                   {q.company_name || q.name || "(업체명 없음)"}
                   {q.contact_name ? ` · ${q.contact_name}` : ""}
                 </span>
+                {/* 4. 연락처 */}
                 <span className="hidden w-32 shrink-0 text-xs text-ink/50 sm:block">
                   {q.phone}
                 </span>
-                <span className="shrink-0 text-ink/30">{open ? "▲" : "▼"}</span>
+                {/* 5. 펼침 */}
+                <span className="w-4 shrink-0 text-center text-ink/30">
+                  {open ? "▲" : "▼"}
+                </span>
               </button>
 
               {/* 상세 */}
@@ -101,7 +129,26 @@ export default function InquiriesManager({ inquiries }) {
                     <Row label="기타 문의" value={q.message} />
                   </dl>
 
-                  <div className="mt-4 flex gap-2">
+                  {q.handled && (
+                    <p className="mt-3 rounded-md bg-green-50 px-3 py-2 text-xs text-green-700">
+                      ✓ 회신 완료 — {q.handled_by || "담당자"}
+                      {q.handled_at ? ` · ${fmtDate(q.handled_at)}` : ""}
+                    </p>
+                  )}
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => run(() => setInquiryHandled(q.id, !q.handled))}
+                      disabled={pending}
+                      className={`rounded-md px-3 py-1.5 text-xs font-bold ${
+                        q.handled
+                          ? "border border-ink/15 text-ink/60 hover:bg-ink/5"
+                          : "bg-green-600 text-white hover:bg-green-700"
+                      }`}
+                    >
+                      {q.handled ? "회신완료 취소" : "회신 완료 처리"}
+                    </button>
                     <button
                       type="button"
                       onClick={() => run(() => setInquiryRead(q.id, !q.is_read))}

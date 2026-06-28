@@ -41,7 +41,9 @@ export default async function CasesPage({ searchParams }) {
     }));
   }
 
-  const tabs = [{ id: null, name: "전체" }, ...categories];
+  const activeCategoryName = activeCategory
+    ? categories.find((c) => String(c.id) === String(activeCategory))?.name
+    : null;
 
   return (
     <>
@@ -58,28 +60,15 @@ export default async function CasesPage({ searchParams }) {
           </p>
         </header>
 
-        {/* 카테고리 탭 */}
-        {categories.length > 0 && (
-          <div className="-mx-5 mb-8 overflow-x-auto px-5">
-            <div className="flex gap-2">
-              {tabs.map((tab) => {
-                const active = (tab.id ?? null) === (activeCategory ?? null);
-                const href = tab.id ? `/cases?category=${tab.id}` : "/cases";
-                return (
-                  <Link
-                    key={tab.id ?? "all"}
-                    href={href}
-                    className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition ${
-                      active
-                        ? "bg-ink text-white"
-                        : "border border-ink/15 text-ink hover:border-primary"
-                    }`}
-                  >
-                    {tab.name}
-                  </Link>
-                );
-              })}
-            </div>
+        {/* 카테고리 필터 안내 (필터로 들어왔을 때만) */}
+        {activeCategoryName && (
+          <div className="mb-8 flex items-center gap-3">
+            <span className="rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-white">
+              {activeCategoryName}
+            </span>
+            <Link href="/cases" className="text-sm text-ink/50 transition hover:text-primary">
+              전체 보기 →
+            </Link>
           </div>
         )}
 

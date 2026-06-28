@@ -86,6 +86,9 @@ alter table inquiries add column if not exists event_start date;      -- 행사 
 alter table inquiries add column if not exists event_end date;        -- 행사 종료일
 alter table inquiries add column if not exists address text;          -- 장소 주소
 alter table inquiries add column if not exists address_detail text;   -- 상세주소
+alter table inquiries add column if not exists handled boolean default false;  -- 회신 완료 여부
+alter table inquiries add column if not exists handled_by text;       -- 처리한 담당자(로그인 아이디)
+alter table inquiries add column if not exists handled_at timestamptz; -- 처리 시각
 
 -- -------------------------------------------------------------
 -- 사례(Stories) 카테고리 연결 — 카테고리별 필터용
