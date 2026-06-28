@@ -42,7 +42,8 @@ export default function ProductManager({ products, categories }) {
     e.preventDefault();
     const files = fileRef.current?.files;
     if (!form.name.trim()) return setError("제품명을 입력하세요.");
-    if (!files || files.length === 0) return setError("사진을 1장 이상 선택하세요.");
+    if ((!files || files.length === 0) && !form.video_url.trim())
+      return setError("사진 또는 유튜브 영상 URL 중 하나는 등록해야 합니다.");
     const fd = new FormData();
     fd.append("name", form.name);
     fd.append("category_id", form.category_id);
@@ -121,7 +122,7 @@ export default function ProductManager({ products, categories }) {
 
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink/60">
-              제품 사진 (여러 장 가능, 첫 장이 대표)
+              제품 사진 (여러 장 가능, 첫 장이 대표 · 영상만 등록 시 생략 가능)
             </label>
             <input
               ref={fileRef}

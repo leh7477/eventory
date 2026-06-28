@@ -88,6 +88,12 @@ alter table inquiries add column if not exists address text;          -- 장소 
 alter table inquiries add column if not exists address_detail text;   -- 상세주소
 
 -- -------------------------------------------------------------
+-- 사례(Stories) 카테고리 연결 — 카테고리별 필터용
+-- -------------------------------------------------------------
+alter table cases add column if not exists category_id uuid references categories(id) on delete set null;
+create index if not exists idx_cases_category on cases (category_id);
+
+-- -------------------------------------------------------------
 -- 사례 이미지 (여러 장 = 포트폴리오 현장 사진)
 -- -------------------------------------------------------------
 create table if not exists case_images (

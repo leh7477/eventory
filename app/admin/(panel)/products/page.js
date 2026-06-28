@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { youtubeThumb } from "@/lib/youtube";
 import ProductManager from "@/components/admin/ProductManager";
 
 export const revalidate = 0;
@@ -20,14 +21,14 @@ export default async function AdminProductsPage() {
     );
     return {
       ...p,
-      thumbnail: imgs[0]?.image_url ?? null,
+      thumbnail: imgs[0]?.image_url ?? youtubeThumb(p.video_url) ?? null,
       categoryName: p.categories?.name ?? null,
     };
   });
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold text-ink">쇼츠 관리</h1>
+      <h1 className="text-2xl font-bold text-ink">중단 배너 관리</h1>
       <p className="mt-1 text-sm text-ink/50">
         장비(제품)를 등록합니다. 등록된 제품은 홈 인기 장비(쇼츠)와 장비 목록
         페이지에 노출됩니다.

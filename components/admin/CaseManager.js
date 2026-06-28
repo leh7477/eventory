@@ -8,11 +8,12 @@ import {
   swapCaseOrder,
 } from "@/app/admin/(panel)/cases/actions";
 
-export default function CaseManager({ cases }) {
+export default function CaseManager({ cases, categories = [] }) {
   const router = useRouter();
   const fileRef = useRef(null);
   const [previews, setPreviews] = useState([]);
   const [title, setTitle] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
   const [error, setError] = useState("");
@@ -38,6 +39,7 @@ export default function CaseManager({ cases }) {
     if (!files || files.length === 0) return setError("사진을 1장 이상 선택하세요.");
     const fd = new FormData();
     fd.append("title", title);
+    fd.append("category_id", categoryId);
     fd.append("description", description);
     fd.append("tags", tags);
     for (const f of files) fd.append("images", f);
@@ -45,6 +47,7 @@ export default function CaseManager({ cases }) {
       const res = await createCase(fd);
       if (!res?.error) {
         setTitle("");
+        setCategoryId("");
         setDescription("");
         setTags("");
         setPreviews([]);
@@ -58,7 +61,7 @@ export default function CaseManager({ cases }) {
     <div>
       {/* 추가 폼 */}
       <form onSubmit={onAdd} className="rounded-xl border border-ink/10 bg-white p-5">
-        <p className="text-sm font-bold text-ink">새 행사 사례 추가</p>
+        <p className="text-sm font-bold text-ink">새 Stories 추가</p>
 
         <div className="mt-4 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -80,6 +83,20 @@ export default function CaseManager({ cases }) {
                 className="w-full rounded-md border border-ink/15 px-3 py-2.5 text-sm outline-none focus:border-primary"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink/60">카테고리</label>
+            <select
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="w-full rounded-md border border-ink/15 px-3 py-2.5 text-sm outline-none focus:border-primary"
+            >
+              <option value="">선택 안 함</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
           </div>
 
           <div>

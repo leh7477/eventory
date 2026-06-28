@@ -17,7 +17,7 @@ async function resolveCase(id) {
 
 export async function generateMetadata({ params }) {
   const item = await resolveCase(params.id);
-  return { title: item ? `${item.title} | 행사 사례` : "행사 사례 | Eventory" };
+  return { title: item ? `${item.title} | Stories` : "Stories | Eventory" };
 }
 
 export default async function CaseDetailPage({ params }) {
@@ -32,7 +32,7 @@ export default async function CaseDetailPage({ params }) {
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-5 py-10">
         <Link href="/cases" className="text-sm text-ink/50 transition hover:text-primary">
-          ← 행사 사례
+          ← Stories
         </Link>
 
         {/* 상단: 대표사진(+썸네일) / 행사 정보 */}

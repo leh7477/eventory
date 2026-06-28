@@ -16,8 +16,8 @@ export default async function DashboardPage() {
   ]);
 
   const cards = [
-    { label: "등록 쇼츠", value: products.count ?? 0, href: "/admin/products" },
-    { label: "행사 사례", value: cases.count ?? 0, href: "/admin/cases" },
+    { label: "등록 중단 배너", value: products.count ?? 0, href: "/admin/products" },
+    { label: "Stories", value: cases.count ?? 0, href: "/admin/cases" },
     {
       label: "미확인 견적 문의",
       value: inquiries.count ?? 0,

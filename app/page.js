@@ -62,7 +62,7 @@ export default async function Home() {
             {categories.map((c) => (
               <Link
                 key={c.id}
-                href={`/products?category=${c.id}`}
+                href={`/cases?category=${c.id}`}
                 className="text-lg font-bold text-ink transition hover:text-primary sm:text-2xl"
               >
                 {c.name}

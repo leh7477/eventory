@@ -24,7 +24,6 @@ export async function createProduct(formData) {
     .filter((f) => f && typeof f !== "string" && f.size > 0);
 
   if (!name) return { error: "제품명을 입력하세요." };
-  if (files.length === 0) return { error: "사진을 1장 이상 선택하세요." };
 
   let video_url = null;
   if (videoUrlRaw) {
@@ -32,6 +31,9 @@ export async function createProduct(formData) {
       return { error: "유효한 유튜브 URL이 아닙니다. (쇼츠/일반 영상 링크)" };
     video_url = videoUrlRaw;
   }
+
+  if (files.length === 0 && !video_url)
+    return { error: "사진 또는 유튜브 영상 URL 중 하나는 등록해야 합니다." };
 
   try {
     const admin = createAdminClient();
@@ -64,13 +66,15 @@ export async function createProduct(formData) {
       .single();
     if (error) return { error: error.message };
 
-    const imgRows = urls.map((url, i) => ({
-      product_id: row.id,
-      image_url: url,
-      order_num: i,
-    }));
-    const { error: e2 } = await admin.from("product_images").insert(imgRows);
-    if (e2) return { error: "이미지 저장 실패: " + e2.message };
+    if (urls.length > 0) {
+      const imgRows = urls.map((url, i) => ({
+        product_id: row.id,
+        image_url: url,
+        order_num: i,
+      }));
+      const { error: e2 } = await admin.from("product_images").insert(imgRows);
+      if (e2) return { error: "이미지 저장 실패: " + e2.message };
+    }
 
     rv();
     return { ok: true };

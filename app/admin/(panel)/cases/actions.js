@@ -14,6 +14,7 @@ function rv() {
 export async function createCase(formData) {
   await requireAdmin();
   const title = formData.get("title")?.toString().trim();
+  const categoryId = formData.get("category_id")?.toString() || null;
   const description = formData.get("description")?.toString().trim() || null;
   const tagsRaw = formData.get("tags")?.toString().trim() || "";
   const tags = tagsRaw
@@ -44,7 +45,7 @@ export async function createCase(formData) {
 
     const { data: row, error } = await admin
       .from("cases")
-      .insert({ title, description, tags, image_url: urls[0], order_num })
+      .insert({ title, category_id: categoryId || null, description, tags, image_url: urls[0], order_num })
       .select()
       .single();
     if (error) return { error: error.message };

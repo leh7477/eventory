@@ -7,8 +7,7 @@ import LogoAnimated from "@/components/LogoAnimated";
 
 const NAV = [
   { href: "/", label: "홈" },
-  { href: "/products", label: "장비" },
-  { href: "/cases", label: "행사사례" },
+  { href: "/cases", label: "Stories" },
   { href: "/about", label: "회사소개" },
 ];
 
