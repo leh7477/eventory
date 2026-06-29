@@ -7,6 +7,9 @@ import {
   deleteCase,
   swapCaseOrder,
 } from "@/app/admin/(panel)/cases/actions";
+import { getMachineSpecs, parseSpecsText } from "@/lib/samples";
+
+const EMPTY_ROW = { label: "", value: "" };
 
 export default function CaseManager({ cases, categories = [] }) {
   const router = useRouter();
@@ -14,8 +17,27 @@ export default function CaseManager({ cases, categories = [] }) {
   const [previews, setPreviews] = useState([]);
   const [title, setTitle] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [specRows, setSpecRows] = useState([{ ...EMPTY_ROW }]);
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
+
+  // 카테고리 선택 시 해당 장비 기본 스펙(라벨/값)을 행으로 자동 채움 (이후 수정 가능)
+  const onCategoryChange = (e) => {
+    const id = e.target.value;
+    setCategoryId(id);
+    const cat = categories.find((c) => String(c.id) === String(id));
+    if (!cat) return setSpecRows([{ ...EMPTY_ROW }]);
+    // 카테고리에 저장된 기본 스펙 우선, 없으면 하드코딩 기본값
+    const saved = parseSpecsText(cat.default_specs);
+    setSpecRows(
+      saved && saved.length ? saved : getMachineSpecs(cat.name).map((s) => ({ ...s }))
+    );
+  };
+
+  const setRow = (i, key, val) =>
+    setSpecRows((rows) => rows.map((r, idx) => (idx === i ? { ...r, [key]: val } : r)));
+  const addRow = () => setSpecRows((rows) => [...rows, { ...EMPTY_ROW }]);
+  const removeRow = (i) => setSpecRows((rows) => rows.filter((_, idx) => idx !== i));
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
 
@@ -37,9 +59,15 @@ export default function CaseManager({ cases, categories = [] }) {
     const files = fileRef.current?.files;
     if (!title.trim()) return setError("제목(장비명)을 입력하세요.");
     if (!files || files.length === 0) return setError("사진을 1장 이상 선택하세요.");
+    const specsText = specRows
+      .filter((r) => r.label.trim() || r.value.trim())
+      .map((r) => `${r.label.trim()}: ${r.value.trim()}`)
+      .join("\n");
+
     const fd = new FormData();
     fd.append("title", title);
     fd.append("category_id", categoryId);
+    fd.append("specs", specsText);
     fd.append("description", description);
     fd.append("tags", tags);
     for (const f of files) fd.append("images", f);
@@ -48,6 +76,7 @@ export default function CaseManager({ cases, categories = [] }) {
       if (!res?.error) {
         setTitle("");
         setCategoryId("");
+        setSpecRows([{ ...EMPTY_ROW }]);
         setDescription("");
         setTags("");
         setPreviews([]);
@@ -89,7 +118,7 @@ export default function CaseManager({ cases, categories = [] }) {
             <label className="mb-1.5 block text-xs font-medium text-ink/60">카테고리</label>
             <select
               value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
+              onChange={onCategoryChange}
               className="w-full rounded-md border border-ink/15 px-3 py-2.5 text-sm outline-none focus:border-primary"
             >
               <option value="">선택 안 함</option>
@@ -97,6 +126,45 @@ export default function CaseManager({ cases, categories = [] }) {
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink/60">
+              장비 정보 / 스펙 (카테고리 선택 시 기본값 자동 입력 · 항목명 / 내용)
+            </label>
+            <div className="space-y-2">
+              {specRows.map((r, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    value={r.label}
+                    onChange={(e) => setRow(i, "label", e.target.value)}
+                    placeholder="항목 (예: 기기 사이즈)"
+                    className="w-36 shrink-0 rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                  />
+                  <input
+                    value={r.value}
+                    onChange={(e) => setRow(i, "value", e.target.value)}
+                    placeholder="내용 (예: W 500 × D 500 × H 1600 mm)"
+                    className="flex-1 rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeRow(i)}
+                    className="shrink-0 rounded-md border border-ink/15 px-2 py-2 text-xs text-ink/40 hover:bg-ink/5"
+                    aria-label="행 삭제"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addRow}
+                className="rounded-md border border-dashed border-ink/20 px-3 py-1.5 text-xs font-medium text-ink/60 hover:bg-ink/5"
+              >
+                + 항목 추가
+              </button>
+            </div>
           </div>
 
           <div>

@@ -6,8 +6,22 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 function revalidate() {
   revalidatePath("/admin/categories");
+  revalidatePath("/admin/cases");
   revalidatePath("/products");
   revalidatePath("/");
+}
+
+// 카테고리 기본 스펙 저장 (Stories 등록 시 기본값으로 사용)
+export async function updateCategorySpecs(id, specsText) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("categories")
+    .update({ default_specs: specsText || null })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  revalidate();
+  return { ok: true };
 }
 
 export async function createCategory(name) {

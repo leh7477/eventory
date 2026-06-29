@@ -5,7 +5,7 @@ import SiteFooter from "@/components/SiteFooter";
 import CaseTopGallery from "@/components/CaseTopGallery";
 import QuoteButton from "@/components/QuoteButton";
 import { getCaseById } from "@/lib/data";
-import { getSampleCaseById, getMachineSpecs } from "@/lib/samples";
+import { getSampleCaseById, getMachineSpecs, parseSpecsText } from "@/lib/samples";
 
 export const revalidate = 0;
 
@@ -25,7 +25,9 @@ export default async function CaseDetailPage({ params }) {
   if (!item) notFound();
 
   const images = item.images ?? [];
-  const specs = item.specs ?? getMachineSpecs(item.title);
+  // 사례에 입력된 스펙(텍스트)을 우선, 없으면 장비 기본 스펙
+  const specs =
+    (item.specs && parseSpecsText(item.specs)) || getMachineSpecs(item.title);
 
   return (
     <>

@@ -8,12 +8,14 @@ import {
   deleteCategory,
   swapCategoryOrder,
 } from "@/app/admin/(panel)/categories/actions";
+import CategorySpecEditor from "@/components/admin/CategorySpecEditor";
 
 export default function CategoriesManager({ categories }) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [editId, setEditId] = useState(null);
   const [editName, setEditName] = useState("");
+  const [specEditId, setSpecEditId] = useState(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
 
@@ -73,7 +75,8 @@ export default function CategoriesManager({ categories }) {
         ) : (
           <ul className="divide-y divide-ink/5">
             {categories.map((c, i) => (
-              <li key={c.id} className="flex items-center gap-3 px-4 py-3">
+              <li key={c.id}>
+                <div className="flex items-center gap-3 px-4 py-3">
                 <span className="w-6 text-center text-xs text-ink/40">{i + 1}</span>
 
                 {editId === c.id ? (
@@ -129,6 +132,19 @@ export default function CategoriesManager({ categories }) {
                   <>
                     <button
                       type="button"
+                      onClick={() =>
+                        setSpecEditId((v) => (v === c.id ? null : c.id))
+                      }
+                      className={`rounded-md border px-3 py-1.5 text-xs font-medium ${
+                        specEditId === c.id
+                          ? "border-ink bg-ink text-white"
+                          : "border-ink/15 text-ink/70 hover:bg-ink/5"
+                      }`}
+                    >
+                      기본 스펙
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => {
                         setEditId(c.id);
                         setEditName(c.name);
@@ -149,6 +165,8 @@ export default function CategoriesManager({ categories }) {
                     </button>
                   </>
                 )}
+                </div>
+                {specEditId === c.id && <CategorySpecEditor category={c} />}
               </li>
             ))}
           </ul>
