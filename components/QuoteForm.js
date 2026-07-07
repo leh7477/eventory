@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import DatePicker from "@/components/DatePicker";
 
@@ -139,19 +140,18 @@ export default function QuoteForm() {
   if (status === "done") {
     return (
       <div className="rounded-xl border border-ink/10 bg-cream px-6 py-16 text-center">
-        <p className="font-heading text-2xl font-extrabold text-primary">
+        <p className="font-heading text-2xl font-extrabold text-ink">
           문의가 접수되었습니다
         </p>
         <p className="mt-3 text-sm text-ink/70">
           빠른 시일 내에 담당자가 연락드리겠습니다. 감사합니다.
         </p>
-        <button
-          type="button"
-          onClick={() => setStatus("idle")}
-          className="mt-6 rounded-full border border-ink/20 px-5 py-2 text-sm font-medium text-ink transition hover:border-primary hover:text-primary"
+        <Link
+          href="/"
+          className="mt-6 inline-block rounded-full bg-ink px-6 py-2.5 text-sm font-bold text-white transition hover:bg-black"
         >
-          다시 작성하기
-        </button>
+          홈으로
+        </Link>
       </div>
     );
   }

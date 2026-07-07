@@ -20,6 +20,8 @@ export default function CaseManager({ cases, categories = [] }) {
   const [specRows, setSpecRows] = useState([{ ...EMPTY_ROW }]);
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
 
   // 카테고리 선택 시 해당 장비 기본 스펙(라벨/값)을 행으로 자동 채움 (이후 수정 가능)
   const onCategoryChange = (e) => {
@@ -70,6 +72,8 @@ export default function CaseManager({ cases, categories = [] }) {
     fd.append("specs", specsText);
     fd.append("description", description);
     fd.append("tags", tags);
+    fd.append("seo_title", seoTitle);
+    fd.append("seo_description", seoDescription);
     for (const f of files) fd.append("images", f);
     run(async () => {
       const res = await createCase(fd);
@@ -79,6 +83,8 @@ export default function CaseManager({ cases, categories = [] }) {
         setSpecRows([{ ...EMPTY_ROW }]);
         setDescription("");
         setTags("");
+        setSeoTitle("");
+        setSeoDescription("");
         setPreviews([]);
         if (fileRef.current) fileRef.current.value = "";
       }
@@ -177,6 +183,31 @@ export default function CaseManager({ cases, categories = [] }) {
               placeholder="예: 가챠머신, 쇼핑몰, 오픈행사"
               className="w-full rounded-md border border-ink/15 px-3 py-2.5 text-sm outline-none focus:border-primary"
             />
+          </div>
+
+          {/* 검색(SEO) 정보 */}
+          <div className="rounded-lg border border-dashed border-ink/15 p-3">
+            <p className="mb-2 text-xs font-bold text-ink/70">
+              🔍 검색(네이버/구글) 정보 · 선택
+            </p>
+            <div className="space-y-2">
+              <input
+                value={seoTitle}
+                onChange={(e) => setSeoTitle(e.target.value)}
+                placeholder="검색 제목 (비우면 자동: 제목 | Eventory Stories)"
+                className="w-full rounded-md border border-ink/15 px-3 py-2.5 text-sm outline-none focus:border-primary"
+              />
+              <textarea
+                value={seoDescription}
+                onChange={(e) => setSeoDescription(e.target.value)}
+                placeholder="검색 설명 (비우면 위 행사명/설명으로 자동 · 검색결과에 보이는 요약 문구, 80~120자 권장)"
+                className="min-h-[64px] w-full resize-y rounded-md border border-ink/15 px-3 py-2.5 text-sm outline-none focus:border-primary"
+              />
+            </div>
+            <p className="mt-1.5 text-[11px] text-ink/40">
+              비워두면 자동 생성됩니다. 직접 쓰면 네이버/구글 검색결과에 그 문구가
+              노출돼요.
+            </p>
           </div>
 
           <div>

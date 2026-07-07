@@ -16,6 +16,8 @@ export async function createCase(formData) {
   const title = formData.get("title")?.toString().trim();
   const categoryId = formData.get("category_id")?.toString() || null;
   const specs = formData.get("specs")?.toString().trim() || null;
+  const seo_title = formData.get("seo_title")?.toString().trim() || null;
+  const seo_description = formData.get("seo_description")?.toString().trim() || null;
   const description = formData.get("description")?.toString().trim() || null;
   const tagsRaw = formData.get("tags")?.toString().trim() || "";
   const tags = tagsRaw
@@ -46,7 +48,7 @@ export async function createCase(formData) {
 
     const { data: row, error } = await admin
       .from("cases")
-      .insert({ title, category_id: categoryId || null, specs, description, tags, image_url: urls[0], order_num })
+      .insert({ title, category_id: categoryId || null, specs, seo_title, seo_description, description, tags, image_url: urls[0], order_num })
       .select()
       .single();
     if (error) return { error: error.message };

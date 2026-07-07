@@ -17,7 +17,31 @@ async function resolveCase(id) {
 
 export async function generateMetadata({ params }) {
   const item = await resolveCase(params.id);
-  return { title: item ? `${item.title} | Stories` : "Stories | Eventory" };
+  if (!item) return { title: "Stories | Eventory" };
+
+  const metaTitle = item.seoTitle || `${item.title} | Eventory Stories`;
+  const desc =
+    item.seoDescription ||
+    item.description ||
+    `${item.title} 행사 현장 - 이벤토리(EVENTORY) 이벤트 장비 렌탈 사례`;
+  const cover = item.images?.[0];
+
+  return {
+    title: metaTitle,
+    description: desc,
+    openGraph: {
+      title: metaTitle,
+      description: desc,
+      type: "article",
+      images: cover ? [{ url: cover }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: metaTitle,
+      description: desc,
+      images: cover ? [cover] : [],
+    },
+  };
 }
 
 export default async function CaseDetailPage({ params }) {

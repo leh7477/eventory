@@ -98,6 +98,8 @@ alter table inquiries add column if not exists handled_at timestamptz; -- 처리
 alter table cases add column if not exists category_id uuid references categories(id) on delete set null;
 create index if not exists idx_cases_category on cases (category_id);
 alter table cases add column if not exists specs text;  -- 사례별 장비 정보(스펙)
+alter table cases add column if not exists seo_title text;        -- 검색 제목(SEO)
+alter table cases add column if not exists seo_description text;  -- 검색 설명(SEO)
 
 -- -------------------------------------------------------------
 -- 사례 이미지 (여러 장 = 포트폴리오 현장 사진)
