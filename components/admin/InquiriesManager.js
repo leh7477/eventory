@@ -8,6 +8,16 @@ import {
   deleteInquiry,
 } from "@/app/admin/(panel)/inquiries/actions";
 
+// 행사 기간 일수 (시작~종료 포함). 예: 07-23~07-26 → 4일
+function daysBetween(start, end) {
+  if (!start || !end) return null;
+  const s = new Date(start);
+  const e = new Date(end);
+  if (isNaN(s) || isNaN(e)) return null;
+  const d = Math.round((e - s) / 86400000) + 1;
+  return d > 0 ? d : null;
+}
+
 function fmtDate(iso) {
   if (!iso) return "-";
   const d = new Date(iso);
@@ -68,9 +78,12 @@ export default function InquiriesManager({ inquiries }) {
         {inquiries.map((q) => {
           const open = openId === q.id;
           const location = [q.address, q.address_detail].filter(Boolean).join(" ");
+          const days = daysBetween(q.event_start, q.event_end);
           const period =
             q.event_start || q.event_end
-              ? `${q.event_start ?? "?"} ~ ${q.event_end ?? "?"}`
+              ? `${q.event_start ?? "?"} ~ ${q.event_end ?? "?"}${
+                  days ? ` (${days}일)` : ""
+                }`
               : q.event_date || "";
           return (
             <li key={q.id}>
@@ -137,6 +150,12 @@ export default function InquiriesManager({ inquiries }) {
                   )}
 
                   <div className="mt-4 flex flex-wrap gap-2">
+                    <a
+                      href={`/admin/inquiries/${q.id}/quote`}
+                      className="rounded-md bg-ink px-3 py-1.5 text-xs font-bold text-white hover:bg-black"
+                    >
+                      견적서 작성
+                    </a>
                     <button
                       type="button"
                       onClick={() => run(() => setInquiryHandled(q.id, !q.handled))}

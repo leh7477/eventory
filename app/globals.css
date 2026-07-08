@@ -47,3 +47,23 @@ body {
     );
   }
 }
+
+/* 견적서 인쇄: 견적서 본체만 출력 */
+@media print {
+  .print-hide {
+    display: none !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #quote-sheet,
+  #quote-sheet * {
+    visibility: visible;
+  }
+  #quote-sheet {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
