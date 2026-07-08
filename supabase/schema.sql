@@ -142,6 +142,9 @@ create table if not exists schedules (
 );
 alter table schedules enable row level security;  -- 정책 없음 → 관리자(service_role)만 접근
 create index if not exists idx_schedules_start on schedules (start_date);
+-- 행사 시작/종료 시간 (추후 입력 가능)
+alter table schedules add column if not exists start_time time;
+alter table schedules add column if not exists end_time time;
 
 -- -------------------------------------------------------------
 -- 사이트 설정 (단일 행) — 홈 Stories 자동 롤링 등

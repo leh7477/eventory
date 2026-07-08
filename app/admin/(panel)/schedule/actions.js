@@ -9,7 +9,7 @@ function rv() {
   revalidatePath("/admin/inquiries");
 }
 
-export async function createSchedule({ title, start_date, end_date, location, memo }) {
+export async function createSchedule({ title, start_date, end_date, start_time, end_time, location, memo }) {
   await requireAdmin();
   if (!title?.trim()) return { error: "일정 제목을 입력하세요." };
   if (!start_date) return { error: "시작일을 선택하세요." };
@@ -18,9 +18,24 @@ export async function createSchedule({ title, start_date, end_date, location, me
     title: title.trim(),
     start_date,
     end_date: end_date || start_date,
+    start_time: start_time || null,
+    end_time: end_time || null,
     location: location?.trim() || null,
     memo: memo?.trim() || null,
   });
+  if (error) return { error: error.message };
+  rv();
+  return { ok: true };
+}
+
+// 일정 시간(시작/종료) 수정 — 연동 일정 포함 추후 입력용
+export async function updateScheduleTime(id, start_time, end_time) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("schedules")
+    .update({ start_time: start_time || null, end_time: end_time || null })
+    .eq("id", id);
   if (error) return { error: error.message };
   rv();
   return { ok: true };

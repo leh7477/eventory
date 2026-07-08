@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import {
   createSchedule,
   deleteSchedule,
+  updateScheduleTime,
 } from "@/app/admin/(panel)/schedule/actions";
+
+// "10:00:00" → "10:00"
+const hm = (t) => (t ? String(t).slice(0, 5) : "");
 
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -17,12 +21,6 @@ function todayStr() {
   return dstr(t.getFullYear(), t.getMonth(), t.getDate());
 }
 
-// 일정이 해당 날짜에 걸치는지
-function covers(ev, dateStr) {
-  const end = ev.end_date || ev.start_date;
-  return ev.start_date <= dateStr && dateStr <= end;
-}
-
 export default function ScheduleManager({ schedules }) {
   const router = useRouter();
   const now = new Date();
@@ -31,11 +29,24 @@ export default function ScheduleManager({ schedules }) {
     title: "",
     start_date: "",
     end_date: "",
+    start_time: "",
+    end_time: "",
     location: "",
     memo: "",
   });
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
+
+  // 일정별 시간 인라인 편집
+  const [timeEditId, setTimeEditId] = useState(null);
+  const [timeStart, setTimeStart] = useState("");
+  const [timeEnd, setTimeEnd] = useState("");
+
+  const openTimeEdit = (ev) => {
+    setTimeEditId(ev.id);
+    setTimeStart(hm(ev.start_time));
+    setTimeEnd(hm(ev.end_time));
+  };
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -52,7 +63,15 @@ export default function ScheduleManager({ schedules }) {
     run(async () => {
       const res = await createSchedule(form);
       if (!res?.error)
-        setForm({ title: "", start_date: "", end_date: "", location: "", memo: "" });
+        setForm({
+          title: "",
+          start_date: "",
+          end_date: "",
+          start_time: "",
+          end_time: "",
+          location: "",
+          memo: "",
+        });
       return res;
     });
   };
@@ -62,9 +81,62 @@ export default function ScheduleManager({ schedules }) {
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const today = todayStr();
 
-  const cells = [];
-  for (let i = 0; i < firstDay; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  // 주 단위(7칸씩)로 나눔
+  const weeks = [];
+  {
+    let cur = [];
+    for (let i = 0; i < firstDay; i++) cur.push(null);
+    for (let d = 1; d <= daysInMonth; d++) {
+      cur.push(d);
+      if (cur.length === 7) {
+        weeks.push(cur);
+        cur = [];
+      }
+    }
+    if (cur.length) {
+      while (cur.length < 7) cur.push(null);
+      weeks.push(cur);
+    }
+  }
+
+  // 한 주 안에서 각 일정이 차지하는 구간(막대) 계산 + 겹치면 줄(lane) 배정
+  const weekSegments = (week) => {
+    const segs = [];
+    schedules.forEach((ev) => {
+      const end = ev.end_date || ev.start_date;
+      let startCol = -1;
+      let endCol = -1;
+      week.forEach((d, col) => {
+        if (d === null) return;
+        const ds = dstr(y, m, d);
+        if (ev.start_date <= ds && ds <= end) {
+          if (startCol === -1) startCol = col;
+          endCol = col;
+        }
+      });
+      if (startCol !== -1) {
+        segs.push({
+          ev,
+          startCol,
+          endCol,
+          startsHere: dstr(y, m, week[startCol]) === ev.start_date,
+          endsHere: dstr(y, m, week[endCol]) === end,
+        });
+      }
+    });
+    segs.sort(
+      (a, b) =>
+        a.startCol - b.startCol || b.endCol - b.startCol - (a.endCol - a.startCol)
+    );
+    const laneEnds = [];
+    segs.forEach((s) => {
+      let lane = 0;
+      while (laneEnds[lane] !== undefined && laneEnds[lane] >= s.startCol) lane++;
+      laneEnds[lane] = s.endCol;
+      s.lane = lane;
+    });
+    return segs;
+  };
 
   const prev = () => setView(({ y, m }) => (m === 0 ? { y: y - 1, m: 11 } : { y, m: m - 1 }));
   const next = () => setView(({ y, m }) => (m === 11 ? { y: y + 1, m: 0 } : { y, m: m + 1 }));
@@ -116,44 +188,69 @@ export default function ScheduleManager({ schedules }) {
           ))}
         </div>
 
-        <div className="grid grid-cols-7">
-          {cells.map((d, i) => {
-            if (d === null) return <div key={`e${i}`} className="min-h-20 border border-transparent" />;
-            const ds = dstr(y, m, d);
-            const evs = schedules.filter((ev) => covers(ev, ds));
-            const isToday = ds === today;
-            const col = i % 7;
+        <div>
+          {weeks.map((week, wi) => {
+            const segs = weekSegments(week);
             return (
-              <div
-                key={i}
-                className={`min-h-20 border border-ink/5 p-1 ${isToday ? "bg-primary/5" : ""}`}
-              >
-                <span
-                  className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-xs ${
-                    isToday
-                      ? "bg-primary font-bold text-white"
-                      : col === 0
-                      ? "text-primary"
-                      : col === 6
-                      ? "text-blue-500"
-                      : "text-ink/70"
-                  }`}
-                >
-                  {d}
-                </span>
-                <div className="mt-0.5 space-y-0.5">
-                  {evs.slice(0, 3).map((ev) => (
-                    <p
-                      key={ev.id}
-                      title={ev.title}
-                      className="truncate rounded bg-primary/10 px-1 py-0.5 text-[10px] font-medium leading-tight text-primary"
+              <div key={wi} className="relative min-h-20">
+                {/* 배경: 칸 테두리 + 오늘 표시 */}
+                <div className="absolute inset-0 grid grid-cols-7">
+                  {week.map((d, col) => {
+                    const ds = d ? dstr(y, m, d) : null;
+                    const isToday = ds === today;
+                    return (
+                      <div
+                        key={col}
+                        className={`border border-ink/5 ${isToday ? "bg-primary/5" : ""} ${
+                          d === null ? "border-transparent" : ""
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* 내용: 날짜 숫자(1행) + 이어진 일정 막대(2행~) */}
+                <div className="relative grid grid-cols-7 pb-1.5">
+                  {week.map((d, col) => {
+                    if (d === null)
+                      return (
+                        <div key={col} className="h-7" style={{ gridColumn: col + 1, gridRow: 1 }} />
+                      );
+                    const ds = dstr(y, m, d);
+                    const isToday = ds === today;
+                    return (
+                      <div key={col} className="h-7 p-1" style={{ gridColumn: col + 1, gridRow: 1 }}>
+                        <span
+                          className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-xs ${
+                            isToday
+                              ? "bg-primary font-bold text-white"
+                              : col === 0
+                              ? "text-primary"
+                              : col === 6
+                              ? "text-blue-500"
+                              : "text-ink/70"
+                          }`}
+                        >
+                          {d}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {segs.map((s, si) => (
+                    <div
+                      key={si}
+                      title={s.ev.title}
+                      style={{
+                        gridColumn: `${s.startCol + 1} / ${s.endCol + 2}`,
+                        gridRow: s.lane + 2,
+                      }}
+                      className={`z-10 mb-0.5 truncate bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium leading-tight text-blue-800 ${
+                        s.startsHere ? "ml-0.5 rounded-l" : ""
+                      } ${s.endsHere ? "mr-0.5 rounded-r" : ""}`}
                     >
-                      {ev.title}
-                    </p>
+                      {s.ev.title}
+                    </div>
                   ))}
-                  {evs.length > 3 && (
-                    <p className="px-1 text-[10px] text-ink/40">+{evs.length - 3}</p>
-                  )}
                 </div>
               </div>
             );
@@ -174,42 +271,116 @@ export default function ScheduleManager({ schedules }) {
           <ul className="divide-y divide-ink/5">
             {monthEvents.map((ev) => {
               const past = (ev.end_date || ev.start_date) < today;
+              const timeLabel =
+                ev.start_time || ev.end_time
+                  ? `${hm(ev.start_time) || "?"} ~ ${hm(ev.end_time) || "?"}`
+                  : null;
               return (
-                <li key={ev.id} className="flex items-center gap-3 px-4 py-3">
-                  <span
-                    className={`w-44 shrink-0 text-xs ${past ? "text-ink/35" : "text-ink/60"}`}
-                  >
-                    {ev.start_date}
-                    {ev.end_date && ev.end_date !== ev.start_date
-                      ? ` ~ ${ev.end_date}`
-                      : ""}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className={`truncate text-sm font-semibold ${past ? "text-ink/40" : "text-ink"}`}>
-                      {ev.title}
-                      {ev.inquiry_id && (
-                        <span className="ml-1.5 rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700 align-middle">
-                          연동
+                <li key={ev.id}>
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    <span
+                      className={`w-44 shrink-0 text-xs ${past ? "text-ink/35" : "text-ink/60"}`}
+                    >
+                      {ev.start_date}
+                      {ev.end_date && ev.end_date !== ev.start_date
+                        ? ` ~ ${ev.end_date}`
+                        : ""}
+                      {timeLabel && (
+                        <span className="mt-0.5 block font-medium text-blue-700">
+                          🕐 {timeLabel}
                         </span>
                       )}
-                    </p>
-                    {(ev.location || ev.memo) && (
-                      <p className={`truncate text-xs ${past ? "text-ink/30" : "text-ink/50"}`}>
-                        {[ev.location, ev.memo?.split("\n")[0]].filter(Boolean).join(" · ")}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className={`truncate text-sm font-semibold ${past ? "text-ink/40" : "text-ink"}`}>
+                        {ev.title}
+                        {ev.inquiry_id && (
+                          <span className="ml-1.5 rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700 align-middle">
+                            연동
+                          </span>
+                        )}
                       </p>
-                    )}
+                      {(ev.location || ev.memo) && (
+                        <p className={`truncate text-xs ${past ? "text-ink/30" : "text-ink/50"}`}>
+                          {[ev.location, ev.memo?.split("\n")[0]].filter(Boolean).join(" · ")}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        timeEditId === ev.id ? setTimeEditId(null) : openTimeEdit(ev)
+                      }
+                      className={`shrink-0 rounded-md border px-3 py-1.5 text-xs font-medium ${
+                        timeEditId === ev.id
+                          ? "border-ink bg-ink text-white"
+                          : "border-ink/15 text-ink/70 hover:bg-ink/5"
+                      }`}
+                    >
+                      시간
+                    </button>
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => {
+                        if (confirm(`'${ev.title}' 일정을 삭제할까요?`))
+                          run(() => deleteSchedule(ev.id));
+                      }}
+                      className="shrink-0 rounded-md border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/5"
+                    >
+                      삭제
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    disabled={pending}
-                    onClick={() => {
-                      if (confirm(`'${ev.title}' 일정을 삭제할까요?`))
-                        run(() => deleteSchedule(ev.id));
-                    }}
-                    className="shrink-0 rounded-md border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/5"
-                  >
-                    삭제
-                  </button>
+
+                  {/* 시간 인라인 편집 */}
+                  {timeEditId === ev.id && (
+                    <div className="flex flex-wrap items-center gap-2 border-t border-ink/5 bg-ink/[0.015] px-4 py-3">
+                      <span className="text-xs text-ink/50">행사 시간</span>
+                      <input
+                        type="time"
+                        value={timeStart}
+                        onChange={(e) => setTimeStart(e.target.value)}
+                        className="rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
+                      />
+                      <span className="text-ink/40">~</span>
+                      <input
+                        type="time"
+                        value={timeEnd}
+                        onChange={(e) => setTimeEnd(e.target.value)}
+                        className="rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
+                      />
+                      <button
+                        type="button"
+                        disabled={pending}
+                        onClick={() =>
+                          run(async () => {
+                            const res = await updateScheduleTime(ev.id, timeStart, timeEnd);
+                            if (!res?.error) setTimeEditId(null);
+                            return res;
+                          })
+                        }
+                        className="rounded-md bg-ink px-4 py-1.5 text-xs font-bold text-white hover:bg-black disabled:opacity-60"
+                      >
+                        저장
+                      </button>
+                      {(ev.start_time || ev.end_time) && (
+                        <button
+                          type="button"
+                          disabled={pending}
+                          onClick={() =>
+                            run(async () => {
+                              const res = await updateScheduleTime(ev.id, "", "");
+                              if (!res?.error) setTimeEditId(null);
+                              return res;
+                            })
+                          }
+                          className="rounded-md border border-ink/15 px-3 py-1.5 text-xs text-ink/60 hover:bg-ink/5"
+                        >
+                          시간 지우기
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </li>
               );
             })}
@@ -237,6 +408,14 @@ export default function ScheduleManager({ schedules }) {
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink/60">종료일 (비우면 당일)</label>
             <input type="date" value={form.end_date} min={form.start_date || undefined} onChange={set("end_date")} className={inputCls} />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink/60">시작 시간 (선택)</label>
+            <input type="time" value={form.start_time} onChange={set("start_time")} className={inputCls} />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink/60">종료 시간 (선택)</label>
+            <input type="time" value={form.end_time} onChange={set("end_time")} className={inputCls} />
           </div>
           <div className="sm:col-span-2">
             <label className="mb-1.5 block text-xs font-medium text-ink/60">장소 (선택)</label>
