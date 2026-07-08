@@ -7,6 +7,7 @@ import {
   setInquiryHandled,
   deleteInquiry,
 } from "@/app/admin/(panel)/inquiries/actions";
+import { createScheduleFromInquiry } from "@/app/admin/(panel)/schedule/actions";
 
 // 행사 기간 일수 (시작~종료 포함). 예: 07-23~07-26 → 4일
 function daysBetween(start, end) {
@@ -156,6 +157,20 @@ export default function InquiriesManager({ inquiries }) {
                     >
                       견적서 작성
                     </a>
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() =>
+                        run(async () => {
+                          const res = await createScheduleFromInquiry(q.id);
+                          if (res?.error) alert(res.error);
+                          else alert("일정에 등록되었습니다. (일정 메뉴에서 확인)");
+                        })
+                      }
+                      className="rounded-md border border-ink/15 px-3 py-1.5 text-xs font-bold text-ink/70 hover:bg-ink/5"
+                    >
+                      일정 등록
+                    </button>
                     <button
                       type="button"
                       onClick={() => run(() => setInquiryHandled(q.id, !q.handled))}

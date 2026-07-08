@@ -11,6 +11,7 @@ const NAV = [
   { href: "/admin/products", label: "중단 배너" },
   { href: "/admin/cases", label: "Stories" },
   { href: "/admin/inquiries", label: "견적 문의" },
+  { href: "/admin/schedule", label: "일정" },
 ];
 
 export default function AdminSidebar({ email }) {

@@ -128,6 +128,22 @@ create index if not exists idx_cases_order on cases (order_num);
 create index if not exists idx_inquiries_created on inquiries (created_at desc);
 
 -- -------------------------------------------------------------
+-- 행사 일정 (확정된 행사 — 관리자 전용, 견적문의 연동 가능)
+-- -------------------------------------------------------------
+create table if not exists schedules (
+  id uuid default gen_random_uuid() primary key,
+  title text not null,
+  start_date date not null,
+  end_date date,
+  location text,
+  memo text,
+  inquiry_id uuid references inquiries(id) on delete set null,
+  created_at timestamptz default now()
+);
+alter table schedules enable row level security;  -- 정책 없음 → 관리자(service_role)만 접근
+create index if not exists idx_schedules_start on schedules (start_date);
+
+-- -------------------------------------------------------------
 -- 사이트 설정 (단일 행) — 홈 Stories 자동 롤링 등
 -- -------------------------------------------------------------
 create table if not exists settings (
