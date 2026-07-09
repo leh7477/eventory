@@ -102,7 +102,7 @@ export default function QuoteSheet({ inquiry }) {
         </h2>
 
         {/* 상단: 수신 / 공급자 */}
-        <div className="mt-8 grid grid-cols-2 gap-6 text-sm">
+        <div className="mt-8 grid gap-6 text-sm sm:grid-cols-2">
           <div>
             <table className="w-full">
               <tbody>

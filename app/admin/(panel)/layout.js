@@ -16,9 +16,11 @@ export default async function AdminPanelLayout({ children }) {
   if (!user) redirect("/admin");
 
   return (
-    <div className="flex min-h-screen bg-ink/[0.03] font-sans text-ink">
+    <div className="min-h-screen bg-ink/[0.03] font-sans text-ink md:flex">
       <AdminSidebar email={user.email} />
-      <main className="min-w-0 flex-1 px-6 py-8 lg:px-10">{children}</main>
+      <main className="min-w-0 flex-1 px-4 py-6 md:px-6 md:py-8 lg:px-10">
+        {children}
+      </main>
     </div>
   );
 }

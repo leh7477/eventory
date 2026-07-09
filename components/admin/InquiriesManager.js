@@ -90,9 +90,9 @@ export default function InquiriesManager({ inquiries }) {
   return (
     <div className="overflow-hidden rounded-xl border border-ink/10 bg-white">
       {/* 컬럼 헤더 */}
-      <div className="flex items-center gap-4 border-b border-ink/10 bg-ink/[0.02] px-4 py-2.5 text-xs font-semibold text-ink/40">
-        <span className="w-16 shrink-0">상태</span>
-        <span className="w-32 shrink-0">접수일</span>
+      <div className="flex items-center gap-3 border-b border-ink/10 bg-ink/[0.02] px-4 py-2.5 text-xs font-semibold text-ink/40 sm:gap-4">
+        <span className="w-14 shrink-0 sm:w-16">상태</span>
+        <span className="hidden w-32 shrink-0 sm:block">접수일</span>
         <span className="flex-1">업체 · 담당자</span>
         <span className="hidden w-32 shrink-0 sm:block">연락처</span>
         <span className="w-4 shrink-0" />
@@ -115,10 +115,10 @@ export default function InquiriesManager({ inquiries }) {
               <button
                 type="button"
                 onClick={() => onOpen(q)}
-                className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-ink/[0.02]"
+                className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-ink/[0.02] sm:gap-4"
               >
                 {/* 1. 상태 */}
-                <span className="w-16 shrink-0">
+                <span className="w-14 shrink-0 sm:w-16">
                   {q.handled ? (
                     <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold text-green-700">
                       완료
@@ -129,17 +129,22 @@ export default function InquiriesManager({ inquiries }) {
                     </span>
                   )}
                 </span>
-                {/* 2. 날짜 */}
-                <span className="w-32 shrink-0 text-xs text-ink/50">
+                {/* 2. 날짜 (데스크탑) */}
+                <span className="hidden w-32 shrink-0 text-xs text-ink/50 sm:block">
                   {fmtDate(q.created_at)}
                 </span>
-                {/* 3. 업체 · 담당자 */}
-                <span className={`flex-1 truncate text-sm ${q.is_read ? "text-ink/70" : "font-semibold text-ink"}`}>
-                  {!q.is_read && (
-                    <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-primary align-middle" title="안읽음" />
-                  )}
-                  {q.company_name || q.name || "(업체명 없음)"}
-                  {q.contact_name ? ` · ${q.contact_name}` : ""}
+                {/* 3. 업체 · 담당자 (모바일에선 날짜를 아래 줄로) */}
+                <span className="min-w-0 flex-1">
+                  <span className={`block truncate text-sm ${q.is_read ? "text-ink/70" : "font-semibold text-ink"}`}>
+                    {!q.is_read && (
+                      <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-primary align-middle" title="안읽음" />
+                    )}
+                    {q.company_name || q.name || "(업체명 없음)"}
+                    {q.contact_name ? ` · ${q.contact_name}` : ""}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] text-ink/40 sm:hidden">
+                    {fmtDate(q.created_at)}
+                  </span>
                 </span>
                 {/* 4. 연락처 */}
                 <span className="hidden w-32 shrink-0 text-xs text-ink/50 sm:block">

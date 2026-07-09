@@ -284,9 +284,9 @@ export default function ScheduleManager({ schedules }) {
                   : null;
               return (
                 <li key={ev.id}>
-                  <div className="flex items-center gap-3 px-4 py-3">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3">
                     <span
-                      className={`w-44 shrink-0 text-xs ${past ? "text-ink/35" : "text-ink/60"}`}
+                      className={`w-full shrink-0 text-xs sm:w-44 ${past ? "text-ink/35" : "text-ink/60"}`}
                     >
                       {ev.start_date}
                       {ev.end_date && ev.end_date !== ev.start_date
