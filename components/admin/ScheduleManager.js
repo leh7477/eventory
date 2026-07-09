@@ -236,21 +236,27 @@ export default function ScheduleManager({ schedules }) {
                       </div>
                     );
                   })}
-                  {segs.map((s, si) => (
-                    <div
-                      key={si}
-                      title={s.ev.title}
-                      style={{
-                        gridColumn: `${s.startCol + 1} / ${s.endCol + 2}`,
-                        gridRow: s.lane + 2,
-                      }}
-                      className={`z-10 mb-0.5 truncate bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium leading-tight text-blue-800 ${
-                        s.startsHere ? "ml-0.5 rounded-l" : ""
-                      } ${s.endsHere ? "mr-0.5 rounded-r" : ""}`}
-                    >
-                      {s.ev.title}
-                    </div>
-                  ))}
+                  {segs.map((s, si) => {
+                    const timeRange =
+                      s.ev.start_time || s.ev.end_time
+                        ? `${hm(s.ev.start_time) || "?"} ~ ${hm(s.ev.end_time) || "?"}`
+                        : "";
+                    return (
+                      <div
+                        key={si}
+                        title={`${s.ev.title}${timeRange ? ` (${timeRange})` : ""}`}
+                        style={{
+                          gridColumn: `${s.startCol + 1} / ${s.endCol + 2}`,
+                          gridRow: s.lane + 2,
+                        }}
+                        className={`z-10 mb-0.5 truncate bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium leading-tight text-blue-800 ${
+                          s.startsHere ? "ml-0.5 rounded-l" : ""
+                        } ${s.endsHere ? "mr-0.5 rounded-r" : ""}`}
+                      >
+                        {s.ev.title}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
