@@ -43,7 +43,7 @@ export async function updateScheduleTime(id, start_time, end_time) {
 
 // 견적 문의 → 행사 픽스 시 일정 자동 등록
 export async function createScheduleFromInquiry(inquiryId) {
-  await requireAdmin();
+  const user = await requireAdmin();
   const admin = createAdminClient();
   const { data: q } = await admin
     .from("inquiries")
@@ -51,6 +51,10 @@ export async function createScheduleFromInquiry(inquiryId) {
     .eq("id", inquiryId)
     .maybeSingle();
   if (!q) return { error: "문의를 찾을 수 없습니다." };
+  if (!q.handled)
+    return {
+      error: "회신이 완료되지 않은 문의입니다. 먼저 '회신 완료 처리' 후 일정을 등록해주세요.",
+    };
   if (!q.event_start) return { error: "이 문의에는 행사 시작일이 없습니다." };
 
   // 같은 문의로 이미 등록된 일정이 있으면 중복 방지
@@ -77,6 +81,18 @@ export async function createScheduleFromInquiry(inquiryId) {
     inquiry_id: inquiryId,
   });
   if (error) return { error: error.message };
+
+  // 활동 로그 기록 (best-effort)
+  const who = (user.email || "").replace(/@.*/, "");
+  const { data: cur } = await admin
+    .from("inquiries")
+    .select("activity_log")
+    .eq("id", inquiryId)
+    .maybeSingle();
+  const log = Array.isArray(cur?.activity_log) ? cur.activity_log : [];
+  log.push({ at: new Date().toISOString(), by: who, action: "일정 등록" });
+  await admin.from("inquiries").update({ activity_log: log }).eq("id", inquiryId);
+
   rv();
   return { ok: true };
 }

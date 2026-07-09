@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   setInquiryRead,
   setInquiryHandled,
+  updateInquiry,
   deleteInquiry,
 } from "@/app/admin/(panel)/inquiries/actions";
 import { createScheduleFromInquiry } from "@/app/admin/(panel)/schedule/actions";
@@ -40,6 +41,28 @@ export default function InquiriesManager({ inquiries }) {
   const router = useRouter();
   const [openId, setOpenId] = useState(null);
   const [pending, startTransition] = useTransition();
+
+  // 문의 내용 수정 모드
+  const [editId, setEditId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+
+  const openEdit = (q) => {
+    setEditId(q.id);
+    setEditForm({
+      company_name: q.company_name ?? "",
+      contact_name: q.contact_name ?? "",
+      phone: q.phone ?? "",
+      email: q.email ?? "",
+      product: q.product ?? "",
+      usage: q.usage ?? "",
+      event_start: q.event_start ?? "",
+      event_end: q.event_end ?? "",
+      address: q.address ?? "",
+      address_detail: q.address_detail ?? "",
+      message: q.message ?? "",
+    });
+  };
+  const setF = (k) => (e) => setEditForm((f) => ({ ...f, [k]: e.target.value }));
 
   const run = (fn) =>
     startTransition(async () => {
@@ -131,6 +154,106 @@ export default function InquiriesManager({ inquiries }) {
               {/* 상세 */}
               {open && (
                 <div className="border-t border-ink/5 bg-ink/[0.015] px-4 py-4">
+                  {editId === q.id ? (
+                    /* 수정 모드 */
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {[
+                        ["업체명", "company_name", "text"],
+                        ["담당자명", "contact_name", "text"],
+                        ["연락처", "phone", "text"],
+                        ["이메일", "email", "email"],
+                        ["문의 제품", "product", "text"],
+                      ].map(([label, key, type]) => (
+                        <div key={key}>
+                          <label className="mb-1 block text-xs text-ink/50">{label}</label>
+                          <input
+                            type={type}
+                            value={editForm[key]}
+                            onChange={setF(key)}
+                            className="w-full rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                          />
+                        </div>
+                      ))}
+                      <div>
+                        <label className="mb-1 block text-xs text-ink/50">제품 용도</label>
+                        <select
+                          value={editForm.usage}
+                          onChange={setF("usage")}
+                          className="w-full rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                        >
+                          <option value="">선택 안 함</option>
+                          <option value="임대">임대</option>
+                          <option value="제작">제작</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs text-ink/50">행사 시작일</label>
+                        <input
+                          type="date"
+                          value={editForm.event_start}
+                          onChange={setF("event_start")}
+                          className="w-full rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs text-ink/50">행사 종료일</label>
+                        <input
+                          type="date"
+                          value={editForm.event_end}
+                          min={editForm.event_start || undefined}
+                          onChange={setF("event_end")}
+                          className="w-full rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs text-ink/50">주소</label>
+                        <input
+                          value={editForm.address}
+                          onChange={setF("address")}
+                          className="w-full rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs text-ink/50">상세주소</label>
+                        <input
+                          value={editForm.address_detail}
+                          onChange={setF("address_detail")}
+                          className="w-full rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="mb-1 block text-xs text-ink/50">기타 문의</label>
+                        <textarea
+                          value={editForm.message}
+                          onChange={setF("message")}
+                          className="min-h-[60px] w-full resize-y rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                        />
+                      </div>
+                      <div className="flex gap-2 sm:col-span-2">
+                        <button
+                          type="button"
+                          disabled={pending}
+                          onClick={() =>
+                            run(async () => {
+                              const res = await updateInquiry(q.id, editForm);
+                              if (res?.error) alert(res.error);
+                              else setEditId(null);
+                            })
+                          }
+                          className="rounded-md bg-ink px-4 py-2 text-xs font-bold text-white hover:bg-black disabled:opacity-60"
+                        >
+                          저장
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditId(null)}
+                          className="rounded-md border border-ink/15 px-4 py-2 text-xs text-ink/60 hover:bg-ink/5"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
                   <dl>
                     <Row label="업체명" value={q.company_name} />
                     <Row label="담당자명" value={q.contact_name || q.name} />
@@ -142,6 +265,7 @@ export default function InquiriesManager({ inquiries }) {
                     <Row label="장소" value={location} />
                     <Row label="기타 문의" value={q.message} />
                   </dl>
+                  )}
 
                   {q.handled && (
                     <p className="mt-3 rounded-md bg-green-50 px-3 py-2 text-xs text-green-700">
@@ -150,6 +274,25 @@ export default function InquiriesManager({ inquiries }) {
                     </p>
                   )}
 
+                  {/* 활동 로그 (일정 등록·수정 이력) */}
+                  {Array.isArray(q.activity_log) && q.activity_log.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {q.activity_log
+                        .slice(-5)
+                        .reverse()
+                        .map((l, i) => (
+                          <p
+                            key={i}
+                            className="rounded-md bg-ink/[0.04] px-3 py-1.5 text-xs text-ink/55"
+                          >
+                            {l.action} — {l.by || "관리자"}
+                            {l.at ? ` · ${fmtDate(l.at)}` : ""}
+                          </p>
+                        ))}
+                    </div>
+                  )}
+
+                  {editId !== q.id && (
                   <div className="mt-4 flex flex-wrap gap-2">
                     <a
                       href={`/admin/inquiries/${q.id}/quote`}
@@ -191,14 +334,13 @@ export default function InquiriesManager({ inquiries }) {
                     >
                       {q.is_read ? "안읽음으로" : "읽음으로"}
                     </button>
-                    {q.email && (
-                      <a
-                        href={`mailto:${q.email}`}
-                        className="rounded-md border border-ink/15 px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-ink/5"
-                      >
-                        이메일 회신
-                      </a>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => openEdit(q)}
+                      className="rounded-md border border-ink/15 px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-ink/5"
+                    >
+                      수정
+                    </button>
                     <button
                       type="button"
                       onClick={() => {
@@ -210,6 +352,7 @@ export default function InquiriesManager({ inquiries }) {
                       삭제
                     </button>
                   </div>
+                  )}
                 </div>
               )}
             </li>

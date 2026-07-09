@@ -36,6 +36,7 @@ export default function ScheduleManager({ schedules }) {
   });
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
+  const [showAdd, setShowAdd] = useState(false); // 직접 추가 폼 접힘(기본)
 
   // 일정별 시간 인라인 편집
   const [timeEditId, setTimeEditId] = useState(null);
@@ -394,9 +395,28 @@ export default function ScheduleManager({ schedules }) {
         )}
       </div>
 
-      {/* 수동 일정 추가 */}
+      {/* 수동 일정 추가 (기본 접힘) */}
+      {!showAdd && (
+        <button
+          type="button"
+          onClick={() => setShowAdd(true)}
+          className="w-full rounded-xl border border-dashed border-ink/20 py-3 text-sm font-medium text-ink/60 transition hover:border-ink/40 hover:bg-ink/[0.02]"
+        >
+          + 일정 직접 추가
+        </button>
+      )}
+      {showAdd && (
       <form onSubmit={onAdd} className="rounded-xl border border-ink/10 bg-white p-5">
-        <p className="text-sm font-bold text-ink">일정 직접 추가</p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-bold text-ink">일정 직접 추가</p>
+          <button
+            type="button"
+            onClick={() => setShowAdd(false)}
+            className="rounded-md border border-ink/15 px-2.5 py-1 text-xs text-ink/50 hover:bg-ink/5"
+          >
+            접기
+          </button>
+        </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className="mb-1.5 block text-xs font-medium text-ink/60">제목</label>
@@ -441,6 +461,7 @@ export default function ScheduleManager({ schedules }) {
           {pending ? "처리 중..." : "일정 추가"}
         </button>
       </form>
+      )}
     </div>
   );
 }
