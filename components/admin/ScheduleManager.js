@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import {
   createSchedule,
   deleteSchedule,
-  updateScheduleTime,
+  updateScheduleDatetime,
 } from "@/app/admin/(panel)/schedule/actions";
+import TimeSelect from "@/components/admin/TimeSelect";
 
 // "10:00:00" → "10:00"
 const hm = (t) => (t ? String(t).slice(0, 5) : "");
@@ -38,13 +39,17 @@ export default function ScheduleManager({ schedules }) {
   const [pending, startTransition] = useTransition();
   const [showAdd, setShowAdd] = useState(false); // 직접 추가 폼 접힘(기본)
 
-  // 일정별 시간 인라인 편집
+  // 일정별 설치/회수 일시 인라인 편집
   const [timeEditId, setTimeEditId] = useState(null);
+  const [editStartDate, setEditStartDate] = useState("");
+  const [editEndDate, setEditEndDate] = useState("");
   const [timeStart, setTimeStart] = useState("");
   const [timeEnd, setTimeEnd] = useState("");
 
   const openTimeEdit = (ev) => {
     setTimeEditId(ev.id);
+    setEditStartDate(ev.start_date ?? "");
+    setEditEndDate(ev.end_date ?? ev.start_date ?? "");
     setTimeStart(hm(ev.start_time));
     setTimeEnd(hm(ev.end_time));
   };
@@ -280,7 +285,12 @@ export default function ScheduleManager({ schedules }) {
               const past = (ev.end_date || ev.start_date) < today;
               const timeLabel =
                 ev.start_time || ev.end_time
-                  ? `${hm(ev.start_time) || "?"} ~ ${hm(ev.end_time) || "?"}`
+                  ? [
+                      ev.start_time ? `설치 ${hm(ev.start_time)}` : null,
+                      ev.end_time ? `회수 ${hm(ev.end_time)}` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")
                   : null;
               return (
                 <li key={ev.id}>
@@ -324,7 +334,7 @@ export default function ScheduleManager({ schedules }) {
                           : "border-ink/15 text-ink/70 hover:bg-ink/5"
                       }`}
                     >
-                      시간
+                      일시
                     </button>
                     <button
                       type="button"
@@ -339,53 +349,59 @@ export default function ScheduleManager({ schedules }) {
                     </button>
                   </div>
 
-                  {/* 시간 인라인 편집 */}
+                  {/* 설치/회수 일시 인라인 편집 */}
                   {timeEditId === ev.id && (
-                    <div className="flex flex-wrap items-center gap-2 border-t border-ink/5 bg-ink/[0.015] px-4 py-3">
-                      <span className="text-xs text-ink/50">행사 시간</span>
-                      <input
-                        type="time"
-                        value={timeStart}
-                        onChange={(e) => setTimeStart(e.target.value)}
-                        className="rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
-                      />
-                      <span className="text-ink/40">~</span>
-                      <input
-                        type="time"
-                        value={timeEnd}
-                        onChange={(e) => setTimeEnd(e.target.value)}
-                        className="rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
-                      />
-                      <button
-                        type="button"
-                        disabled={pending}
-                        onClick={() =>
-                          run(async () => {
-                            const res = await updateScheduleTime(ev.id, timeStart, timeEnd);
-                            if (!res?.error) setTimeEditId(null);
-                            return res;
-                          })
-                        }
-                        className="rounded-md bg-ink px-4 py-1.5 text-xs font-bold text-white hover:bg-black disabled:opacity-60"
-                      >
-                        저장
-                      </button>
-                      {(ev.start_time || ev.end_time) && (
+                    <div className="space-y-2.5 border-t border-ink/5 bg-ink/[0.015] px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="w-10 shrink-0 text-xs font-bold text-blue-700">설치</span>
+                        <input
+                          type="date"
+                          value={editStartDate}
+                          onChange={(e) => setEditStartDate(e.target.value)}
+                          className="rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
+                        />
+                        <TimeSelect value={timeStart} onChange={setTimeStart} />
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="w-10 shrink-0 text-xs font-bold text-amber-700">회수</span>
+                        <input
+                          type="date"
+                          value={editEndDate}
+                          min={editStartDate || undefined}
+                          onChange={(e) => setEditEndDate(e.target.value)}
+                          className="rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
+                        />
+                        <TimeSelect value={timeEnd} onChange={setTimeEnd} />
+                      </div>
+                      <div className="flex gap-2">
                         <button
                           type="button"
                           disabled={pending}
                           onClick={() =>
                             run(async () => {
-                              const res = await updateScheduleTime(ev.id, "", "");
-                              if (!res?.error) setTimeEditId(null);
+                              const res = await updateScheduleDatetime(ev.id, {
+                                start_date: editStartDate,
+                                end_date: editEndDate,
+                                start_time: timeStart,
+                                end_time: timeEnd,
+                              });
+                              if (res?.error) alert(res.error);
+                              else setTimeEditId(null);
                               return res;
                             })
                           }
+                          className="rounded-md bg-ink px-4 py-1.5 text-xs font-bold text-white hover:bg-black disabled:opacity-60"
+                        >
+                          저장
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTimeEditId(null)}
                           className="rounded-md border border-ink/15 px-3 py-1.5 text-xs text-ink/60 hover:bg-ink/5"
                         >
-                          시간 지우기
+                          취소
                         </button>
-                      )}
+                      </div>
                     </div>
                   )}
                 </li>
@@ -428,20 +444,26 @@ export default function ScheduleManager({ schedules }) {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink/60">시작일</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink/60">설치 날짜</label>
             <input type="date" value={form.start_date} onChange={set("start_date")} className={inputCls} />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink/60">종료일 (비우면 당일)</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink/60">회수 날짜 (비우면 당일)</label>
             <input type="date" value={form.end_date} min={form.start_date || undefined} onChange={set("end_date")} className={inputCls} />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink/60">시작 시간 (선택)</label>
-            <input type="time" value={form.start_time} onChange={set("start_time")} className={inputCls} />
+            <label className="mb-1.5 block text-xs font-medium text-ink/60">설치 시간 (선택)</label>
+            <TimeSelect
+              value={form.start_time}
+              onChange={(v) => setForm((f) => ({ ...f, start_time: v }))}
+            />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink/60">종료 시간 (선택)</label>
-            <input type="time" value={form.end_time} onChange={set("end_time")} className={inputCls} />
+            <label className="mb-1.5 block text-xs font-medium text-ink/60">회수 시간 (선택)</label>
+            <TimeSelect
+              value={form.end_time}
+              onChange={(v) => setForm((f) => ({ ...f, end_time: v }))}
+            />
           </div>
           <div className="sm:col-span-2">
             <label className="mb-1.5 block text-xs font-medium text-ink/60">장소 (선택)</label>

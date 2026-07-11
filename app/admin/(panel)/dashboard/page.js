@@ -90,9 +90,7 @@ export default async function DashboardPage() {
   weekEnd.setDate(now.getDate() + (now.getDay() === 0 ? 0 : 7 - now.getDay()));
   const weekEndS = ds(weekEnd);
 
-  const [products, cases, inquiries, schRes] = await Promise.all([
-    admin.from("products").select("*", { count: "exact", head: true }),
-    admin.from("cases").select("*", { count: "exact", head: true }),
+  const [inquiries, schRes] = await Promise.all([
     admin
       .from("inquiries")
       .select("*", { count: "exact", head: true })
@@ -114,40 +112,34 @@ export default async function DashboardPage() {
     (o) => o.date > tomorrowS && o.date <= weekEndS
   );
 
-  const cards = [
-    { label: "등록 중단 배너", value: products.count ?? 0, href: "/admin/products" },
-    { label: "Stories", value: cases.count ?? 0, href: "/admin/cases" },
-    {
-      label: "미확인 견적 문의",
-      value: inquiries.count ?? 0,
-      href: "/admin/inquiries",
-      highlight: (inquiries.count ?? 0) > 0,
-    },
-  ];
+  const unread = inquiries.count ?? 0;
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-ink">대시보드</h1>
       <p className="mt-1 text-sm text-ink/50">Eventory 관리자 페이지입니다.</p>
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-3">
-        {cards.map((c) => (
-          <Link
-            key={c.label}
-            href={c.href}
-            className="rounded-2xl border border-ink/10 bg-white p-6 transition hover:border-primary/40 hover:shadow-sm"
-          >
-            <p className="text-sm text-ink/50">{c.label}</p>
-            <p
-              className={`mt-2 text-4xl font-extrabold ${
-                c.highlight ? "text-primary" : "text-ink"
-              }`}
-            >
-              {c.value}
-            </p>
-          </Link>
-        ))}
-      </div>
+      {/* 미확인 견적 문의 */}
+      <Link
+        href="/admin/inquiries"
+        className={`mt-8 flex items-center justify-between rounded-2xl border p-6 transition hover:shadow-sm ${
+          unread > 0
+            ? "border-primary/30 bg-primary/5 hover:border-primary/50"
+            : "border-ink/10 bg-white hover:border-ink/20"
+        }`}
+      >
+        <div>
+          <p className={`text-sm ${unread > 0 ? "font-bold text-primary" : "text-ink/50"}`}>
+            미확인 견적 문의
+          </p>
+          <p className={`mt-1 text-xs ${unread > 0 ? "text-primary/70" : "text-ink/35"}`}>
+            {unread > 0 ? "확인이 필요한 문의가 있습니다" : "모든 문의를 확인했습니다"}
+          </p>
+        </div>
+        <p className={`text-5xl font-extrabold ${unread > 0 ? "text-primary" : "text-ink/25"}`}>
+          {unread}
+        </p>
+      </Link>
 
       {/* 일정 요약 */}
       <div className="mt-8 flex items-center justify-between">

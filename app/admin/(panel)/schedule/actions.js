@@ -12,7 +12,7 @@ function rv() {
 export async function createSchedule({ title, start_date, end_date, start_time, end_time, location, memo }) {
   await requireAdmin();
   if (!title?.trim()) return { error: "일정 제목을 입력하세요." };
-  if (!start_date) return { error: "시작일을 선택하세요." };
+  if (!start_date) return { error: "설치 날짜를 선택하세요." };
   const admin = createAdminClient();
   const { error } = await admin.from("schedules").insert({
     title: title.trim(),
@@ -28,13 +28,19 @@ export async function createSchedule({ title, start_date, end_date, start_time, 
   return { ok: true };
 }
 
-// 일정 시간(시작/종료) 수정 — 연동 일정 포함 추후 입력용
-export async function updateScheduleTime(id, start_time, end_time) {
+// 설치/회수 일시 수정 (날짜+시간) — 전날 설치 등 대응
+export async function updateScheduleDatetime(id, { start_date, end_date, start_time, end_time }) {
   await requireAdmin();
+  if (!start_date) return { error: "설치 날짜를 선택하세요." };
   const admin = createAdminClient();
   const { error } = await admin
     .from("schedules")
-    .update({ start_time: start_time || null, end_time: end_time || null })
+    .update({
+      start_date,
+      end_date: end_date || start_date,
+      start_time: start_time || null,
+      end_time: end_time || null,
+    })
     .eq("id", id);
   if (error) return { error: error.message };
   rv();
@@ -42,7 +48,8 @@ export async function updateScheduleTime(id, start_time, end_time) {
 }
 
 // 견적 문의 → 행사 픽스 시 일정 자동 등록
-export async function createScheduleFromInquiry(inquiryId) {
+// opts: 설치/회수 일시 { start_date, end_date, start_time, end_time } (날짜 미지정 시 행사 기간 사용)
+export async function createScheduleFromInquiry(inquiryId, opts = {}) {
   const user = await requireAdmin();
   const admin = createAdminClient();
   const { data: q } = await admin
@@ -70,10 +77,15 @@ export async function createScheduleFromInquiry(inquiryId) {
     .join(" · ");
   const location = [q.address, q.address_detail].filter(Boolean).join(" ") || null;
 
+  const start_date = opts?.start_date || q.event_start;
+  const end_date = opts?.end_date || q.event_end || q.event_start;
+
   const { error } = await admin.from("schedules").insert({
     title,
-    start_date: q.event_start,
-    end_date: q.event_end || q.event_start,
+    start_date,
+    end_date,
+    start_time: opts?.start_time || null,
+    end_time: opts?.end_time || null,
     location,
     memo: [q.usage ? `용도: ${q.usage}` : null, q.contact_name ? `담당: ${q.contact_name} (${q.phone ?? "-"})` : null]
       .filter(Boolean)

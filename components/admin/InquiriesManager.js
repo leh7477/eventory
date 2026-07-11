@@ -9,6 +9,7 @@ import {
   deleteInquiry,
 } from "@/app/admin/(panel)/inquiries/actions";
 import { createScheduleFromInquiry } from "@/app/admin/(panel)/schedule/actions";
+import TimeSelect from "@/components/admin/TimeSelect";
 
 // 행사 기간 일수 (시작~종료 포함). 예: 07-23~07-26 → 4일
 function daysBetween(start, end) {
@@ -45,6 +46,40 @@ export default function InquiriesManager({ inquiries }) {
   // 문의 내용 수정 모드
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({});
+
+  // 일정 등록 팝업 (설치/회수 일시 — 전날 설치 등 날짜 변경 가능)
+  const [scheduleFor, setScheduleFor] = useState(null); // 대상 문의 객체
+  const [schStartDate, setSchStartDate] = useState("");
+  const [schEndDate, setSchEndDate] = useState("");
+  const [schStart, setSchStart] = useState("");
+  const [schEnd, setSchEnd] = useState("");
+
+  const openSchedule = (q) => {
+    if (!q.handled) {
+      alert("회신이 완료되지 않은 문의입니다. 먼저 '회신 완료 처리' 후 일정을 등록해주세요.");
+      return;
+    }
+    setSchStartDate(q.event_start ?? "");
+    setSchEndDate(q.event_end ?? q.event_start ?? "");
+    setSchStart("");
+    setSchEnd("");
+    setScheduleFor(q);
+  };
+
+  const submitSchedule = () =>
+    run(async () => {
+      const res = await createScheduleFromInquiry(scheduleFor.id, {
+        start_date: schStartDate,
+        end_date: schEndDate,
+        start_time: schStart,
+        end_time: schEnd,
+      });
+      if (res?.error) alert(res.error);
+      else {
+        setScheduleFor(null);
+        alert("일정에 등록되었습니다. (행사 일정 메뉴에서 확인)");
+      }
+    });
 
   const openEdit = (q) => {
     setEditId(q.id);
@@ -308,13 +343,7 @@ export default function InquiriesManager({ inquiries }) {
                     <button
                       type="button"
                       disabled={pending}
-                      onClick={() =>
-                        run(async () => {
-                          const res = await createScheduleFromInquiry(q.id);
-                          if (res?.error) alert(res.error);
-                          else alert("일정에 등록되었습니다. (일정 메뉴에서 확인)");
-                        })
-                      }
+                      onClick={() => openSchedule(q)}
                       className="rounded-md border border-ink/15 px-3 py-1.5 text-xs font-bold text-ink/70 hover:bg-ink/5"
                     >
                       일정 등록
@@ -364,6 +393,80 @@ export default function InquiriesManager({ inquiries }) {
           );
         })}
       </ul>
+
+      {/* 일정 등록 팝업 (시간 선택 입력) */}
+      {scheduleFor && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <div
+            onClick={() => setScheduleFor(null)}
+            className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+            aria-hidden
+          />
+          <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+            <p className="text-base font-bold text-ink">일정 등록</p>
+            <p className="mt-1 truncate text-sm text-ink/60">
+              {scheduleFor.company_name || scheduleFor.name}
+              {scheduleFor.product ? ` · ${scheduleFor.product}` : ""}
+            </p>
+            <p className="mt-0.5 text-xs text-ink/40">
+              {scheduleFor.event_start}
+              {scheduleFor.event_end && scheduleFor.event_end !== scheduleFor.event_start
+                ? ` ~ ${scheduleFor.event_end}`
+                : ""}
+            </p>
+
+            <div className="mt-5 space-y-4">
+              <div>
+                <label className="mb-1 block text-xs font-bold text-blue-700">설치 일시</label>
+                <div className="space-y-1.5">
+                  <input
+                    type="date"
+                    value={schStartDate}
+                    onChange={(e) => setSchStartDate(e.target.value)}
+                    className="w-full rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                  />
+                  <TimeSelect value={schStart} onChange={setSchStart} />
+                </div>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-bold text-amber-700">회수 일시</label>
+                <div className="space-y-1.5">
+                  <input
+                    type="date"
+                    value={schEndDate}
+                    min={schStartDate || undefined}
+                    onChange={(e) => setSchEndDate(e.target.value)}
+                    className="w-full rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                  />
+                  <TimeSelect value={schEnd} onChange={setSchEnd} />
+                </div>
+              </div>
+            </div>
+            <p className="mt-2 text-[11px] text-ink/40">
+              전날 설치라면 설치 날짜를 바꿔주세요. 시간은 비워도 되고 나중에
+              행사 일정에서 수정할 수 있어요.
+            </p>
+
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                disabled={pending}
+                onClick={submitSchedule}
+                className="flex-1 rounded-md bg-ink py-2.5 text-sm font-bold text-white hover:bg-black disabled:opacity-60"
+              >
+                {pending ? "등록 중..." : "일정 등록"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setScheduleFor(null)}
+                className="rounded-md border border-ink/15 px-4 py-2.5 text-sm text-ink/60 hover:bg-ink/5"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
