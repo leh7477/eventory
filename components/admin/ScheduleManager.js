@@ -28,6 +28,8 @@ export default function ScheduleManager({ schedules }) {
   const [view, setView] = useState({ y: now.getFullYear(), m: now.getMonth() });
   const [form, setForm] = useState({
     title: "",
+    event_start: "",
+    event_end: "",
     start_date: "",
     end_date: "",
     start_time: "",
@@ -39,8 +41,10 @@ export default function ScheduleManager({ schedules }) {
   const [pending, startTransition] = useTransition();
   const [showAdd, setShowAdd] = useState(false); // 직접 추가 폼 접힘(기본)
 
-  // 일정별 설치/회수 일시 인라인 편집
+  // 일정별 행사 기간 + 설치/회수 일시 인라인 편집
   const [timeEditId, setTimeEditId] = useState(null);
+  const [editEventStart, setEditEventStart] = useState("");
+  const [editEventEnd, setEditEventEnd] = useState("");
   const [editStartDate, setEditStartDate] = useState("");
   const [editEndDate, setEditEndDate] = useState("");
   const [timeStart, setTimeStart] = useState("");
@@ -48,6 +52,8 @@ export default function ScheduleManager({ schedules }) {
 
   const openTimeEdit = (ev) => {
     setTimeEditId(ev.id);
+    setEditEventStart(ev.event_start ?? "");
+    setEditEventEnd(ev.event_end ?? ev.event_start ?? "");
     setEditStartDate(ev.start_date ?? "");
     setEditEndDate(ev.end_date ?? ev.start_date ?? "");
     setTimeStart(hm(ev.start_time));
@@ -71,6 +77,8 @@ export default function ScheduleManager({ schedules }) {
       if (!res?.error)
         setForm({
           title: "",
+          event_start: "",
+          event_end: "",
           start_date: "",
           end_date: "",
           start_time: "",
@@ -283,30 +291,31 @@ export default function ScheduleManager({ schedules }) {
           <ul className="divide-y divide-ink/5">
             {monthEvents.map((ev) => {
               const past = (ev.end_date || ev.start_date) < today;
-              const timeLabel =
-                ev.start_time || ev.end_time
-                  ? [
-                      ev.start_time ? `설치 ${hm(ev.start_time)}` : null,
-                      ev.end_time ? `회수 ${hm(ev.end_time)}` : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")
-                  : null;
               return (
                 <li key={ev.id}>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3">
                     <span
-                      className={`w-full shrink-0 text-xs sm:w-44 ${past ? "text-ink/35" : "text-ink/60"}`}
+                      className={`w-full shrink-0 text-xs sm:w-52 ${past ? "text-ink/35" : "text-ink/70"}`}
                     >
-                      {ev.start_date}
-                      {ev.end_date && ev.end_date !== ev.start_date
-                        ? ` ~ ${ev.end_date}`
-                        : ""}
-                      {timeLabel && (
-                        <span className="mt-0.5 block font-medium text-blue-700">
-                          🕐 {timeLabel}
+                      {ev.event_start && (
+                        <span className="block">
+                          <b className={past ? "text-ink/35" : "text-ink/80"}>행사</b>{" "}
+                          {ev.event_start}
+                          {ev.event_end && ev.event_end !== ev.event_start
+                            ? ` ~ ${ev.event_end}`
+                            : ""}
                         </span>
                       )}
+                      <span className="mt-0.5 block">
+                        <b className={past ? "text-ink/35" : "text-blue-700"}>설치</b>{" "}
+                        {ev.start_date}
+                        {ev.start_time ? ` ${hm(ev.start_time)}` : ""}
+                      </span>
+                      <span className="mt-0.5 block">
+                        <b className={past ? "text-ink/35" : "text-amber-700"}>회수</b>{" "}
+                        {ev.end_date || ev.start_date}
+                        {ev.end_time ? ` ${hm(ev.end_time)}` : ""}
+                      </span>
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className={`truncate text-sm font-semibold ${past ? "text-ink/40" : "text-ink"}`}>
@@ -353,6 +362,23 @@ export default function ScheduleManager({ schedules }) {
                   {timeEditId === ev.id && (
                     <div className="space-y-2.5 border-t border-ink/5 bg-ink/[0.015] px-4 py-3">
                       <div className="flex flex-wrap items-center gap-2">
+                        <span className="w-10 shrink-0 text-xs font-bold text-ink/70">행사</span>
+                        <input
+                          type="date"
+                          value={editEventStart}
+                          onChange={(e) => setEditEventStart(e.target.value)}
+                          className="rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
+                        />
+                        <span className="text-ink/40">~</span>
+                        <input
+                          type="date"
+                          value={editEventEnd}
+                          min={editEventStart || undefined}
+                          onChange={(e) => setEditEventEnd(e.target.value)}
+                          className="rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
+                        />
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="w-10 shrink-0 text-xs font-bold text-blue-700">설치</span>
                         <input
                           type="date"
@@ -380,6 +406,8 @@ export default function ScheduleManager({ schedules }) {
                           onClick={() =>
                             run(async () => {
                               const res = await updateScheduleDatetime(ev.id, {
+                                event_start: editEventStart,
+                                event_end: editEventEnd,
                                 start_date: editStartDate,
                                 end_date: editEndDate,
                                 start_time: timeStart,
@@ -442,6 +470,14 @@ export default function ScheduleManager({ schedules }) {
               placeholder="예: ○○업체 · 가챠머신"
               className={inputCls}
             />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink/60">행사 시작일 (선택)</label>
+            <input type="date" value={form.event_start} onChange={set("event_start")} className={inputCls} />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-ink/60">행사 종료일 (선택)</label>
+            <input type="date" value={form.event_end} min={form.event_start || undefined} onChange={set("event_end")} className={inputCls} />
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink/60">설치 날짜</label>

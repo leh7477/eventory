@@ -9,13 +9,25 @@ function rv() {
   revalidatePath("/admin/inquiries");
 }
 
-export async function createSchedule({ title, start_date, end_date, start_time, end_time, location, memo }) {
+export async function createSchedule({
+  title,
+  event_start,
+  event_end,
+  start_date,
+  end_date,
+  start_time,
+  end_time,
+  location,
+  memo,
+}) {
   await requireAdmin();
   if (!title?.trim()) return { error: "일정 제목을 입력하세요." };
   if (!start_date) return { error: "설치 날짜를 선택하세요." };
   const admin = createAdminClient();
   const { error } = await admin.from("schedules").insert({
     title: title.trim(),
+    event_start: event_start || null,
+    event_end: event_end || event_start || null,
     start_date,
     end_date: end_date || start_date,
     start_time: start_time || null,
@@ -28,14 +40,19 @@ export async function createSchedule({ title, start_date, end_date, start_time, 
   return { ok: true };
 }
 
-// 설치/회수 일시 수정 (날짜+시간) — 전날 설치 등 대응
-export async function updateScheduleDatetime(id, { start_date, end_date, start_time, end_time }) {
+// 행사 기간 + 설치/회수 일시 수정 — 전날 설치 등 대응
+export async function updateScheduleDatetime(
+  id,
+  { event_start, event_end, start_date, end_date, start_time, end_time }
+) {
   await requireAdmin();
   if (!start_date) return { error: "설치 날짜를 선택하세요." };
   const admin = createAdminClient();
   const { error } = await admin
     .from("schedules")
     .update({
+      event_start: event_start || null,
+      event_end: event_end || event_start || null,
       start_date,
       end_date: end_date || start_date,
       start_time: start_time || null,
@@ -82,6 +99,8 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
 
   const { error } = await admin.from("schedules").insert({
     title,
+    event_start: q.event_start,
+    event_end: q.event_end || q.event_start,
     start_date,
     end_date,
     start_time: opts?.start_time || null,

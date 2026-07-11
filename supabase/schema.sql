@@ -146,6 +146,9 @@ create index if not exists idx_schedules_start on schedules (start_date);
 -- 행사 시작/종료 시간 (추후 입력 가능)
 alter table schedules add column if not exists start_time time;
 alter table schedules add column if not exists end_time time;
+-- 실제 행사 기간 (설치/회수와 별개 — 전날 설치 대응)
+alter table schedules add column if not exists event_start date;
+alter table schedules add column if not exists event_end date;
 
 -- -------------------------------------------------------------
 -- 사이트 설정 (단일 행) — 홈 Stories 자동 롤링 등
