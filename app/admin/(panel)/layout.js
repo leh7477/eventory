@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { profileFromUser } from "@/lib/admin/sections";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 export const metadata = {
@@ -15,9 +16,15 @@ export default async function AdminPanelLayout({ children }) {
   // 미들웨어가 1차 보호하지만 서버에서도 한 번 더 확인
   if (!user) redirect("/admin");
 
+  const profile = profileFromUser(user);
+
   return (
     <div className="min-h-screen bg-ink/[0.03] font-sans text-ink md:flex">
-      <AdminSidebar email={user.email} />
+      <AdminSidebar
+        email={user.email}
+        isOwner={profile.isOwner}
+        permissions={profile.permissions}
+      />
       <main className="min-w-0 flex-1 px-4 py-6 md:px-6 md:py-8 lg:px-10">
         {children}
       </main>

@@ -4,21 +4,18 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { ADMIN_SECTIONS } from "@/lib/admin/sections";
 
-const NAV = [
-  { href: "/admin/dashboard", label: "대시보드" },
-  { href: "/admin/banner", label: "메인 배너" },
-  { href: "/admin/categories", label: "카테고리" },
-  { href: "/admin/products", label: "중단 배너" },
-  { href: "/admin/cases", label: "Stories" },
-  { href: "/admin/inquiries", label: "견적 문의" },
-  { href: "/admin/schedule", label: "행사 일정" },
-];
-
-export default function AdminSidebar({ email }) {
+export default function AdminSidebar({ email, isOwner = true, permissions = [] }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  const NAV = [
+    { href: "/admin/dashboard", label: "대시보드" },
+    ...ADMIN_SECTIONS.filter((s) => isOwner || permissions.includes(s.key)),
+    ...(isOwner ? [{ href: "/admin/accounts", label: "ID 관리" }] : []),
+  ];
 
   const logout = async () => {
     const supabase = createClient();

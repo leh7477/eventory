@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
+import { profileFromUser, canAccess, sectionKeyForPath } from "@/lib/admin/sections";
 
 export async function middleware(request) {
   let response = NextResponse.next({ request });
@@ -39,6 +40,16 @@ export async function middleware(request) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin";
     return NextResponse.redirect(url);
+  }
+
+  // 로그인 상태에서 권한 없는 메뉴 접근 시 대시보드로
+  if (isAdminArea && user) {
+    const sectionKey = sectionKeyForPath(pathname);
+    if (sectionKey && !canAccess(profileFromUser(user), sectionKey)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/dashboard";
+      return NextResponse.redirect(url);
+    }
   }
 
   // 이미 로그인된 상태로 로그인 페이지 접근 시 대시보드로
