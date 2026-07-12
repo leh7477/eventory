@@ -94,6 +94,8 @@ alter table inquiries add column if not exists handled_at timestamptz; -- 처리
 alter table inquiries add column if not exists activity_log jsonb default '[]'::jsonb;  -- 활동 로그(일정 등록·수정 이력)
 -- 진행 상태 파이프라인: new(신규)/consulting(상담중)/quoted(견적발송)/confirmed(계약확정)/done(완료)/cancelled(취소)
 alter table inquiries add column if not exists status text default 'new';
+alter table inquiries add column if not exists contract_amount bigint;  -- 계약 금액(매출 통계용)
+alter table inquiries add column if not exists quoted_amount bigint;    -- 최근 견적 공급가액
 update inquiries set status = 'done' where handled = true and (status is null or status = 'new');
 
 -- -------------------------------------------------------------

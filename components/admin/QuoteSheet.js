@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { SITE } from "@/lib/constants";
+import { saveQuotedAmount } from "@/app/admin/(panel)/inquiries/actions";
 
 // 행사 기간 일수 (시작~종료 포함)
 function daysBetween(start, end) {
@@ -47,6 +49,23 @@ export default function QuoteSheet({ inquiry }) {
     "· 본 견적은 견적일로부터 30일간 유효합니다.\n· 예약은 계약금 입금 시 확정됩니다.\n· 행사 일정 변경·취소는 사전 협의 부탁드립니다."
   );
   const [quoteDate, setQuoteDate] = useState(todayStr());
+  const router = useRouter();
+  const [saving, startSave] = useTransition();
+  const [savedMsg, setSavedMsg] = useState("");
+  const [autoRecord, setAutoRecord] = useState(true); // 인쇄 시 견적 금액 자동 기록
+
+  const recordQuote = () =>
+    startSave(async () => {
+      setSavedMsg("");
+      const res = await saveQuotedAmount(inquiry.id, supply);
+      setSavedMsg(res?.error || "견적 금액이 문의에 기록되었습니다");
+      if (!res?.error) router.refresh();
+    });
+
+  const handlePrint = () => {
+    if (autoRecord && supply > 0) recordQuote();
+    window.print();
+  };
 
   const setItem = (i, k, v) =>
     setItems((rows) => rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
@@ -73,7 +92,7 @@ export default function QuoteSheet({ inquiry }) {
       <div className="print-hide mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-ink/10 bg-white p-3">
         <button
           type="button"
-          onClick={() => window.print()}
+          onClick={handlePrint}
           className="rounded-md bg-ink px-5 py-2 text-sm font-bold text-white transition hover:bg-black"
         >
           인쇄 / PDF 저장
@@ -87,9 +106,22 @@ export default function QuoteSheet({ inquiry }) {
           />
           부가세(10%) 별도 표기
         </label>
-        <span className="text-xs text-ink/40">
-          입력 내용은 저장되지 않으니 완성 후 바로 인쇄/PDF 저장하세요.
-        </span>
+        <label className="flex items-center gap-1.5 text-sm text-ink/70">
+          <input
+            type="checkbox"
+            checked={autoRecord}
+            onChange={(e) => setAutoRecord(e.target.checked)}
+            className="h-4 w-4 accent-primary"
+          />
+          견적 금액 자동 기록
+        </label>
+        {savedMsg ? (
+          <span className="text-xs font-medium text-green-600">{savedMsg}</span>
+        ) : (
+          <span className="text-xs text-ink/40">
+            인쇄 시 공급가액이 견적 금액으로 문의에 기록됩니다.
+          </span>
+        )}
       </div>
 
       {/* 견적서 본체 (A4) */}

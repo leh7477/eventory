@@ -6,6 +6,7 @@ import {
   setInquiryRead,
   updateInquiryStatus,
   updateInquiry,
+  setContractAmount,
   deleteInquiry,
 } from "@/app/admin/(panel)/inquiries/actions";
 import { createScheduleFromInquiry } from "@/app/admin/(panel)/schedule/actions";
@@ -72,6 +73,17 @@ export default function InquiriesManager({ inquiries }) {
   // 문의 내용 수정 모드
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({});
+
+  // 계약 금액 입력 (숫자 문자열, id별)
+  const [amounts, setAmounts] = useState({});
+  const amtValue = (q) =>
+    amounts[q.id] !== undefined
+      ? amounts[q.id]
+      : q.contract_amount != null
+      ? String(q.contract_amount)
+      : "";
+  const setAmt = (id, raw) =>
+    setAmounts((a) => ({ ...a, [id]: raw.replace(/\D/g, "") }));
 
   // 일정 등록 팝업 (설치/회수 일시 — 전날 설치 등 날짜 변경 가능)
   const [scheduleFor, setScheduleFor] = useState(null); // 대상 문의 객체
@@ -327,6 +339,14 @@ export default function InquiriesManager({ inquiries }) {
                     <Row label="행사 기간" value={period} />
                     <Row label="장소" value={location} />
                     <Row label="기타 문의" value={q.message} />
+                    <Row
+                      label="최근 견적"
+                      value={
+                        q.quoted_amount
+                          ? `₩ ${Number(q.quoted_amount).toLocaleString("ko-KR")} (공급가액)`
+                          : null
+                      }
+                    />
                   </dl>
                   )}
 
@@ -365,6 +385,79 @@ export default function InquiriesManager({ inquiries }) {
                           행사 종료일이 지나 <b>완료</b>로 자동 표시됩니다.
                         </p>
                       )}
+
+                      {statusOf(q) === "confirmed" &&
+                        (() => {
+                          const supply = Number(amtValue(q)) || 0;
+                          const vat = Math.round(supply * 0.1);
+                          const won = (n) => n.toLocaleString("ko-KR");
+                          return (
+                            <div className="mt-3 border-t border-ink/5 pt-3">
+                              <p className="mb-1.5 text-xs font-bold text-ink/60">
+                                계약 금액{" "}
+                                <span className="font-normal text-ink/40">
+                                  (공급가액 입력 · 매출 통계 반영)
+                                </span>
+                              </p>
+                              {q.quoted_amount ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setAmt(q.id, String(q.quoted_amount))
+                                  }
+                                  className="mb-1.5 text-xs font-medium text-primary underline underline-offset-2"
+                                >
+                                  최근 견적 ₩
+                                  {Number(q.quoted_amount).toLocaleString("ko-KR")} 불러오기
+                                </button>
+                              ) : null}
+                              <div className="flex items-center gap-2">
+                                <div className="relative">
+                                  <input
+                                    inputMode="numeric"
+                                    value={supply ? won(supply) : ""}
+                                    onChange={(e) => setAmt(q.id, e.target.value)}
+                                    placeholder="0"
+                                    className="w-40 rounded-md border border-ink/15 py-2 pl-3 pr-7 text-right text-sm outline-none focus:border-primary"
+                                  />
+                                  <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-ink/40">
+                                    원
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  disabled={pending}
+                                  onClick={() =>
+                                    run(async () => {
+                                      const res = await setContractAmount(q.id, amtValue(q));
+                                      if (res?.error) alert(res.error);
+                                    })
+                                  }
+                                  className="rounded-md bg-ink px-4 py-2 text-xs font-bold text-white hover:bg-black disabled:opacity-60"
+                                >
+                                  저장
+                                </button>
+                              </div>
+                              {/* 견적서와 동일: 공급가 → 부가세 → 합계 자동 계산 */}
+                              {supply > 0 && (
+                                <div className="mt-2 w-56 space-y-0.5 text-xs">
+                                  <div className="flex justify-between text-ink/50">
+                                    <span>공급가액</span>
+                                    <span>₩ {won(supply)}</span>
+                                  </div>
+                                  <div className="flex justify-between text-ink/50">
+                                    <span>부가세 (10%)</span>
+                                    <span>₩ {won(vat)}</span>
+                                  </div>
+                                  <div className="flex justify-between border-t border-ink/10 pt-0.5 font-bold text-ink">
+                                    <span>합계 (부가세 포함)</span>
+                                    <span>₩ {won(supply + vat)}</span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                     </div>
                   )}
 

@@ -68,6 +68,54 @@ export async function updateInquiryStatus(id, status) {
   return { ok: true };
 }
 
+// 견적서에서 견적 금액(공급가액) 기록 → 상세에 '최근 견적'으로 표시, 신규면 '견적발송'으로 승격
+export async function saveQuotedAmount(id, amount) {
+  const user = await requireAdmin();
+  const admin = createAdminClient();
+  const digits = String(amount ?? "").replace(/\D/g, "");
+  const val = digits === "" ? null : parseInt(digits, 10);
+  const { data: cur } = await admin
+    .from("inquiries")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle();
+  const update = { quoted_amount: val };
+  if (val && (!cur?.status || cur.status === "new")) update.status = "quoted";
+  const { error } = await admin.from("inquiries").update(update).eq("id", id);
+  if (error) return { error: "견적 금액 저장에 실패했습니다." };
+  const who = (user.email || "").replace(/@.*/, "");
+  await appendActivityLog(
+    admin,
+    id,
+    who,
+    val ? `견적 금액 ${val.toLocaleString("ko-KR")}원 기록` : "견적 금액 삭제"
+  );
+  rv();
+  return { ok: true };
+}
+
+// 계약 금액 입력 (매출 통계용)
+export async function setContractAmount(id, amount) {
+  const user = await requireAdmin();
+  const admin = createAdminClient();
+  const digits = String(amount ?? "").replace(/\D/g, "");
+  const val = digits === "" ? null : parseInt(digits, 10);
+  const { error } = await admin
+    .from("inquiries")
+    .update({ contract_amount: val })
+    .eq("id", id);
+  if (error) return { error: "계약 금액 저장에 실패했습니다." };
+  const who = (user.email || "").replace(/@.*/, "");
+  await appendActivityLog(
+    admin,
+    id,
+    who,
+    val ? `계약 금액 ${val.toLocaleString("ko-KR")}원 입력` : "계약 금액 삭제"
+  );
+  rv();
+  return { ok: true };
+}
+
 // 활동 로그 추가 (best-effort — 컬럼 없어도 본 동작은 막지 않음)
 async function appendActivityLog(admin, id, by, action) {
   const { data } = await admin
