@@ -75,9 +75,11 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
     .eq("id", inquiryId)
     .maybeSingle();
   if (!q) return { error: "문의를 찾을 수 없습니다." };
-  if (!q.handled)
+  const okStatus =
+    q.status === "confirmed" || q.status === "done" || (!q.status && q.handled);
+  if (!okStatus)
     return {
-      error: "회신이 완료되지 않은 문의입니다. 먼저 '회신 완료 처리' 후 일정을 등록해주세요.",
+      error: "'계약확정' 상태의 문의만 일정에 등록할 수 있습니다. 상세에서 상태를 변경 후 등록해주세요.",
     };
   if (!q.event_start) return { error: "이 문의에는 행사 시작일이 없습니다." };
 

@@ -37,6 +37,37 @@ export async function setInquiryHandled(id, handled) {
   return { ok: true };
 }
 
+// 문의 진행 상태 변경 (파이프라인)
+const STATUS_LABEL = {
+  new: "신규",
+  quoted: "견적발송",
+  confirmed: "계약확정",
+  done: "완료",
+  cancelled: "취소",
+};
+
+export async function updateInquiryStatus(id, status) {
+  const user = await requireAdmin();
+  if (!STATUS_LABEL[status]) return { error: "잘못된 상태입니다." };
+  const admin = createAdminClient();
+  const who = (user.email || "").replace(/@.*/, "");
+  const closed = status === "done" || status === "cancelled";
+  const { error } = await admin
+    .from("inquiries")
+    .update({
+      status,
+      is_read: true,
+      handled: closed, // 정렬용: 완료/취소는 하단으로
+      handled_by: closed ? who : null,
+      handled_at: closed ? new Date().toISOString() : null,
+    })
+    .eq("id", id);
+  if (error) return { error: "상태 변경에 실패했습니다." };
+  await appendActivityLog(admin, id, who, `상태 → ${STATUS_LABEL[status]}`);
+  rv();
+  return { ok: true };
+}
+
 // 활동 로그 추가 (best-effort — 컬럼 없어도 본 동작은 막지 않음)
 async function appendActivityLog(admin, id, by, action) {
   const { data } = await admin

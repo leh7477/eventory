@@ -4,12 +4,38 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   setInquiryRead,
-  setInquiryHandled,
+  updateInquiryStatus,
   updateInquiry,
   deleteInquiry,
 } from "@/app/admin/(panel)/inquiries/actions";
 import { createScheduleFromInquiry } from "@/app/admin/(panel)/schedule/actions";
 import TimeSelect from "@/components/admin/TimeSelect";
+
+// 문의 진행 단계 (파이프라인)
+const STATUS_META = {
+  new: { label: "신규", badge: "bg-primary/10 text-primary" },
+  quoted: { label: "견적발송", badge: "bg-indigo-100 text-indigo-700" },
+  confirmed: { label: "계약확정", badge: "bg-green-100 text-green-700" },
+  done: { label: "완료", badge: "bg-ink/10 text-ink/50" },
+  cancelled: { label: "취소", badge: "bg-ink/[0.04] text-ink/40" },
+};
+// 관리자가 직접 누르는 상태 (완료는 날짜로 자동 판정 → 제외)
+const CLICKABLE_STATUSES = ["new", "quoted", "confirmed", "cancelled"];
+// status 컬럼 없던 기존 데이터 폴백 (handled 기준)
+const statusOf = (q) => q.status || (q.handled ? "done" : "new");
+const statusMeta = (v) => STATUS_META[v] || STATUS_META.new;
+
+const _today = () => {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+// 계약확정인데 행사 종료일이 지났으면 '완료'로 자동 표시
+const effectiveStatus = (q) => {
+  const s = statusOf(q);
+  if (s === "confirmed" && q.event_end && q.event_end < _today()) return "done";
+  return s;
+};
 
 // 행사 기간 일수 (시작~종료 포함). 예: 07-23~07-26 → 4일
 function daysBetween(start, end) {
@@ -55,8 +81,9 @@ export default function InquiriesManager({ inquiries }) {
   const [schEnd, setSchEnd] = useState("");
 
   const openSchedule = (q) => {
-    if (!q.handled) {
-      alert("회신이 완료되지 않은 문의입니다. 먼저 '회신 완료 처리' 후 일정을 등록해주세요.");
+    const st = statusOf(q);
+    if (st !== "confirmed" && st !== "done") {
+      alert("'계약확정' 상태의 문의만 일정 등록할 수 있어요. 상세에서 상태를 '계약확정'으로 바꿔주세요.");
       return;
     }
     setSchStartDate(q.event_start ?? "");
@@ -126,7 +153,7 @@ export default function InquiriesManager({ inquiries }) {
     <div className="overflow-hidden rounded-xl border border-ink/10 bg-white">
       {/* 컬럼 헤더 */}
       <div className="flex items-center gap-3 border-b border-ink/10 bg-ink/[0.02] px-4 py-2.5 text-xs font-semibold text-ink/40 sm:gap-4">
-        <span className="w-14 shrink-0 sm:w-16">상태</span>
+        <span className="w-16 shrink-0 sm:w-20">상태</span>
         <span className="hidden w-32 shrink-0 sm:block">접수일</span>
         <span className="flex-1">업체 · 담당자</span>
         <span className="hidden w-32 shrink-0 sm:block">연락처</span>
@@ -153,16 +180,12 @@ export default function InquiriesManager({ inquiries }) {
                 className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-ink/[0.02] sm:gap-4"
               >
                 {/* 1. 상태 */}
-                <span className="w-14 shrink-0 sm:w-16">
-                  {q.handled ? (
-                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-bold text-green-700">
-                      완료
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
-                      미처리
-                    </span>
-                  )}
+                <span className="w-16 shrink-0 sm:w-20">
+                  <span
+                    className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${statusMeta(effectiveStatus(q)).badge}`}
+                  >
+                    {statusMeta(effectiveStatus(q)).label}
+                  </span>
                 </span>
                 {/* 2. 날짜 (데스크탑) */}
                 <span className="hidden w-32 shrink-0 text-xs text-ink/50 sm:block">
@@ -307,14 +330,45 @@ export default function InquiriesManager({ inquiries }) {
                   </dl>
                   )}
 
-                  {q.handled && (
-                    <p className="mt-3 rounded-md bg-green-50 px-3 py-2 text-xs text-green-700">
-                      ✓ 회신 완료 — {q.handled_by || "담당자"}
-                      {q.handled_at ? ` · ${fmtDate(q.handled_at)}` : ""}
-                    </p>
+                  {/* 진행 상태 변경 */}
+                  {editId !== q.id && (
+                    <div className="mt-4 rounded-lg border border-ink/10 bg-white p-3">
+                      <p className="mb-2 text-xs font-bold text-ink/60">진행 상태</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {CLICKABLE_STATUSES.map((v) => {
+                          const meta = statusMeta(v);
+                          const active = statusOf(q) === v;
+                          return (
+                            <button
+                              key={v}
+                              type="button"
+                              disabled={pending || active}
+                              onClick={() =>
+                                run(async () => {
+                                  const res = await updateInquiryStatus(q.id, v);
+                                  if (res?.error) alert(res.error);
+                                })
+                              }
+                              className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+                                active
+                                  ? meta.badge
+                                  : "border border-ink/15 text-ink/50 hover:bg-ink/5"
+                              }`}
+                            >
+                              {meta.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {effectiveStatus(q) === "done" && (
+                        <p className="mt-2 text-[11px] text-ink/45">
+                          행사 종료일이 지나 <b>완료</b>로 자동 표시됩니다.
+                        </p>
+                      )}
+                    </div>
                   )}
 
-                  {/* 활동 로그 (일정 등록·수정 이력) */}
+                  {/* 활동 로그 (상태 변경·일정 등록·수정 이력) */}
                   {Array.isArray(q.activity_log) && q.activity_log.length > 0 && (
                     <div className="mt-2 space-y-1">
                       {q.activity_log
@@ -347,18 +401,6 @@ export default function InquiriesManager({ inquiries }) {
                       className="rounded-md border border-ink/15 px-3 py-1.5 text-xs font-bold text-ink/70 hover:bg-ink/5"
                     >
                       일정 등록
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => run(() => setInquiryHandled(q.id, !q.handled))}
-                      disabled={pending}
-                      className={`rounded-md px-3 py-1.5 text-xs font-bold ${
-                        q.handled
-                          ? "border border-ink/15 text-ink/60 hover:bg-ink/5"
-                          : "bg-green-600 text-white hover:bg-green-700"
-                      }`}
-                    >
-                      {q.handled ? "회신완료 취소" : "회신 완료 처리"}
                     </button>
                     <button
                       type="button"

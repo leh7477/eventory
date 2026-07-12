@@ -92,6 +92,9 @@ alter table inquiries add column if not exists handled boolean default false;  -
 alter table inquiries add column if not exists handled_by text;       -- 처리한 담당자(로그인 아이디)
 alter table inquiries add column if not exists handled_at timestamptz; -- 처리 시각
 alter table inquiries add column if not exists activity_log jsonb default '[]'::jsonb;  -- 활동 로그(일정 등록·수정 이력)
+-- 진행 상태 파이프라인: new(신규)/consulting(상담중)/quoted(견적발송)/confirmed(계약확정)/done(완료)/cancelled(취소)
+alter table inquiries add column if not exists status text default 'new';
+update inquiries set status = 'done' where handled = true and (status is null or status = 'new');
 
 -- -------------------------------------------------------------
 -- 사례(Stories) 카테고리 연결 — 카테고리별 필터용
