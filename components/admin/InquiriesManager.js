@@ -11,6 +11,7 @@ import {
 } from "@/app/admin/(panel)/inquiries/actions";
 import { createScheduleFromInquiry } from "@/app/admin/(panel)/schedule/actions";
 import TimeSelect from "@/components/admin/TimeSelect";
+import DatePicker from "@/components/DatePicker";
 
 // 문의 진행 단계 (파이프라인)
 const STATUS_META = {
@@ -263,21 +264,17 @@ export default function InquiriesManager({ inquiries }) {
                       </div>
                       <div>
                         <label className="mb-1 block text-xs text-ink/50">행사 시작일</label>
-                        <input
-                          type="date"
+                        <DatePicker
                           value={editForm.event_start}
-                          onChange={setF("event_start")}
-                          className="w-full rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                          onChange={(v) => setEditForm((f) => ({ ...f, event_start: v }))}
                         />
                       </div>
                       <div>
                         <label className="mb-1 block text-xs text-ink/50">행사 종료일</label>
-                        <input
-                          type="date"
+                        <DatePicker
                           value={editForm.event_end}
                           min={editForm.event_start || undefined}
-                          onChange={setF("event_end")}
-                          className="w-full rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                          onChange={(v) => setEditForm((f) => ({ ...f, event_end: v }))}
                         />
                       </div>
                       <div>
@@ -554,24 +551,17 @@ export default function InquiriesManager({ inquiries }) {
               <div>
                 <label className="mb-1 block text-xs font-bold text-blue-700">설치 일시</label>
                 <div className="space-y-1.5">
-                  <input
-                    type="date"
-                    value={schStartDate}
-                    onChange={(e) => setSchStartDate(e.target.value)}
-                    className="w-full rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
-                  />
+                  <DatePicker value={schStartDate} onChange={setSchStartDate} />
                   <TimeSelect value={schStart} onChange={setSchStart} />
                 </div>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-bold text-amber-700">회수 일시</label>
                 <div className="space-y-1.5">
-                  <input
-                    type="date"
+                  <DatePicker
                     value={schEndDate}
                     min={schStartDate || undefined}
-                    onChange={(e) => setSchEndDate(e.target.value)}
-                    className="w-full rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                    onChange={setSchEndDate}
                   />
                   <TimeSelect value={schEnd} onChange={setSchEnd} />
                 </div>

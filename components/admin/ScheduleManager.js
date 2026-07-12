@@ -8,6 +8,7 @@ import {
   updateScheduleDatetime,
 } from "@/app/admin/(panel)/schedule/actions";
 import TimeSelect from "@/components/admin/TimeSelect";
+import DatePicker from "@/components/DatePicker";
 
 // "10:00:00" → "10:00"
 const hm = (t) => (t ? String(t).slice(0, 5) : "");
@@ -61,6 +62,7 @@ export default function ScheduleManager({ schedules }) {
   };
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const setD = (k) => (v) => setForm((f) => ({ ...f, [k]: v })); // DatePicker용(값 직접)
 
   const run = (fn) =>
     startTransition(async () => {
@@ -95,61 +97,33 @@ export default function ScheduleManager({ schedules }) {
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const today = todayStr();
 
-  // 주 단위(7칸씩)로 나눔
-  const weeks = [];
-  {
-    let cur = [];
-    for (let i = 0; i < firstDay; i++) cur.push(null);
-    for (let d = 1; d <= daysInMonth; d++) {
-      cur.push(d);
-      if (cur.length === 7) {
-        weeks.push(cur);
-        cur = [];
-      }
-    }
-    if (cur.length) {
-      while (cur.length < 7) cur.push(null);
-      weeks.push(cur);
-    }
-  }
+  // 날짜 셀 (앞쪽 빈칸 + 1~말일)
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
-  // 한 주 안에서 각 일정이 차지하는 구간(막대) 계산 + 겹치면 줄(lane) 배정
-  const weekSegments = (week) => {
-    const segs = [];
+  // 그날의 설치/회수 액션 + 장비 배치(설치~회수) 기간 여부
+  const dayInfo = (ds) => ({
+    installs: schedules.filter((ev) => ev.start_date === ds),
+    pickups: schedules.filter((ev) => (ev.end_date || ev.start_date) === ds),
+    deployed: schedules.some(
+      (ev) => ev.start_date <= ds && ds <= (ev.end_date || ev.start_date)
+    ),
+  });
+
+  // 오늘/내일 요약용 (설치/회수 발생 목록)
+  const tmr = new Date();
+  tmr.setDate(tmr.getDate() + 1);
+  const tomorrow = dstr(tmr.getFullYear(), tmr.getMonth(), tmr.getDate());
+  const occFor = (ds) => {
+    const list = [];
     schedules.forEach((ev) => {
-      const end = ev.end_date || ev.start_date;
-      let startCol = -1;
-      let endCol = -1;
-      week.forEach((d, col) => {
-        if (d === null) return;
-        const ds = dstr(y, m, d);
-        if (ev.start_date <= ds && ds <= end) {
-          if (startCol === -1) startCol = col;
-          endCol = col;
-        }
-      });
-      if (startCol !== -1) {
-        segs.push({
-          ev,
-          startCol,
-          endCol,
-          startsHere: dstr(y, m, week[startCol]) === ev.start_date,
-          endsHere: dstr(y, m, week[endCol]) === end,
-        });
-      }
+      if (ev.start_date === ds)
+        list.push({ type: "설치", ev, time: hm(ev.start_time) });
+      if ((ev.end_date || ev.start_date) === ds)
+        list.push({ type: "회수", ev, time: hm(ev.end_time) });
     });
-    segs.sort(
-      (a, b) =>
-        a.startCol - b.startCol || b.endCol - b.startCol - (a.endCol - a.startCol)
-    );
-    const laneEnds = [];
-    segs.forEach((s) => {
-      let lane = 0;
-      while (laneEnds[lane] !== undefined && laneEnds[lane] >= s.startCol) lane++;
-      laneEnds[lane] = s.endCol;
-      s.lane = lane;
-    });
-    return segs;
+    return list.sort((a, b) => (a.time ?? "99").localeCompare(b.time ?? "99"));
   };
 
   const prev = () => setView(({ y, m }) => (m === 0 ? { y: y - 1, m: 11 } : { y, m: m - 1 }));
@@ -165,8 +139,64 @@ export default function ScheduleManager({ schedules }) {
   const inputCls =
     "w-full rounded-md border border-ink/15 px-3 py-2.5 text-sm outline-none focus:border-primary";
 
+  const OccCard = ({ title, ds }) => {
+    const list = occFor(ds);
+    return (
+      <div className="rounded-xl border border-ink/10 bg-white">
+        <p className="border-b border-ink/10 px-4 py-2.5 text-sm font-bold text-ink">
+          {title}
+          <span className="ml-1.5 text-ink/40">({list.length})</span>
+        </p>
+        {list.length === 0 ? (
+          <p className="px-4 py-5 text-center text-xs text-ink/35">
+            설치/회수 일정이 없습니다.
+          </p>
+        ) : (
+          <ul className="divide-y divide-ink/5">
+            {list.map((o, i) => (
+              <li key={i} className="flex items-center gap-2 px-4 py-2.5">
+                <span
+                  className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                    o.type === "설치"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-amber-100 text-amber-700"
+                  }`}
+                >
+                  {o.type}
+                </span>
+                {o.time && (
+                  <span
+                    className={`shrink-0 text-xs font-bold ${
+                      o.type === "설치" ? "text-blue-700" : "text-amber-700"
+                    }`}
+                  >
+                    {o.time}
+                  </span>
+                )}
+                <span className="min-w-0 flex-1 truncate text-sm text-ink">
+                  {o.ev.title}
+                </span>
+                {o.ev.location && (
+                  <span className="hidden shrink-0 truncate text-xs text-ink/40 sm:block sm:max-w-[40%]">
+                    {o.ev.location}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
+      {/* 오늘 / 내일 요약 */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <OccCard title="오늘 일정" ds={today} />
+        <OccCard title="내일 일정" ds={tomorrow} />
+      </div>
+
       {/* 달력 */}
       <div className="rounded-xl border border-ink/10 bg-white p-4">
         <div className="flex items-center justify-between px-1">
@@ -202,79 +232,81 @@ export default function ScheduleManager({ schedules }) {
           ))}
         </div>
 
-        <div>
-          {weeks.map((week, wi) => {
-            const segs = weekSegments(week);
-            return (
-              <div key={wi} className="relative min-h-20">
-                {/* 배경: 칸 테두리 + 오늘 표시 */}
-                <div className="absolute inset-0 grid grid-cols-7">
-                  {week.map((d, col) => {
-                    const ds = d ? dstr(y, m, d) : null;
-                    const isToday = ds === today;
-                    return (
-                      <div
-                        key={col}
-                        className={`border border-ink/5 ${isToday ? "bg-primary/5" : ""} ${
-                          d === null ? "border-transparent" : ""
-                        }`}
-                      />
-                    );
-                  })}
-                </div>
+        {/* 액션 중심: 각 날짜에 그날의 설치/회수만 표시 */}
+        <div className="grid grid-cols-7">
+          {cells.map((d, i) => {
+            if (d === null)
+              return <div key={i} className="min-h-24 border border-transparent" />;
+            const ds = dstr(y, m, d);
+            const isToday = ds === today;
+            const past = ds < today;
+            const col = i % 7;
+            const { installs, pickups, deployed } = dayInfo(ds);
 
-                {/* 내용: 날짜 숫자(1행) + 이어진 일정 막대(2행~) */}
-                <div className="relative grid grid-cols-7 pb-1.5">
-                  {week.map((d, col) => {
-                    if (d === null)
-                      return (
-                        <div key={col} className="h-7" style={{ gridColumn: col + 1, gridRow: 1 }} />
-                      );
-                    const ds = dstr(y, m, d);
-                    const isToday = ds === today;
-                    return (
-                      <div key={col} className="h-7 p-1" style={{ gridColumn: col + 1, gridRow: 1 }}>
-                        <span
-                          className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-xs ${
-                            isToday
-                              ? "bg-primary font-bold text-white"
-                              : col === 0
-                              ? "text-primary"
-                              : col === 6
-                              ? "text-blue-500"
-                              : "text-ink/70"
-                          }`}
-                        >
-                          {d}
-                        </span>
-                      </div>
-                    );
-                  })}
-                  {segs.map((s, si) => {
-                    const timeRange =
-                      s.ev.start_time || s.ev.end_time
-                        ? `${hm(s.ev.start_time) || "?"} ~ ${hm(s.ev.end_time) || "?"}`
-                        : "";
-                    return (
-                      <div
-                        key={si}
-                        title={`${s.ev.title}${timeRange ? ` (${timeRange})` : ""}`}
-                        style={{
-                          gridColumn: `${s.startCol + 1} / ${s.endCol + 2}`,
-                          gridRow: s.lane + 2,
-                        }}
-                        className={`z-10 mb-0.5 truncate bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium leading-tight text-blue-800 ${
-                          s.startsHere ? "ml-0.5 rounded-l" : ""
-                        } ${s.endsHere ? "mr-0.5 rounded-r" : ""}`}
-                      >
-                        {s.ev.title}
-                      </div>
-                    );
-                  })}
+            const chip = (kind, ev) => {
+              const t = kind === "install" ? hm(ev.start_time) : hm(ev.end_time);
+              const cls = past
+                ? "bg-ink/[0.05] text-ink/40"
+                : kind === "install"
+                ? "bg-blue-100 text-blue-800"
+                : "bg-amber-100 text-amber-800";
+              return (
+                <div
+                  key={`${kind}-${ev.id}`}
+                  title={`${kind === "install" ? "설치" : "회수"} · ${ev.title}${t ? ` ${t}` : ""}`}
+                  className={`flex items-center gap-1 truncate rounded px-1 py-0.5 text-[10px] leading-tight ${cls}`}
+                >
+                  <span className="shrink-0 font-bold">
+                    {kind === "install" ? "▶설치" : "◀회수"}
+                  </span>
+                  {t && <span className="shrink-0 font-semibold">{t}</span>}
+                  <span className="truncate">{ev.title}</span>
+                </div>
+              );
+            };
+
+            return (
+              <div
+                key={i}
+                className={`min-h-24 border border-ink/5 p-1 ${
+                  isToday ? "bg-primary/5" : deployed ? "bg-ink/[0.02]" : ""
+                }`}
+              >
+                <span
+                  className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-xs ${
+                    isToday
+                      ? "bg-primary font-bold text-white"
+                      : col === 0
+                      ? "text-primary"
+                      : col === 6
+                      ? "text-blue-500"
+                      : "text-ink/70"
+                  }`}
+                >
+                  {d}
+                </span>
+                <div className="mt-1 space-y-0.5">
+                  {installs.map((ev) => chip("install", ev))}
+                  {pickups.map((ev) => chip("pickup", ev))}
                 </div>
               </div>
             );
           })}
+        </div>
+
+        {/* 범례 */}
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-ink/5 pt-3 text-[11px] text-ink/50">
+          <span className="flex items-center gap-1.5">
+            <span className="rounded bg-blue-100 px-1 py-0.5 font-bold text-blue-800">▶설치</span>{" "}
+            설치 나가는 날
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="rounded bg-amber-100 px-1 py-0.5 font-bold text-amber-800">◀회수</span>{" "}
+            회수 나가는 날
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-3 w-4 rounded-sm bg-ink/[0.04]" /> 장비 나가있는 기간
+          </span>
         </div>
       </div>
 
@@ -363,40 +395,34 @@ export default function ScheduleManager({ schedules }) {
                     <div className="space-y-2.5 border-t border-ink/5 bg-ink/[0.015] px-4 py-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="w-10 shrink-0 text-xs font-bold text-ink/70">행사</span>
-                        <input
-                          type="date"
-                          value={editEventStart}
-                          onChange={(e) => setEditEventStart(e.target.value)}
-                          className="rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
-                        />
+                        <div className="w-36">
+                          <DatePicker value={editEventStart} onChange={setEditEventStart} />
+                        </div>
                         <span className="text-ink/40">~</span>
-                        <input
-                          type="date"
-                          value={editEventEnd}
-                          min={editEventStart || undefined}
-                          onChange={(e) => setEditEventEnd(e.target.value)}
-                          className="rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
-                        />
+                        <div className="w-36">
+                          <DatePicker
+                            value={editEventEnd}
+                            min={editEventStart || undefined}
+                            onChange={setEditEventEnd}
+                          />
+                        </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="w-10 shrink-0 text-xs font-bold text-blue-700">설치</span>
-                        <input
-                          type="date"
-                          value={editStartDate}
-                          onChange={(e) => setEditStartDate(e.target.value)}
-                          className="rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
-                        />
+                        <div className="w-36">
+                          <DatePicker value={editStartDate} onChange={setEditStartDate} />
+                        </div>
                         <TimeSelect value={timeStart} onChange={setTimeStart} />
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="w-10 shrink-0 text-xs font-bold text-amber-700">회수</span>
-                        <input
-                          type="date"
-                          value={editEndDate}
-                          min={editStartDate || undefined}
-                          onChange={(e) => setEditEndDate(e.target.value)}
-                          className="rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
-                        />
+                        <div className="w-36">
+                          <DatePicker
+                            value={editEndDate}
+                            min={editStartDate || undefined}
+                            onChange={setEditEndDate}
+                          />
+                        </div>
                         <TimeSelect value={timeEnd} onChange={setTimeEnd} />
                       </div>
                       <div className="flex gap-2">
@@ -473,19 +499,19 @@ export default function ScheduleManager({ schedules }) {
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink/60">행사 시작일 (선택)</label>
-            <input type="date" value={form.event_start} onChange={set("event_start")} className={inputCls} />
+            <DatePicker value={form.event_start} onChange={setD("event_start")} />
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink/60">행사 종료일 (선택)</label>
-            <input type="date" value={form.event_end} min={form.event_start || undefined} onChange={set("event_end")} className={inputCls} />
+            <DatePicker value={form.event_end} min={form.event_start || undefined} onChange={setD("event_end")} />
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink/60">설치 날짜</label>
-            <input type="date" value={form.start_date} onChange={set("start_date")} className={inputCls} />
+            <DatePicker value={form.start_date} onChange={setD("start_date")} />
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink/60">회수 날짜 (비우면 당일)</label>
-            <input type="date" value={form.end_date} min={form.start_date || undefined} onChange={set("end_date")} className={inputCls} />
+            <DatePicker value={form.end_date} min={form.start_date || undefined} onChange={setD("end_date")} />
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-ink/60">설치 시간 (선택)</label>
