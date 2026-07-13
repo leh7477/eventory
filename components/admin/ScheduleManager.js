@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   createSchedule,
@@ -12,6 +12,14 @@ import DatePicker from "@/components/DatePicker";
 
 // "10:00:00" → "10:00"
 const hm = (t) => (t ? String(t).slice(0, 5) : "");
+
+// 메모에서 "용도: 임대/제작" 추출
+const usageOf = (ev) => {
+  const line = (ev.memo || "")
+    .split("\n")
+    .find((l) => l.trim().startsWith("용도:"));
+  return line ? line.replace("용도:", "").trim() : null;
+};
 
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -41,6 +49,21 @@ export default function ScheduleManager({ schedules }) {
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
   const [showAdd, setShowAdd] = useState(false); // 직접 추가 폼 접힘(기본)
+
+  // 달력/요약에서 클릭 시 하단 목록의 해당 건으로 스크롤·강조
+  const [highlightId, setHighlightId] = useState(null);
+  const focusEvent = (ev) => {
+    const d = new Date(ev.start_date);
+    setView({ y: d.getFullYear(), m: d.getMonth() }); // 그 달로 이동
+    setHighlightId(ev.id);
+  };
+  useEffect(() => {
+    if (!highlightId) return;
+    const el = document.getElementById(`sch-${highlightId}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    const t = setTimeout(() => setHighlightId(null), 2500);
+    return () => clearTimeout(t);
+  }, [highlightId]);
 
   // 일정별 행사 기간 + 설치/회수 일시 인라인 편집
   const [timeEditId, setTimeEditId] = useState(null);
@@ -154,7 +177,11 @@ export default function ScheduleManager({ schedules }) {
         ) : (
           <ul className="divide-y divide-ink/5">
             {list.map((o, i) => (
-              <li key={i} className="flex items-center gap-2 px-4 py-2.5">
+              <li
+                key={i}
+                onClick={() => focusEvent(o.ev)}
+                className="flex cursor-pointer items-center gap-2 px-4 py-2.5 hover:bg-ink/[0.02]"
+              >
                 <span
                   className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
                     o.type === "설치"
@@ -253,8 +280,9 @@ export default function ScheduleManager({ schedules }) {
               return (
                 <div
                   key={`${kind}-${ev.id}`}
+                  onClick={() => focusEvent(ev)}
                   title={`${kind === "install" ? "설치" : "회수"} · ${ev.title}${t ? ` ${t}` : ""}`}
-                  className={`flex items-center gap-1 truncate rounded px-1 py-0.5 text-[10px] leading-tight ${cls}`}
+                  className={`flex cursor-pointer items-center gap-1 truncate rounded px-1 py-0.5 text-[10px] leading-tight ${cls}`}
                 >
                   <span className="shrink-0 font-bold">
                     {kind === "install" ? "▶설치" : "◀회수"}
@@ -323,8 +351,15 @@ export default function ScheduleManager({ schedules }) {
           <ul className="divide-y divide-ink/5">
             {monthEvents.map((ev) => {
               const past = (ev.end_date || ev.start_date) < today;
+              const usage = usageOf(ev);
               return (
-                <li key={ev.id}>
+                <li
+                  key={ev.id}
+                  id={`sch-${ev.id}`}
+                  className={`transition-colors ${
+                    highlightId === ev.id ? "bg-primary/10" : ""
+                  }`}
+                >
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3">
                     <span
                       className={`w-full shrink-0 text-xs sm:w-52 ${past ? "text-ink/35" : "text-ink/70"}`}
@@ -357,10 +392,21 @@ export default function ScheduleManager({ schedules }) {
                             연동
                           </span>
                         )}
+                        {usage && (
+                          <span
+                            className={`ml-1 rounded px-1.5 py-0.5 text-[10px] font-medium align-middle ${
+                              usage === "제작"
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-blue-100 text-blue-700"
+                            }`}
+                          >
+                            {usage}
+                          </span>
+                        )}
                       </p>
-                      {(ev.location || ev.memo) && (
+                      {ev.location && (
                         <p className={`truncate text-xs ${past ? "text-ink/30" : "text-ink/50"}`}>
-                          {[ev.location, ev.memo?.split("\n")[0]].filter(Boolean).join(" · ")}
+                          {ev.location}
                         </p>
                       )}
                     </div>
