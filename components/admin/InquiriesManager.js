@@ -17,9 +17,10 @@ import DatePicker from "@/components/DatePicker";
 const STATUS_META = {
   new: { label: "신규", badge: "bg-primary/10 text-primary" },
   quoted: { label: "견적발송", badge: "bg-indigo-100 text-indigo-700" },
-  confirmed: { label: "계약확정", badge: "bg-green-100 text-green-700" },
+  confirmed: { label: "확정", badge: "bg-green-100 text-green-700" },
   done: { label: "완료", badge: "bg-ink/10 text-ink/50" },
   cancelled: { label: "취소", badge: "bg-ink/[0.04] text-ink/40" },
+  expired: { label: "만료", badge: "bg-ink/[0.06] text-ink/45" },
 };
 // status 컬럼 없던 기존 데이터 폴백 (handled 기준)
 const statusOf = (q) => q.status || (q.handled ? "done" : "new");
@@ -30,10 +31,18 @@ const _today = () => {
   const p = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 };
-// 계약확정인데 행사 종료일이 지났으면 '완료'로 자동 표시
+// 자동 상태 판정 (DB 변경 없이 화면 표시용)
+//  - 확정 + 행사 종료일 지남 → 완료
+//  - 신규/견적발송인데 행사 시작일 지남 → 만료(응답 없이 무산)
 const effectiveStatus = (q) => {
   const s = statusOf(q);
   if (s === "confirmed" && q.event_end && q.event_end < _today()) return "done";
+  if (
+    (s === "new" || s === "quoted") &&
+    q.event_start &&
+    q.event_start < _today()
+  )
+    return "expired";
   return s;
 };
 
@@ -41,7 +50,7 @@ const effectiveStatus = (q) => {
 const STEPS = [
   { v: "new", label: "신규" },
   { v: "quoted", label: "견적발송" },
-  { v: "confirmed", label: "계약확정" },
+  { v: "confirmed", label: "확정" },
   { v: "done", label: "완료" },
 ];
 
@@ -105,10 +114,27 @@ function Row({ label, value }) {
   );
 }
 
+const FILTER_TABS = [
+  { v: "all", label: "전체" },
+  { v: "new", label: "신규" },
+  { v: "quoted", label: "견적발송" },
+  { v: "confirmed", label: "확정" },
+  { v: "done", label: "완료" },
+  { v: "expired", label: "만료" },
+  { v: "cancelled", label: "취소" },
+];
+const PAGE_SIZE = 20;
+
 export default function InquiriesManager({ inquiries }) {
   const router = useRouter();
   const [openId, setOpenId] = useState(null);
   const [pending, startTransition] = useTransition();
+
+  // 필터 / 검색 / 기간 / 페이지 (클라이언트)
+  const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [period, setPeriod] = useState("all"); // all | 7 | 30 | 90
+  const [page, setPage] = useState(1);
 
   // 문의 내용 수정 모드
   const [editId, setEditId] = useState(null);
@@ -135,7 +161,7 @@ export default function InquiriesManager({ inquiries }) {
   const openSchedule = (q) => {
     const st = statusOf(q);
     if (st !== "confirmed" && st !== "done") {
-      alert("'계약확정' 상태의 문의만 일정 등록할 수 있어요. 상세에서 상태를 '계약확정'으로 바꿔주세요.");
+      alert("'확정' 상태의 문의만 일정 등록할 수 있어요. 상세에서 상태를 '확정'으로 바꿔주세요.");
       return;
     }
     setSchStartDate(q.event_start ?? "");
@@ -201,8 +227,103 @@ export default function InquiriesManager({ inquiries }) {
     );
   }
 
+  // --- 필터/검색/기간 적용 ---
+  const matchesSearch = (q) => {
+    const s = search.trim().toLowerCase();
+    if (!s) return true;
+    return [q.company_name, q.contact_name, q.name, q.phone].some((v) =>
+      (v || "").toLowerCase().includes(s)
+    );
+  };
+  const matchesPeriod = (q) => {
+    if (period === "all") return true;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - Number(period));
+    return new Date(q.created_at) >= cutoff;
+  };
+  // 상태 탭 개수 (검색·기간 반영, 상태필터 제외)
+  const base = inquiries.filter((q) => matchesSearch(q) && matchesPeriod(q));
+  const counts = { all: base.length };
+  ["new", "quoted", "confirmed", "done", "expired", "cancelled"].forEach(
+    (k) => (counts[k] = base.filter((q) => effectiveStatus(q) === k).length)
+  );
+
+  const isClosed = (q) =>
+    ["done", "expired", "cancelled"].includes(effectiveStatus(q));
+  const filtered = base
+    .filter((q) => filter === "all" || effectiveStatus(q) === filter)
+    .sort(
+      (a, b) =>
+        (isClosed(a) ? 1 : 0) - (isClosed(b) ? 1 : 0) ||
+        (a.created_at < b.created_at ? 1 : -1)
+    );
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const curPage = Math.min(page, totalPages);
+  const paged = filtered.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+
+  const pageNums = [];
+  {
+    const s = Math.max(1, curPage - 2);
+    const e = Math.min(totalPages, curPage + 2);
+    for (let i = s; i <= e; i++) pageNums.push(i);
+  }
+
+  const onFilter = (v) => {
+    setFilter(v);
+    setPage(1);
+  };
+
   return (
-    <div className="overflow-hidden rounded-xl border border-ink/10 bg-white">
+    <div>
+      {/* 필터 툴바 */}
+      <div className="mb-4 space-y-3">
+        <div className="flex flex-wrap gap-1.5">
+          {FILTER_TABS.map((t) => (
+            <button
+              key={t.v}
+              type="button"
+              onClick={() => onFilter(t.v)}
+              className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
+                filter === t.v
+                  ? "bg-ink text-white"
+                  : "border border-ink/15 text-ink/60 hover:bg-ink/5"
+              }`}
+            >
+              {t.label}
+              <span className={`ml-1 ${filter === t.v ? "text-white/60" : "text-ink/35"}`}>
+                {counts[t.v] ?? 0}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <input
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="업체명·담당자·연락처 검색"
+            className="min-w-[180px] flex-1 rounded-md border border-ink/15 px-3 py-2 text-sm outline-none focus:border-primary"
+          />
+          <select
+            value={period}
+            onChange={(e) => {
+              setPeriod(e.target.value);
+              setPage(1);
+            }}
+            className="rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+          >
+            <option value="all">전체 기간</option>
+            <option value="7">최근 7일</option>
+            <option value="30">최근 30일</option>
+            <option value="90">최근 90일</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-ink/10 bg-white">
       {/* 컬럼 헤더 */}
       <div className="flex items-center gap-3 border-b border-ink/10 bg-ink/[0.02] px-4 py-2.5 text-xs font-semibold text-ink/40 sm:gap-4">
         <span className="w-16 shrink-0 sm:w-20">상태</span>
@@ -213,7 +334,7 @@ export default function InquiriesManager({ inquiries }) {
       </div>
 
       <ul className="divide-y divide-ink/5">
-        {inquiries.map((q) => {
+        {paged.map((q) => {
           const open = openId === q.id;
           const location = [q.address, q.address_detail].filter(Boolean).join(" ");
           const days = daysBetween(q.event_start, q.event_end);
@@ -229,6 +350,11 @@ export default function InquiriesManager({ inquiries }) {
             st === "cancelled"
               ? -1
               : STEPS.findIndex((s) => s.v === (eff === "done" ? "done" : st));
+          // 견적서 작성·인쇄(견적 금액 기록) 완료 여부 → 확정 가능 조건
+          const quoteDone =
+            q.quoted_amount != null ||
+            ["quoted", "confirmed"].includes(st) ||
+            eff === "done";
           return (
             <li key={q.id}>
               {/* 요약 행 */}
@@ -415,11 +541,15 @@ export default function InquiriesManager({ inquiries }) {
                       <div className="rounded-lg border border-ink/10 bg-white p-3">
                         <div className="mb-2.5 flex items-center justify-between">
                           <p className="text-xs font-bold text-ink/60">진행 상태</p>
-                          {st === "cancelled" && (
+                          {st === "cancelled" ? (
                             <span className="rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-bold text-ink/50">
                               취소됨
                             </span>
-                          )}
+                          ) : eff === "expired" ? (
+                            <span className="rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-bold text-ink/45">
+                              만료됨 · 행사일 지남
+                            </span>
+                          ) : null}
                         </div>
                         <div className="flex items-center">
                           {STEPS.map((s, i) => {
@@ -471,7 +601,7 @@ export default function InquiriesManager({ inquiries }) {
                       <StepBox
                         n="2"
                         title="견적서 작성"
-                        active={st === "new"}
+                        active={st === "new" && eff !== "expired"}
                         done={["quoted", "confirmed", "done"].includes(st) || eff === "done"}
                       >
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
@@ -496,8 +626,8 @@ export default function InquiriesManager({ inquiries }) {
                       {/* ③ 계약 확정 */}
                       <StepBox
                         n="3"
-                        title="계약 확정"
-                        active={st === "quoted"}
+                        title="확정"
+                        active={st === "quoted" && eff !== "expired"}
                         done={st === "confirmed" || eff === "done"}
                       >
                         {st === "confirmed" || eff === "done" ? (
@@ -575,19 +705,26 @@ export default function InquiriesManager({ inquiries }) {
                             );
                           })()
                         ) : (
-                          <button
-                            type="button"
-                            disabled={pending}
-                            onClick={() =>
-                              run(async () => {
-                                const r = await updateInquiryStatus(q.id, "confirmed");
-                                if (r?.error) alert(r.error);
-                              })
-                            }
-                            className="rounded-md bg-green-600 px-4 py-2 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-60"
-                          >
-                            계약확정으로 변경
-                          </button>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={pending || !quoteDone}
+                              onClick={() =>
+                                run(async () => {
+                                  const r = await updateInquiryStatus(q.id, "confirmed");
+                                  if (r?.error) alert(r.error);
+                                })
+                              }
+                              className="rounded-md bg-green-600 px-4 py-2 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-40"
+                            >
+                              확정 처리
+                            </button>
+                            {!quoteDone && (
+                              <span className="text-[11px] text-ink/40">
+                                견적서를 먼저 작성·인쇄해야 확정할 수 있어요
+                              </span>
+                            )}
+                          </div>
                         )}
                       </StepBox>
                       {/* ④ 일정 등록 */}
@@ -603,7 +740,7 @@ export default function InquiriesManager({ inquiries }) {
                           </button>
                           {!(st === "confirmed" || eff === "done") && (
                             <span className="text-[11px] text-ink/40">
-                              계약확정 후 등록할 수 있어요
+                              확정 후 등록할 수 있어요
                             </span>
                           )}
                         </div>
@@ -674,6 +811,48 @@ export default function InquiriesManager({ inquiries }) {
           );
         })}
       </ul>
+        {paged.length === 0 && (
+          <p className="px-4 py-12 text-center text-sm text-ink/40">
+            조건에 맞는 문의가 없습니다.
+          </p>
+        )}
+      </div>
+
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-center gap-1.5">
+          <button
+            type="button"
+            disabled={curPage === 1}
+            onClick={() => setPage(curPage - 1)}
+            className="flex h-8 min-w-8 items-center justify-center rounded-md border border-ink/15 text-sm text-ink/70 hover:bg-ink/5 disabled:opacity-30"
+          >
+            ‹
+          </button>
+          {pageNums.map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setPage(n)}
+              className={`flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-sm ${
+                n === curPage
+                  ? "bg-ink font-bold text-white"
+                  : "border border-ink/15 text-ink/70 hover:bg-ink/5"
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+          <button
+            type="button"
+            disabled={curPage === totalPages}
+            onClick={() => setPage(curPage + 1)}
+            className="flex h-8 min-w-8 items-center justify-center rounded-md border border-ink/15 text-sm text-ink/70 hover:bg-ink/5 disabled:opacity-30"
+          >
+            ›
+          </button>
+        </div>
+      )}
 
       {/* 일정 등록 팝업 (시간 선택 입력) */}
       {scheduleFor && (
