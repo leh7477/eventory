@@ -21,8 +21,6 @@ const STATUS_META = {
   done: { label: "완료", badge: "bg-ink/10 text-ink/50" },
   cancelled: { label: "취소", badge: "bg-ink/[0.04] text-ink/40" },
 };
-// 관리자가 직접 누르는 상태 (완료는 날짜로 자동 판정 → 제외)
-const CLICKABLE_STATUSES = ["new", "quoted", "confirmed", "cancelled"];
 // status 컬럼 없던 기존 데이터 폴백 (handled 기준)
 const statusOf = (q) => q.status || (q.handled ? "done" : "new");
 const statusMeta = (v) => STATUS_META[v] || STATUS_META.new;
@@ -38,6 +36,47 @@ const effectiveStatus = (q) => {
   if (s === "confirmed" && q.event_end && q.event_end < _today()) return "done";
   return s;
 };
+
+// 진행 단계 (스텝바)
+const STEPS = [
+  { v: "new", label: "신규" },
+  { v: "quoted", label: "견적발송" },
+  { v: "confirmed", label: "계약확정" },
+  { v: "done", label: "완료" },
+];
+
+// 단계 카드
+function StepBox({ n, title, active, done, right, children }) {
+  return (
+    <div
+      className={`rounded-lg border p-3 ${
+        active ? "border-primary/40 bg-primary/[0.03]" : "border-ink/10 bg-white"
+      }`}
+    >
+      <div className="mb-2 flex items-center gap-2">
+        <span
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+            done
+              ? "bg-green-500 text-white"
+              : active
+              ? "bg-primary text-white"
+              : "bg-ink/10 text-ink/50"
+          }`}
+        >
+          {done ? "✓" : n}
+        </span>
+        <span className="text-xs font-bold text-ink/70">{title}</span>
+        {active && (
+          <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+            지금 할 차례
+          </span>
+        )}
+        {right && <span className="ml-auto">{right}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
 
 // 행사 기간 일수 (시작~종료 포함). 예: 07-23~07-26 → 4일
 function daysBetween(start, end) {
@@ -184,6 +223,12 @@ export default function InquiriesManager({ inquiries }) {
                   days ? ` (${days}일)` : ""
                 }`
               : q.event_date || "";
+          const st = statusOf(q);
+          const eff = effectiveStatus(q);
+          const curIdx =
+            st === "cancelled"
+              ? -1
+              : STEPS.findIndex((s) => s.v === (eff === "done" ? "done" : st));
           return (
             <li key={q.id}>
               {/* 요약 행 */}
@@ -326,6 +371,22 @@ export default function InquiriesManager({ inquiries }) {
                       </div>
                     </div>
                   ) : (
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="flex items-center gap-2 text-xs font-bold text-ink/70">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ink/10 text-[11px]">
+                          1
+                        </span>
+                        문의 내용
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => openEdit(q)}
+                        className="rounded-md border border-ink/15 px-2.5 py-1 text-xs text-ink/60 hover:bg-ink/5"
+                      >
+                        수정
+                      </button>
+                    </div>
                   <dl>
                     <Row label="업체명" value={q.company_name} />
                     <Row label="담당자명" value={q.contact_name || q.name} />
@@ -345,122 +406,214 @@ export default function InquiriesManager({ inquiries }) {
                       }
                     />
                   </dl>
+                  </div>
                   )}
 
-                  {/* 진행 상태 변경 */}
                   {editId !== q.id && (
-                    <div className="mt-4 rounded-lg border border-ink/10 bg-white p-3">
-                      <p className="mb-2 text-xs font-bold text-ink/60">진행 상태</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {CLICKABLE_STATUSES.map((v) => {
-                          const meta = statusMeta(v);
-                          const active = statusOf(q) === v;
-                          return (
-                            <button
-                              key={v}
-                              type="button"
-                              disabled={pending || active}
-                              onClick={() =>
-                                run(async () => {
-                                  const res = await updateInquiryStatus(q.id, v);
-                                  if (res?.error) alert(res.error);
-                                })
-                              }
-                              className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-                                active
-                                  ? meta.badge
-                                  : "border border-ink/15 text-ink/50 hover:bg-ink/5"
-                              }`}
-                            >
-                              {meta.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {effectiveStatus(q) === "done" && (
-                        <p className="mt-2 text-[11px] text-ink/45">
-                          행사 종료일이 지나 <b>완료</b>로 자동 표시됩니다.
-                        </p>
-                      )}
-
-                      {statusOf(q) === "confirmed" &&
-                        (() => {
-                          const supply = Number(amtValue(q)) || 0;
-                          const vat = Math.round(supply * 0.1);
-                          const won = (n) => n.toLocaleString("ko-KR");
-                          return (
-                            <div className="mt-3 border-t border-ink/5 pt-3">
-                              <p className="mb-1.5 text-xs font-bold text-ink/60">
-                                계약 금액{" "}
-                                <span className="font-normal text-ink/40">
-                                  (공급가액 입력 · 매출 통계 반영)
-                                </span>
-                              </p>
-                              {q.quoted_amount ? (
+                    <div className="mt-3 space-y-3">
+                      {/* ⓪ 진행 상태 스텝바 */}
+                      <div className="rounded-lg border border-ink/10 bg-white p-3">
+                        <div className="mb-2.5 flex items-center justify-between">
+                          <p className="text-xs font-bold text-ink/60">진행 상태</p>
+                          {st === "cancelled" && (
+                            <span className="rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-bold text-ink/50">
+                              취소됨
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center">
+                          {STEPS.map((s, i) => {
+                            const filled = st !== "cancelled" && i <= curIdx;
+                            const isCur = i === curIdx;
+                            const clickable = s.v !== "done";
+                            return (
+                              <div
+                                key={s.v}
+                                className={`flex items-center ${i < STEPS.length - 1 ? "flex-1" : ""}`}
+                              >
                                 <button
                                   type="button"
+                                  disabled={!clickable || pending}
                                   onClick={() =>
-                                    setAmt(q.id, String(q.quoted_amount))
-                                  }
-                                  className="mb-1.5 text-xs font-medium text-primary underline underline-offset-2"
-                                >
-                                  최근 견적 ₩
-                                  {Number(q.quoted_amount).toLocaleString("ko-KR")} 불러오기
-                                </button>
-                              ) : null}
-                              <div className="flex items-center gap-2">
-                                <div className="relative">
-                                  <input
-                                    inputMode="numeric"
-                                    value={supply ? won(supply) : ""}
-                                    onChange={(e) => setAmt(q.id, e.target.value)}
-                                    placeholder="0"
-                                    className="w-40 rounded-md border border-ink/15 py-2 pl-3 pr-7 text-right text-sm outline-none focus:border-primary"
-                                  />
-                                  <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-ink/40">
-                                    원
-                                  </span>
-                                </div>
-                                <button
-                                  type="button"
-                                  disabled={pending}
-                                  onClick={() =>
+                                    clickable &&
                                     run(async () => {
-                                      const res = await setContractAmount(q.id, amtValue(q));
-                                      if (res?.error) alert(res.error);
+                                      const r = await updateInquiryStatus(q.id, s.v);
+                                      if (r?.error) alert(r.error);
                                     })
                                   }
-                                  className="rounded-md bg-ink px-4 py-2 text-xs font-bold text-white hover:bg-black disabled:opacity-60"
+                                  className="flex flex-col items-center gap-1"
                                 >
-                                  저장
+                                  <span
+                                    className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${
+                                      filled ? "bg-primary text-white" : "bg-ink/10 text-ink/40"
+                                    } ${isCur ? "ring-2 ring-primary/30" : ""}`}
+                                  >
+                                    {i + 1}
+                                  </span>
+                                  <span
+                                    className={`text-[10px] ${filled ? "font-bold text-ink" : "text-ink/40"}`}
+                                  >
+                                    {s.label}
+                                  </span>
                                 </button>
+                                {i < STEPS.length - 1 && (
+                                  <span
+                                    className={`mx-1 mb-4 h-0.5 flex-1 ${i < curIdx ? "bg-primary" : "bg-ink/10"}`}
+                                  />
+                                )}
                               </div>
-                              {/* 견적서와 동일: 공급가 → 부가세 → 합계 자동 계산 */}
-                              {supply > 0 && (
-                                <div className="mt-2 w-56 space-y-0.5 text-xs">
-                                  <div className="flex justify-between text-ink/50">
-                                    <span>공급가액</span>
-                                    <span>₩ {won(supply)}</span>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* ② 견적서 작성 */}
+                      <StepBox
+                        n="2"
+                        title="견적서 작성"
+                        active={st === "new"}
+                        done={["quoted", "confirmed", "done"].includes(st) || eff === "done"}
+                      >
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                          <a
+                            href={`/admin/inquiries/${q.id}/quote`}
+                            className="rounded-md bg-ink px-4 py-2 text-xs font-bold text-white hover:bg-black"
+                          >
+                            견적서 작성 →
+                          </a>
+                          {q.quoted_amount ? (
+                            <span className="text-xs text-ink/60">
+                              최근 견적{" "}
+                              <b>₩ {Number(q.quoted_amount).toLocaleString("ko-KR")}</b>{" "}
+                              (공급가액)
+                            </span>
+                          ) : (
+                            <span className="text-xs text-ink/40">아직 견적 기록이 없어요</span>
+                          )}
+                        </div>
+                      </StepBox>
+
+                      {/* ③ 계약 확정 */}
+                      <StepBox
+                        n="3"
+                        title="계약 확정"
+                        active={st === "quoted"}
+                        done={st === "confirmed" || eff === "done"}
+                      >
+                        {st === "confirmed" || eff === "done" ? (
+                          (() => {
+                            const supply = Number(amtValue(q)) || 0;
+                            const vat = Math.round(supply * 0.1);
+                            const won = (n) => n.toLocaleString("ko-KR");
+                            return (
+                              <div>
+                                <p className="mb-1.5 text-xs font-bold text-ink/60">
+                                  계약 금액{" "}
+                                  <span className="font-normal text-ink/40">
+                                    (공급가액 · 매출 통계 반영)
+                                  </span>
+                                </p>
+                                {q.quoted_amount ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setAmt(q.id, String(q.quoted_amount))}
+                                    className="mb-1.5 text-xs font-medium text-primary underline underline-offset-2"
+                                  >
+                                    최근 견적 ₩
+                                    {Number(q.quoted_amount).toLocaleString("ko-KR")} 불러오기
+                                  </button>
+                                ) : null}
+                                <div className="flex items-center gap-2">
+                                  <div className="relative">
+                                    <input
+                                      inputMode="numeric"
+                                      value={supply ? won(supply) : ""}
+                                      onChange={(e) => setAmt(q.id, e.target.value)}
+                                      placeholder="0"
+                                      className="w-40 rounded-md border border-ink/15 py-2 pl-3 pr-7 text-right text-sm outline-none focus:border-primary"
+                                    />
+                                    <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-ink/40">
+                                      원
+                                    </span>
                                   </div>
-                                  <div className="flex justify-between text-ink/50">
-                                    <span>부가세 (10%)</span>
-                                    <span>₩ {won(vat)}</span>
-                                  </div>
-                                  <div className="flex justify-between border-t border-ink/10 pt-0.5 font-bold text-ink">
-                                    <span>합계 (부가세 포함)</span>
-                                    <span>₩ {won(supply + vat)}</span>
-                                  </div>
+                                  <button
+                                    type="button"
+                                    disabled={pending}
+                                    onClick={() =>
+                                      run(async () => {
+                                        const res = await setContractAmount(q.id, amtValue(q));
+                                        if (res?.error) alert(res.error);
+                                      })
+                                    }
+                                    className="rounded-md bg-ink px-4 py-2 text-xs font-bold text-white hover:bg-black disabled:opacity-60"
+                                  >
+                                    저장
+                                  </button>
                                 </div>
-                              )}
-                            </div>
-                          );
-                        })()}
+                                {supply > 0 && (
+                                  <div className="mt-2 w-56 space-y-0.5 text-xs">
+                                    <div className="flex justify-between text-ink/50">
+                                      <span>공급가액</span>
+                                      <span>₩ {won(supply)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-ink/50">
+                                      <span>부가세 (10%)</span>
+                                      <span>₩ {won(vat)}</span>
+                                    </div>
+                                    <div className="flex justify-between border-t border-ink/10 pt-0.5 font-bold text-ink">
+                                      <span>합계 (부가세 포함)</span>
+                                      <span>₩ {won(supply + vat)}</span>
+                                    </div>
+                                  </div>
+                                )}
+                                {eff === "done" && (
+                                  <p className="mt-2 text-[11px] text-ink/45">
+                                    행사 종료일이 지나 <b>완료</b>로 자동 표시됩니다.
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          })()
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={pending}
+                            onClick={() =>
+                              run(async () => {
+                                const r = await updateInquiryStatus(q.id, "confirmed");
+                                if (r?.error) alert(r.error);
+                              })
+                            }
+                            className="rounded-md bg-green-600 px-4 py-2 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-60"
+                          >
+                            계약확정으로 변경
+                          </button>
+                        )}
+                      </StepBox>
+                      {/* ④ 일정 등록 */}
+                      <StepBox n="4" title="일정 등록" active={st === "confirmed"}>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            disabled={pending || !(st === "confirmed" || eff === "done")}
+                            onClick={() => openSchedule(q)}
+                            className="rounded-md bg-ink px-4 py-2 text-xs font-bold text-white hover:bg-black disabled:opacity-40"
+                          >
+                            일정 등록
+                          </button>
+                          {!(st === "confirmed" || eff === "done") && (
+                            <span className="text-[11px] text-ink/40">
+                              계약확정 후 등록할 수 있어요
+                            </span>
+                          )}
+                        </div>
+                      </StepBox>
                     </div>
                   )}
 
                   {/* 활동 로그 (상태 변경·일정 등록·수정 이력) */}
                   {Array.isArray(q.activity_log) && q.activity_log.length > 0 && (
-                    <div className="mt-2 space-y-1">
+                    <div className="mt-3 space-y-1">
                       {q.activity_log
                         .slice(-5)
                         .reverse()
@@ -477,47 +630,43 @@ export default function InquiriesManager({ inquiries }) {
                   )}
 
                   {editId !== q.id && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <a
-                      href={`/admin/inquiries/${q.id}/quote`}
-                      className="rounded-md bg-ink px-3 py-1.5 text-xs font-bold text-white hover:bg-black"
-                    >
-                      견적서 작성
-                    </a>
-                    <button
-                      type="button"
-                      disabled={pending}
-                      onClick={() => openSchedule(q)}
-                      className="rounded-md border border-ink/15 px-3 py-1.5 text-xs font-bold text-ink/70 hover:bg-ink/5"
-                    >
-                      일정 등록
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => run(() => setInquiryRead(q.id, !q.is_read))}
-                      disabled={pending}
-                      className="rounded-md border border-ink/15 px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-ink/5"
-                    >
-                      {q.is_read ? "안읽음으로" : "읽음으로"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openEdit(q)}
-                      className="rounded-md border border-ink/15 px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-ink/5"
-                    >
-                      수정
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (confirm("이 문의를 삭제할까요?")) run(() => deleteInquiry(q.id));
-                      }}
-                      disabled={pending}
-                      className="rounded-md border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/5"
-                    >
-                      삭제
-                    </button>
-                  </div>
+                    <div className="mt-3 flex flex-wrap gap-2 border-t border-ink/5 pt-3">
+                      <button
+                        type="button"
+                        onClick={() => run(() => setInquiryRead(q.id, !q.is_read))}
+                        disabled={pending}
+                        className="rounded-md border border-ink/15 px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-ink/5"
+                      >
+                        {q.is_read ? "안읽음으로" : "읽음으로"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={pending}
+                        onClick={() =>
+                          run(async () => {
+                            const r = await updateInquiryStatus(
+                              q.id,
+                              st === "cancelled" ? "new" : "cancelled"
+                            );
+                            if (r?.error) alert(r.error);
+                          })
+                        }
+                        className="rounded-md border border-amber-300 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50"
+                      >
+                        {st === "cancelled" ? "취소 해제" : "문의 취소"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm("이 문의를 완전히 삭제할까요? (복구 불가)"))
+                            run(() => deleteInquiry(q.id));
+                        }}
+                        disabled={pending}
+                        className="ml-auto rounded-md border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/5"
+                      >
+                        삭제
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
