@@ -71,7 +71,7 @@ export default async function AdminStatsPage({ searchParams }) {
     <div className="max-w-3xl">
       <h1 className="text-2xl font-bold text-ink">매출 통계</h1>
       <p className="mt-1 text-sm text-ink/50">
-        계약확정 문의에 입력된 계약 금액(공급가액·부가세 별도)을 행사 연도 기준으로 집계합니다.
+        확정 문의에 입력된 계약 금액(공급가액·부가세 별도)을 행사 연도 기준으로 집계합니다.
       </p>
 
       {/* 요약 카드 */}
