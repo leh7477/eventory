@@ -19,7 +19,9 @@ export async function generateMetadata({ params }) {
   const item = await resolveCase(params.id);
   if (!item) return { title: "Stories | Eventory" };
 
-  const metaTitle = item.seoTitle || `${item.title} | Eventory Stories`;
+  const metaTitle =
+    item.seoTitle ||
+    `${item.title} 렌탈·대여·임대 | 기업행사·축제·팝업스토어 이벤트 맞춤 제작`;
   const desc =
     item.seoDescription ||
     item.description ||

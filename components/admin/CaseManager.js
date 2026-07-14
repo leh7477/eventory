@@ -23,7 +23,7 @@ export default function CaseManager({ cases, categories = [] }) {
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
 
-  // 카테고리 선택 시 해당 장비 기본 스펙(라벨/값)을 행으로 자동 채움 (이후 수정 가능)
+  // 카테고리 선택 시: 기본 스펙 + 검색 제목 자동 채움 (이후 수정 가능)
   const onCategoryChange = (e) => {
     const id = e.target.value;
     setCategoryId(id);
@@ -33,6 +33,10 @@ export default function CaseManager({ cases, categories = [] }) {
     const saved = parseSpecsText(cat.default_specs);
     setSpecRows(
       saved && saved.length ? saved : getMachineSpecs(cat.name).map((s) => ({ ...s }))
+    );
+    // 검색 제목: 앞의 장비명만 카테고리로 바뀜
+    setSeoTitle(
+      `${cat.name} 렌탈·대여·임대 | 기업행사·축제·팝업스토어 이벤트 맞춤 제작`
     );
   };
 
@@ -194,7 +198,7 @@ export default function CaseManager({ cases, categories = [] }) {
               <input
                 value={seoTitle}
                 onChange={(e) => setSeoTitle(e.target.value)}
-                placeholder="검색 제목 (비우면 자동: 제목 | Eventory Stories)"
+                placeholder="검색 제목 (비우면 자동: 제목 렌탈·대여·임대 | 기업행사·…)"
                 className="w-full rounded-md border border-ink/15 px-3 py-2.5 text-sm outline-none focus:border-primary"
               />
               <textarea

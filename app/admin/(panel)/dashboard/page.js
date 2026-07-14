@@ -132,7 +132,7 @@ export default async function DashboardPage() {
 
   const kpis = [
     { label: "미확인 문의", value: `${unread}건`, href: "/admin/inquiries", hl: unread > 0 },
-    { label: "진행중 견적", value: `${activeCount}건`, href: "/admin/inquiries" },
+    { label: "진행중 문의", value: `${activeCount}건`, href: "/admin/inquiries" },
     { label: "이번 달 문의", value: `${monthCount}건`, href: "/admin/inquiries" },
   ];
 
