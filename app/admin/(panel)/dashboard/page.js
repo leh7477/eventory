@@ -90,11 +90,10 @@ export default async function DashboardPage() {
   weekEnd.setDate(now.getDate() + (now.getDay() === 0 ? 0 : 7 - now.getDay()));
   const weekEndS = ds(weekEnd);
 
-  const [inquiries, schRes] = await Promise.all([
+  const [inqRes, schRes] = await Promise.all([
     admin
       .from("inquiries")
-      .select("*", { count: "exact", head: true })
-      .eq("is_read", false),
+      .select("status, is_read, created_at, event_start, event_end"),
     admin
       .from("schedules")
       .select("*")
@@ -112,34 +111,68 @@ export default async function DashboardPage() {
     (o) => o.date > tomorrowS && o.date <= weekEndS
   );
 
-  const unread = inquiries.count ?? 0;
+  // 문의 KPI
+  const inquiries = inqRes.data ?? [];
+  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const unread = inquiries.filter((q) => !q.is_read).length;
+  const monthCount = inquiries.filter(
+    (q) => (q.created_at || "").slice(0, 7) === ym
+  ).length;
+
+  // 진행중 = 신규/견적발송/확정 중 완료·만료·취소가 아닌 활성 건
+  const isActive = (q) => {
+    const s = q.status || "new";
+    if (!["new", "quoted", "confirmed"].includes(s)) return false;
+    if ((s === "new" || s === "quoted") && q.event_start && q.event_start < todayS)
+      return false; // 만료
+    if (s === "confirmed" && q.event_end && q.event_end < todayS) return false; // 완료
+    return true;
+  };
+  const activeCount = inquiries.filter(isActive).length;
+
+  const kpis = [
+    { label: "미확인 문의", value: `${unread}건`, href: "/admin/inquiries", hl: unread > 0 },
+    { label: "진행중 견적", value: `${activeCount}건`, href: "/admin/inquiries" },
+    { label: "이번 달 문의", value: `${monthCount}건`, href: "/admin/inquiries" },
+  ];
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-ink">대시보드</h1>
+      <h1 className="text-xl font-bold text-ink sm:text-2xl">대시보드</h1>
       <p className="mt-1 text-sm text-ink/50">Eventory 관리자 페이지입니다.</p>
 
-      {/* 미확인 견적 문의 */}
-      <Link
-        href="/admin/inquiries"
-        className={`mt-8 flex items-center justify-between rounded-2xl border p-6 transition hover:shadow-sm ${
-          unread > 0
-            ? "border-primary/30 bg-primary/5 hover:border-primary/50"
-            : "border-ink/10 bg-white hover:border-ink/20"
-        }`}
-      >
-        <div>
-          <p className={`text-sm ${unread > 0 ? "font-bold text-primary" : "text-ink/50"}`}>
-            미확인 견적 문의
-          </p>
-          <p className={`mt-1 text-xs ${unread > 0 ? "text-primary/70" : "text-ink/35"}`}>
-            {unread > 0 ? "확인이 필요한 문의가 있습니다" : "모든 문의를 확인했습니다"}
-          </p>
-        </div>
-        <p className={`text-5xl font-extrabold ${unread > 0 ? "text-primary" : "text-ink/25"}`}>
-          {unread}
-        </p>
-      </Link>
+      {/* KPI 카드 */}
+      <div className="mt-5 grid grid-cols-3 gap-3">
+        {kpis.map((c) => {
+          const inner = (
+            <div
+              className={`rounded-xl border p-4 transition ${
+                c.hl
+                  ? "border-primary/30 bg-primary/5"
+                  : "border-ink/10 bg-white"
+              } ${c.href ? "hover:shadow-sm" : ""}`}
+            >
+              <p className={`text-xs ${c.hl ? "font-bold text-primary" : "text-ink/50"}`}>
+                {c.label}
+              </p>
+              <p
+                className={`mt-1 text-2xl font-extrabold ${
+                  c.hl ? "text-primary" : "text-ink"
+                }`}
+              >
+                {c.value}
+              </p>
+            </div>
+          );
+          return c.href ? (
+            <Link key={c.label} href={c.href} className="block">
+              {inner}
+            </Link>
+          ) : (
+            <div key={c.label}>{inner}</div>
+          );
+        })}
+      </div>
 
       {/* 일정 요약 */}
       <div className="mt-8 flex items-center justify-between">
@@ -148,7 +181,7 @@ export default async function DashboardPage() {
           전체 일정 보기 →
         </Link>
       </div>
-      <div className="mt-3 grid gap-5 lg:grid-cols-3">
+      <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <ScheduleGroup
           title="오늘 일정"
           occurrences={todayOcc}
