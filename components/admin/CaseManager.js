@@ -198,7 +198,7 @@ export default function CaseManager({ cases, categories = [] }) {
               <input
                 value={seoTitle}
                 onChange={(e) => setSeoTitle(e.target.value)}
-                placeholder="검색 제목 (비우면 자동: 제목 렌탈·대여·임대 | 기업행사·…)"
+                placeholder="검색 제목 (비우면 자동: 제목 + 렌탈·대여·임대 | 기업행사·…)"
                 className="w-full rounded-md border border-ink/15 px-3 py-2.5 text-sm outline-none focus:border-primary"
               />
               <textarea
