@@ -8,7 +8,7 @@ import {
   swapCaseOrder,
 } from "@/app/admin/(panel)/cases/actions";
 import { getMachineSpecs, parseSpecsText } from "@/lib/samples";
-import { defaultSeoBodyText } from "@/lib/seo";
+import { defaultSeoBodyText, seoBodyVariants } from "@/lib/seo";
 
 const EMPTY_ROW = { label: "", value: "" };
 
@@ -213,6 +213,28 @@ export default function CaseManager({ cases, categories = [] }) {
                 placeholder="검색 설명 (비우면 위 행사명/설명으로 자동 · 검색결과에 보이는 요약 문구, 80~120자 권장)"
                 className="min-h-[64px] w-full resize-y rounded-md border border-ink/15 px-3 py-2.5 text-sm outline-none focus:border-primary"
               />
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[11px] text-ink/40">하단 문단 버전</span>
+                {[0, 1, 2].map((i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    disabled={!categoryId}
+                    onClick={() => {
+                      const name = categories.find(
+                        (c) => String(c.id) === String(categoryId)
+                      )?.name;
+                      if (name) setSeoBody(seoBodyVariants(name)[i].join("\n\n"));
+                    }}
+                    className="rounded-md border border-ink/15 px-2.5 py-1 text-[11px] font-medium text-ink/60 hover:bg-ink/5 disabled:opacity-40"
+                  >
+                    버전 {i + 1}
+                  </button>
+                ))}
+                <span className="text-[11px] text-ink/30">
+                  (카테고리 선택 후 사용)
+                </span>
+              </div>
               <textarea
                 value={seoBody}
                 onChange={(e) => setSeoBody(e.target.value)}
