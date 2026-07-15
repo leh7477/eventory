@@ -8,6 +8,7 @@ import {
   swapCaseOrder,
 } from "@/app/admin/(panel)/cases/actions";
 import { getMachineSpecs, parseSpecsText } from "@/lib/samples";
+import { defaultSeoBodyText } from "@/lib/seo";
 
 const EMPTY_ROW = { label: "", value: "" };
 
@@ -22,6 +23,7 @@ export default function CaseManager({ cases, categories = [] }) {
   const [tags, setTags] = useState("");
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
+  const [seoBody, setSeoBody] = useState("");
 
   // 카테고리 선택 시: 기본 스펙 + 검색 제목 자동 채움 (이후 수정 가능)
   const onCategoryChange = (e) => {
@@ -38,6 +40,8 @@ export default function CaseManager({ cases, categories = [] }) {
     setSeoTitle(
       `${cat.name} 렌탈·대여·임대 | 기업행사·축제·팝업스토어 이벤트 맞춤 제작`
     );
+    // 하단 안내 문단 기본값 자동 채움 (이후 수정 가능)
+    setSeoBody(defaultSeoBodyText(cat.name));
   };
 
   const setRow = (i, key, val) =>
@@ -78,6 +82,7 @@ export default function CaseManager({ cases, categories = [] }) {
     fd.append("tags", tags);
     fd.append("seo_title", seoTitle);
     fd.append("seo_description", seoDescription);
+    fd.append("seo_body", seoBody);
     for (const f of files) fd.append("images", f);
     run(async () => {
       const res = await createCase(fd);
@@ -89,6 +94,7 @@ export default function CaseManager({ cases, categories = [] }) {
         setTags("");
         setSeoTitle("");
         setSeoDescription("");
+        setSeoBody("");
         setPreviews([]);
         if (fileRef.current) fileRef.current.value = "";
       }
@@ -206,6 +212,12 @@ export default function CaseManager({ cases, categories = [] }) {
                 onChange={(e) => setSeoDescription(e.target.value)}
                 placeholder="검색 설명 (비우면 위 행사명/설명으로 자동 · 검색결과에 보이는 요약 문구, 80~120자 권장)"
                 className="min-h-[64px] w-full resize-y rounded-md border border-ink/15 px-3 py-2.5 text-sm outline-none focus:border-primary"
+              />
+              <textarea
+                value={seoBody}
+                onChange={(e) => setSeoBody(e.target.value)}
+                placeholder="상세 하단 안내 문단 (카테고리 선택 시 자동 채움 · 비우면 자동 생성 · 문단은 빈 줄로 구분)"
+                className="min-h-[96px] w-full resize-y rounded-md border border-ink/15 px-3 py-2.5 text-sm leading-relaxed outline-none focus:border-primary"
               />
             </div>
             <p className="mt-1.5 text-[11px] text-ink/40">

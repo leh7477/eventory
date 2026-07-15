@@ -6,6 +6,7 @@ import CaseTopGallery from "@/components/CaseTopGallery";
 import QuoteButton from "@/components/QuoteButton";
 import { getCaseById } from "@/lib/data";
 import { getSampleCaseById, getMachineSpecs, parseSpecsText } from "@/lib/samples";
+import { autoSeoBody, parseSeoBody } from "@/lib/seo";
 
 export const revalidate = 0;
 
@@ -46,35 +47,6 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// 문자열 해시 → 사례마다 일정한 버전 선택 (페이지마다 문단이 조금씩 달라짐)
-function hashIndex(str, mod) {
-  let h = 0;
-  for (let i = 0; i < (str || "").length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-  return h % mod;
-}
-
-// 장비명 기반 SEO 안내 문단 (검색어 변형 포함) — 자동 생성, 버전 순환
-function seoBody(name, id) {
-  const variants = [
-    [
-      `행사의 인상은 참여자가 직접 경험한 순간에서 만들어집니다. ${name}는 관람객의 발길을 붙잡고 자연스러운 참여와 촬영을 이끌어내는 이벤트 콘텐츠로, 팝업스토어와 기업 행사·박람회, 전시 부스, 지역 축제, 브랜드 프로모션 등 다양한 현장에서 활용됩니다.`,
-      `이벤토리(EVENTORY)는 행사 성격과 공간, 참여 인원에 맞춰 ${name} 렌탈·대여 구성을 제안하고, 브랜드 로고와 컬러를 입힌 랩핑(풀 커스텀)으로 ${name} 맞춤 제작까지 진행합니다. 대형 ${name} 제작이 필요한 경우도 상담 가능합니다.`,
-      `모든 장비는 사전 점검을 거쳐 준비되며, 브랜드 아이덴티티를 살린 디자인으로 행사장의 몰입도를 높여드립니다. ${name}렌탈, ${name}대여, ${name}임대, ${name}제작 문의는 아래 견적 문의로 편하게 남겨주세요.`,
-    ],
-    [
-      `기억에 남는 행사는 참여자가 직접 겪은 경험에서 시작됩니다. ${name}는 부스로 사람을 모으고 대기 줄까지 콘텐츠로 만들어 주는 참여형 아이템으로, 신제품 런칭과 오픈 이벤트, 사내 행사, 페스티벌 등 폭넓은 현장에 어울립니다.`,
-      `이벤토리는 ${name} 대여부터 시작해 행사 콘셉트에 맞춘 브랜드 래핑과 ${name} 맞춤 제작까지 한 번에 준비합니다. 표준형 ${name}렌탈은 물론 대형 사이즈나 특수 규격의 ${name}제작도 문의하실 수 있습니다.`,
-      `장비는 출고 전 점검을 마쳐 현장에서 안정적으로 운영되며, 공간과 예산에 맞는 구성으로 제안드립니다. ${name}렌탈, ${name}대여, ${name}임대, ${name}제작이 필요하시면 견적 문의로 알려 주세요.`,
-    ],
-    [
-      `좋은 행사는 규모보다 참여자가 남기는 경험으로 완성됩니다. ${name}는 관람객이 직접 참여하고 사진을 남기게 만드는 이벤트 장비로, 팝업스토어와 전시회, 기업 프로모션, 지역 축제 현장에서 꾸준히 활용되고 있습니다.`,
-      `이벤토리(EVENTORY)는 ${name} 렌탈·대여는 물론 브랜드 로고와 디자인을 입힌 커스텀 래핑, 그리고 ${name} 맞춤 제작을 함께 제공합니다. 행사 규모가 크다면 대형 ${name} 제작으로도 대응합니다.`,
-      `모든 ${name}는 사전 점검 후 준비되어 현장에서 안정적으로 운영됩니다. ${name}렌탈, ${name}대여, ${name}임대, ${name}제작 관련 문의는 아래 견적 문의로 남겨 주세요.`,
-    ],
-  ];
-  return variants[hashIndex(id || name, variants.length)];
-}
-
 export default async function CaseDetailPage({ params }) {
   const item = await resolveCase(params.id);
   if (!item) notFound();
@@ -83,6 +55,8 @@ export default async function CaseDetailPage({ params }) {
   // 사례에 입력된 스펙(텍스트)을 우선, 없으면 장비 기본 스펙
   const specs =
     (item.specs && parseSpecsText(item.specs)) || getMachineSpecs(item.title);
+  // 하단 안내 문단: 직접 입력값 우선, 없으면 자동 생성
+  const bodyParas = parseSeoBody(item.seoBody) || autoSeoBody(item.title, item.id);
 
   return (
     <>
@@ -150,18 +124,21 @@ export default async function CaseDetailPage({ params }) {
           </section>
         )}
 
-        {/* 검색 노출용 안내 문단 (장비명 기반 자동) */}
-        <section className="mt-16 border-t border-ink/10 pt-8">
-          <details className="mx-auto max-w-3xl">
-            <summary className="cursor-pointer list-none text-center text-sm font-bold text-ink/60 hover:text-ink">
-              [+] {item.title} 렌탈·대여 & 맞춤 제작 안내
-            </summary>
-            <div className="mt-4 space-y-2.5 text-xs leading-relaxed text-ink/70">
-              {seoBody(item.title, item.id).map((p, i) => (
+        {/* 하단 안내 문단 (장비명 기반 자동 · 검색 노출용) */}
+        <section className="mt-16 border-t border-ink/10 pt-10">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="text-center text-base font-bold text-ink">
+              {item.title} 렌탈·대여 &amp; 맞춤 제작
+            </h2>
+            <div
+              className="mt-5 space-y-3 whitespace-pre-line text-sm leading-relaxed text-ink/70"
+              style={{ wordBreak: "keep-all" }}
+            >
+              {bodyParas.map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
             </div>
-          </details>
+          </div>
         </section>
       </main>
       <SiteFooter />

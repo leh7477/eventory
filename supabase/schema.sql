@@ -106,6 +106,7 @@ create index if not exists idx_cases_category on cases (category_id);
 alter table cases add column if not exists specs text;  -- 사례별 장비 정보(스펙)
 alter table cases add column if not exists seo_title text;        -- 검색 제목(SEO)
 alter table cases add column if not exists seo_description text;  -- 검색 설명(SEO)
+alter table cases add column if not exists seo_body text;         -- 상세 하단 안내 문단(검색 노출용)
 
 -- -------------------------------------------------------------
 -- 사례 이미지 (여러 장 = 포트폴리오 현장 사진)
