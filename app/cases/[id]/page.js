@@ -23,10 +23,10 @@ export async function generateMetadata({ params }) {
   const metaTitle =
     item.seoTitle ||
     `${item.title} 렌탈·대여·임대 | 기업행사·축제·팝업스토어 이벤트 맞춤 제작`;
-  const desc =
-    item.seoDescription ||
-    item.description ||
-    `${item.title} 행사 현장 - 이벤토리(EVENTORY) 이벤트 장비 렌탈 사례`;
+  // 검색 설명 자동값: 행사명(있으면) + 장비명 키워드 조합 (검색 스니펫용)
+  const t = item.title;
+  const autoDesc = `${item.description ? item.description + " — " : ""}${t} 렌탈·대여 및 맞춤 제작 사례입니다. 기업 행사·박람회·팝업스토어·축제 현장에 어울리는 ${t}렌탈, ${t}대여, ${t}제작 문의는 이벤토리(EVENTORY).`;
+  const desc = item.seoDescription || autoDesc;
   const cover = item.images?.[0];
 
   return {
