@@ -40,7 +40,7 @@ export async function setInquiryHandled(id, handled) {
 // 문의 진행 상태 변경 (파이프라인)
 const STATUS_LABEL = {
   new: "신규",
-  quoted: "견적발송",
+  quoted: "견적",
   confirmed: "계약확정",
   done: "완료",
   cancelled: "취소",

@@ -16,7 +16,7 @@ import DatePicker from "@/components/DatePicker";
 // 문의 진행 단계 (파이프라인)
 const STATUS_META = {
   new: { label: "신규", badge: "bg-primary/10 text-primary" },
-  quoted: { label: "견적발송", badge: "bg-indigo-100 text-indigo-700" },
+  quoted: { label: "견적", badge: "bg-indigo-100 text-indigo-700" },
   confirmed: { label: "확정", badge: "bg-green-100 text-green-700" },
   done: { label: "완료", badge: "bg-ink/10 text-ink/50" },
   cancelled: { label: "취소", badge: "bg-ink/[0.04] text-ink/40" },
@@ -49,7 +49,7 @@ const effectiveStatus = (q) => {
 // 진행 단계 (스텝바)
 const STEPS = [
   { v: "new", label: "신규" },
-  { v: "quoted", label: "견적발송" },
+  { v: "quoted", label: "견적" },
   { v: "confirmed", label: "확정" },
   { v: "done", label: "완료" },
 ];
@@ -117,7 +117,7 @@ function Row({ label, value }) {
 const FILTER_TABS = [
   { v: "all", label: "전체" },
   { v: "new", label: "신규" },
-  { v: "quoted", label: "견적발송" },
+  { v: "quoted", label: "견적" },
   { v: "confirmed", label: "확정" },
   { v: "done", label: "완료" },
   { v: "expired", label: "만료" },
