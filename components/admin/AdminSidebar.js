@@ -5,11 +5,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ADMIN_SECTIONS } from "@/lib/admin/sections";
+import PasswordChangeModal from "@/components/admin/PasswordChangeModal";
 
 export default function AdminSidebar({ email, isOwner = true, permissions = [] }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [pwOpen, setPwOpen] = useState(false);
 
   const NAV = [
     { href: "/admin/dashboard", label: "대시보드" },
@@ -99,8 +101,18 @@ export default function AdminSidebar({ email, isOwner = true, permissions = [] }
           <p className="truncate text-xs text-ink/50">{displayName}</p>
           <button
             type="button"
-            onClick={logout}
+            onClick={() => {
+              setPwOpen(true);
+              setOpen(false);
+            }}
             className="mt-2 w-full rounded-md border border-ink/15 py-2 text-xs font-medium text-ink/70 transition hover:bg-ink/5"
+          >
+            비밀번호 변경
+          </button>
+          <button
+            type="button"
+            onClick={logout}
+            className="mt-1.5 w-full rounded-md border border-ink/15 py-2 text-xs font-medium text-ink/70 transition hover:bg-ink/5"
           >
             로그아웃
           </button>
@@ -122,13 +134,28 @@ export default function AdminSidebar({ email, isOwner = true, permissions = [] }
           <p className="truncate text-xs text-ink/50">{displayName}</p>
           <button
             type="button"
-            onClick={logout}
+            onClick={() => {
+              setPwOpen(true);
+              setOpen(false);
+            }}
             className="mt-2 w-full rounded-md border border-ink/15 py-2 text-xs font-medium text-ink/70 transition hover:bg-ink/5"
+          >
+            비밀번호 변경
+          </button>
+          <button
+            type="button"
+            onClick={logout}
+            className="mt-1.5 w-full rounded-md border border-ink/15 py-2 text-xs font-medium text-ink/70 transition hover:bg-ink/5"
           >
             로그아웃
           </button>
         </div>
       </aside>
+
+      {/* 비밀번호 변경 */}
+      {pwOpen && (
+        <PasswordChangeModal email={email} onClose={() => setPwOpen(false)} />
+      )}
     </>
   );
 }
