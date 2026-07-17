@@ -204,6 +204,25 @@ export default function InquiriesManager({ inquiries }) {
   };
   const setF = (k) => (e) => setEditForm((f) => ({ ...f, [k]: e.target.value }));
 
+  // 주소 검색 (Daum 우편번호 — 견적문의 폼과 동일)
+  const openPostcode = () => {
+    const open = () =>
+      new window.daum.Postcode({
+        oncomplete: (data) =>
+          setEditForm((f) => ({
+            ...f,
+            address: data.roadAddress || data.jibunAddress,
+          })),
+      }).open();
+
+    if (window.daum && window.daum.Postcode) return open();
+    const script = document.createElement("script");
+    script.src =
+      "https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
+    script.onload = open;
+    document.body.appendChild(script);
+  };
+
   const run = (fn) =>
     startTransition(async () => {
       await fn();
@@ -450,11 +469,22 @@ export default function InquiriesManager({ inquiries }) {
                       </div>
                       <div>
                         <label className="mb-1 block text-xs text-ink/50">주소</label>
-                        <input
-                          value={editForm.address}
-                          onChange={setF("address")}
-                          className="w-full rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
-                        />
+                        <div className="flex gap-2">
+                          <input
+                            value={editForm.address}
+                            readOnly
+                            onClick={openPostcode}
+                            placeholder="주소"
+                            className="flex-1 cursor-pointer rounded-md border border-ink/15 px-2.5 py-2 text-sm outline-none focus:border-primary"
+                          />
+                          <button
+                            type="button"
+                            onClick={openPostcode}
+                            className="shrink-0 whitespace-nowrap rounded-md bg-ink px-3 text-xs font-bold text-white transition hover:bg-black"
+                          >
+                            주소 검색
+                          </button>
+                        </div>
                       </div>
                       <div>
                         <label className="mb-1 block text-xs text-ink/50">상세주소</label>
