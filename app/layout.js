@@ -26,6 +26,7 @@ const poppins = Poppins({
 });
 
 import { SITE_URL } from "@/lib/constants";
+import FloatingContact from "@/components/FloatingContact";
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
@@ -47,7 +48,10 @@ export default function RootLayout({ children }) {
       lang="ko"
       className={`${pretendard.variable} ${poppins.variable} ${handwriting.variable}`}
     >
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+        <FloatingContact />
+      </body>
     </html>
   );
 }
