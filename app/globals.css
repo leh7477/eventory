@@ -18,6 +18,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* iOS Safari는 16px 미만 입력칸을 탭하면 화면을 자동 확대함 → 모바일에서 16px로 고정해 방지.
+   Tailwind 유틸리티(text-sm 등)보다 우선해야 해서 !important 사용 */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* 히어로: 사진이 옆으로 계속 흐르는 마퀴 */
 @keyframes hero-marquee {
   from {
