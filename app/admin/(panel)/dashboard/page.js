@@ -146,17 +146,21 @@ export default async function DashboardPage() {
         {kpis.map((c) => {
           const inner = (
             <div
-              className={`rounded-xl border p-4 transition ${
+              className={`h-full rounded-xl border p-3 transition sm:p-4 ${
                 c.hl
                   ? "border-primary/30 bg-primary/5"
                   : "border-ink/10 bg-white"
               } ${c.href ? "hover:shadow-sm" : ""}`}
             >
-              <p className={`text-xs ${c.hl ? "font-bold text-primary" : "text-ink/50"}`}>
+              <p
+                className={`break-keep text-[11px] sm:text-xs ${
+                  c.hl ? "font-bold text-primary" : "text-ink/50"
+                }`}
+              >
                 {c.label}
               </p>
               <p
-                className={`mt-1 text-2xl font-extrabold ${
+                className={`mt-1 text-xl font-extrabold sm:text-2xl ${
                   c.hl ? "text-primary" : "text-ink"
                 }`}
               >
@@ -165,11 +169,13 @@ export default async function DashboardPage() {
             </div>
           );
           return c.href ? (
-            <Link key={c.label} href={c.href} className="block">
+            <Link key={c.label} href={c.href} className="block min-w-0">
               {inner}
             </Link>
           ) : (
-            <div key={c.label}>{inner}</div>
+            <div key={c.label} className="min-w-0">
+              {inner}
+            </div>
           );
         })}
       </div>

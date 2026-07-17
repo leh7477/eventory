@@ -25,7 +25,7 @@ export default async function AdminPanelLayout({ children }) {
         isOwner={profile.isOwner}
         permissions={profile.permissions}
       />
-      <main className="min-w-0 flex-1 px-4 py-6 md:px-6 md:py-8 lg:px-10">
+      <main className="min-w-0 max-w-full flex-1 overflow-x-hidden px-4 py-6 md:px-6 md:py-8 lg:px-10">
         {children}
       </main>
     </div>
