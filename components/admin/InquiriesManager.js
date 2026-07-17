@@ -297,13 +297,14 @@ export default function InquiriesManager({ inquiries }) {
     <div>
       {/* 필터 툴바 */}
       <div className="mb-4 space-y-3">
-        <div className="flex flex-wrap gap-1.5">
+        {/* 상태 탭: 한 줄 유지 + 가로 스크롤 */}
+        <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:px-0">
           {FILTER_TABS.map((t) => (
             <button
               key={t.v}
               type="button"
               onClick={() => onFilter(t.v)}
-              className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
+              className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-bold transition ${
                 filter === t.v
                   ? "bg-ink text-white"
                   : "border border-ink/15 text-ink/60 hover:bg-ink/5"
