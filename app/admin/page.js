@@ -23,7 +23,7 @@ export default function AdminLogin() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
-      setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+      setError("아이디 또는 비밀번호가 올바르지 않습니다.");
       return;
     }
     router.push("/admin/dashboard");
