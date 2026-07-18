@@ -1,10 +1,10 @@
-import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import HeroSlider from "@/components/HeroSlider";
 import QuoteButton from "@/components/QuoteButton";
 import ShortsRow from "@/components/ShortsRow";
 import CaseGallery from "@/components/CaseGallery";
+import CategoryShowcase from "@/components/CategoryShowcase";
 import { normalizeCases } from "@/lib/samples";
 import { SITE } from "@/lib/constants";
 import { getActiveBanners, getCategories, getProducts, getCases, getSettings } from "@/lib/data";
@@ -33,6 +33,20 @@ export default async function Home() {
   // 사례: 실제 데이터 정규화, 없으면 샘플
   const caseItems = normalizeCases(cases);
 
+  // 카테고리 쇼케이스용: 이름이 제목·태그에 걸리는 사례에서 대표 사진 한 장을 가져옴
+  // (cases에 category_id가 없어 이름으로 매칭. 못 찾으면 사진 없이 컬러+타이포만 노출)
+  const showcaseItems = categories.map((c) => {
+    const hit = caseItems.find(
+      (x) => x.title === c.name || (x.tags ?? []).includes(c.name)
+    );
+    return {
+      id: c.id,
+      name: c.name,
+      image: hit?.image ?? null,
+      tagline: hit?.description ?? "행사 목적에 맞춰 장비 구성부터 맞춤 제작까지",
+    };
+  });
+
   // 쇼츠(인기 장비): 실제 제품 정규화, 없으면 샘플
   const shortsItems =
     products.length > 0
@@ -57,26 +71,16 @@ export default async function Home() {
         {/* 히어로 */}
         <HeroSlider banners={banners} />
 
-        {/* 카테고리 (제목 없이 가로 나열, 인기장비와 동일 너비로 꽉 차게) */}
-        <section className="mx-auto max-w-6xl px-5 py-16">
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-5 sm:justify-between sm:gap-x-4">
-            {categories.map((c) => (
-              <Link
-                key={c.id}
-                href={`/cases?category=${c.id}`}
-                className="text-lg font-bold text-ink transition hover:text-primary sm:text-2xl"
-              >
-                {c.name}
-              </Link>
-            ))}
-          </div>
-        </section>
-
         {/* 인기 장비 (쇼츠 스타일 세로 카드 가로 스크롤) */}
         <section className="py-14">
           <div className="mx-auto max-w-6xl px-5">
             <ShortsRow items={shortsItems} />
           </div>
+        </section>
+
+        {/* 카테고리 — PC: 호버 / 모바일: 탭 + 자동 순환 */}
+        <section className="mx-auto max-w-6xl px-5 py-14">
+          <CategoryShowcase items={showcaseItems} />
         </section>
 
         {/* 행사 사례 (제목 없이 사진 바로, 가로 스크롤 + 클릭 시 상세 모달) */}
