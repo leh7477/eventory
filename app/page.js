@@ -71,16 +71,16 @@ export default async function Home() {
         {/* 히어로 */}
         <HeroSlider banners={banners} />
 
+        {/* 카테고리 — PC: 호버 / 모바일: 탭 + 자동 순환 */}
+        <section className="mx-auto max-w-6xl px-5 py-14">
+          <CategoryShowcase items={showcaseItems} />
+        </section>
+
         {/* 인기 장비 (쇼츠 스타일 세로 카드 가로 스크롤) */}
         <section className="py-14">
           <div className="mx-auto max-w-6xl px-5">
             <ShortsRow items={shortsItems} />
           </div>
-        </section>
-
-        {/* 카테고리 — PC: 호버 / 모바일: 탭 + 자동 순환 */}
-        <section className="mx-auto max-w-6xl px-5 py-14">
-          <CategoryShowcase items={showcaseItems} />
         </section>
 
         {/* 행사 사례 (제목 없이 사진 바로, 가로 스크롤 + 클릭 시 상세 모달) */}
