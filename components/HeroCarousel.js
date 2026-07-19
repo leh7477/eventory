@@ -69,7 +69,7 @@ export default function HeroCarousel({ slides = [] }) {
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
         className={`absolute inset-0 flex touch-pan-y select-none ${
-          count > 1 ? (dragging ? "cursor-grabbing" : "cursor-grab") : ""
+          dragging ? "cursor-grabbing" : ""
         } ${
           dragging || reduced
             ? ""
