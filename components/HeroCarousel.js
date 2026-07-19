@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import HeroCopy from "@/components/HeroCopy";
 
-const INTERVAL = 3000;
+const INTERVAL = 5000;
 
 // 대형 배너가 한 장씩 옆으로 넘어감 (사진이 4~5장 있을 때)
 export default function HeroCarousel({ slides = [] }) {
