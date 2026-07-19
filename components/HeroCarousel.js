@@ -9,26 +9,34 @@ const INTERVAL = 5000;
 // 대형 배너가 한 장씩 옆으로 넘어감 (사진이 4~5장 있을 때)
 export default function HeroCarousel({ slides = [] }) {
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
+  // 동작 줄이기 설정이면 자동 넘김은 유지하되 미끄러지는 전환만 끔
+  // (넘김까지 막으면 그 설정을 쓰는 방문자는 배너를 1장만 보게 됨)
+  const [reduced, setReduced] = useState(false);
   const count = slides.length;
 
   useEffect(() => {
-    if (paused || count < 2) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReduced(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
+  useEffect(() => {
+    if (count < 2) return;
     const t = setInterval(() => setIndex((v) => (v + 1) % count), INTERVAL);
     return () => clearInterval(t);
-  }, [paused, count]);
+  }, [count]);
 
   return (
-    <section
-      className="relative h-[82vh] min-h-[520px] w-full overflow-hidden bg-ink"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
+    <section className="relative h-[82vh] min-h-[520px] w-full overflow-hidden bg-ink">
       {/* 슬라이드 트랙 */}
       <div
-        className="absolute inset-0 flex transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)]"
+        className={`absolute inset-0 flex ${
+          reduced
+            ? ""
+            : "transition-transform duration-700 ease-[cubic-bezier(0.65,0,0.35,1)]"
+        }`}
         style={{ transform: `translateX(-${index * 100}%)` }}
       >
         {slides.map((s, i) => (
