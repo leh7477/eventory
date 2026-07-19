@@ -3,12 +3,14 @@ import QuoteButton from "@/components/QuoteButton";
 
 // 히어로 문구 블록 — 모든 모드가 같은 위치(좌하단)를 쓰고, 배경 밝기에 따라 글자색만 달라짐
 // tone: "light"(어두운 배경 위 흰 글자) | "dark"(밝은 배경 위 진한 글자)
+// 투명 영역은 포인터를 통과시켜 뒤쪽 슬라이드를 드래그할 수 있게 하고,
+// 버튼 줄에서만 pointer-events를 다시 켠다.
 export default function HeroCopy({ tone = "light" }) {
   const dark = tone === "dark";
 
   return (
     <div
-      className={`relative z-10 mx-auto flex h-full max-w-6xl flex-col items-start justify-end px-6 pb-16 sm:pb-20 ${
+      className={`pointer-events-none relative z-10 mx-auto flex h-full max-w-6xl flex-col items-start justify-end px-6 pb-16 sm:pb-20 ${
         dark ? "text-ink" : "text-white"
       }`}
     >
@@ -29,7 +31,7 @@ export default function HeroCopy({ tone = "light" }) {
       <h1 className="mt-1 max-w-3xl text-balance font-handwriting text-4xl leading-[1.2] sm:text-6xl">
         이벤트를 완성하는 모든 순간
       </h1>
-      <div className="mt-7 flex flex-wrap items-center gap-3">
+      <div className="pointer-events-auto mt-7 flex flex-wrap items-center gap-3">
         <QuoteButton variant={dark ? "dark" : "light"} />
         <a
           href={`tel:${SITE.phone}`}
