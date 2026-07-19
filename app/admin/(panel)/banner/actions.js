@@ -67,3 +67,21 @@ export async function swapBannerOrder(a, b) {
   rv();
   return { ok: true };
 }
+
+// 메인 히어로 표시 방식 (static: 사진 한 장 고정 | marquee: 사진이 옆으로 흐름)
+export async function updateHeroMode(mode) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin.from("settings").upsert({ id: 1, hero_mode: mode });
+  if (error) {
+    if (/hero_mode|schema cache|column/i.test(error.message)) {
+      return {
+        error:
+          "DB에 hero_mode 컬럼이 아직 없습니다. 안내된 SQL(alter table settings ...)을 먼저 실행해주세요.",
+      };
+    }
+    return { error: "설정 저장에 실패했습니다. 잠시 후 다시 시도해주세요." };
+  }
+  rv();
+  return { ok: true };
+}

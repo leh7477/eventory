@@ -69,7 +69,7 @@ export default async function Home() {
       <SiteHeader />
       <main>
         {/* 히어로 */}
-        <HeroSlider banners={banners} />
+        <HeroSlider banners={banners} mode={settings.hero_mode || "static"} />
 
         {/* 카테고리 — PC: 호버 / 모바일: 탭 + 자동 순환 */}
         <section className="mx-auto max-w-6xl px-5 py-14">

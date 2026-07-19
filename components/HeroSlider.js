@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { SITE } from "@/lib/constants";
-import QuoteButton from "@/components/QuoteButton";
+import HeroCopy from "@/components/HeroCopy";
+import HeroCarousel from "@/components/HeroCarousel";
 
 // 배너가 없을 때 보여줄 데모 폴백 슬라이드 4종 (브랜드 톤: 코랄·핑크·플럼 계열로 통일)
 const FALLBACKS = [
@@ -10,15 +10,38 @@ const FALLBACKS = [
   "bg-gradient-to-br from-[#E8345A] to-[#9B3B6E]",
 ];
 
-export default function HeroSlider({ banners = [] }) {
-  const hasBanners = banners.length > 0;
+// 사진 한 장을 밝게 흐려서 깔고 그 위에 진한 글자 (사진이 적을 때)
+function StaticHero({ slide }) {
+  return (
+    <section className="relative h-[82vh] min-h-[520px] w-full overflow-hidden bg-cream">
+      {slide?.image_url ? (
+        <Image
+          src={slide.image_url}
+          alt={slide.title ?? "행사 현장"}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FFE3D6] to-[#FFD3E2]" />
+      )}
+
+      {/* 밝은 워시 — 사진은 분위기만 남김 */}
+      <div className="absolute inset-0 bg-cream/80" />
+
+      <HeroCopy tone="dark" />
+    </section>
+  );
+}
+
+// 사진이 옆으로 계속 흐름 (사진이 여러 장 쌓였을 때)
+function MarqueeHero({ slides }) {
   // 마퀴 seamless 루프를 위해 슬라이드를 2배로 복제
-  const slides = hasBanners ? banners : FALLBACKS.map((bg, i) => ({ id: `fb-${i}`, bg }));
   const loop = [...slides, ...slides];
 
   return (
     <section className="relative h-[82vh] min-h-[520px] w-full overflow-hidden bg-ink">
-      {/* 흐르는 사진 트랙 */}
       <div className="absolute inset-0 flex w-max animate-hero-marquee">
         {loop.map((s, i) => (
           <div
@@ -49,27 +72,20 @@ export default function HeroSlider({ banners = [] }) {
       <div className="absolute inset-0 bg-ink/25" />
       <div className="absolute inset-0 overlay-gradient" />
 
-      {/* 텍스트 */}
-      <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col items-start justify-end px-6 pb-16 text-white sm:pb-20">
-        <p className="font-heading text-sm font-bold tracking-[0.35em] text-white/70 sm:text-base">
-          EVENTORY
-        </p>
-        <p className="mt-1.5 font-heading text-base font-semibold tracking-wide text-white/85 sm:text-lg">
-          Every Event Has a Story
-        </p>
-        <h1 className="mt-1 max-w-3xl text-balance font-handwriting text-4xl leading-[1.2] sm:text-6xl">
-          이벤트를 완성하는 모든 순간
-        </h1>
-        <div className="mt-7 flex flex-wrap items-center gap-3">
-          <QuoteButton variant="light" />
-          <a
-            href={`tel:${SITE.phone}`}
-            className="rounded-full border border-white/40 px-6 py-3 text-sm font-medium text-white transition hover:border-white hover:bg-white/10"
-          >
-            {SITE.phone}
-          </a>
-        </div>
-      </div>
+      <HeroCopy tone="light" />
     </section>
   );
+}
+
+// mode: "static"(한 장 흐리게) | "slide"(대형 배너 전환) | "marquee"(옆으로 흐름)
+// 관리자 > 메인 배너에서 전환
+export default function HeroSlider({ banners = [], mode = "static" }) {
+  const slides =
+    banners.length > 0
+      ? banners
+      : FALLBACKS.map((bg, i) => ({ id: `fb-${i}`, bg }));
+
+  if (mode === "marquee") return <MarqueeHero slides={slides} />;
+  if (mode === "slide") return <HeroCarousel slides={slides} />;
+  return <StaticHero slide={banners[0] ?? null} />;
 }

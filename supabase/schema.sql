@@ -167,6 +167,8 @@ create table if not exists settings (
 );
 insert into settings (id) values (1) on conflict (id) do nothing;
 alter table settings add column if not exists home_stories_mode text default 'off';
+-- 메인 히어로 표시 방식 (static: 한 장 흐리게 | slide: 대형 배너 전환 | marquee: 옆으로 흐름)
+alter table settings add column if not exists hero_mode text default 'static';
 alter table settings enable row level security;
 drop policy if exists "public read settings" on settings;
 create policy "public read settings" on settings
