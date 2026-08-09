@@ -48,7 +48,7 @@ export default function CategoryGrid({ items = [] }) {
           <li key={c.id}>
             <Link
               href={`/cases?category=${c.id}`}
-              className="group relative block aspect-[4/5] overflow-hidden rounded-2xl bg-festive"
+              className="group relative block aspect-[4/5] overflow-hidden rounded-2xl bg-ink"
             >
               {c.image ? (
                 <>

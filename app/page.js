@@ -43,7 +43,8 @@ export default async function Home() {
     return {
       id: c.id,
       name: c.name,
-      image: hit?.image ?? null,
+      // 실제 사진 준비 전까지 아이콘식으로 통일. 사진을 쓰려면 아래를 hit?.image ?? null 로
+      image: null,
       tagline: hit?.description ?? "행사 목적에 맞춰 장비 구성부터 맞춤 제작까지",
     };
   });
