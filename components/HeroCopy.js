@@ -10,7 +10,7 @@ export default function HeroCopy({ tone = "light" }) {
 
   return (
     <div
-      className={`pointer-events-none relative z-10 mx-auto flex h-full max-w-6xl flex-col items-start justify-end px-6 pb-16 sm:pb-20 ${
+      className={`pointer-events-none relative z-10 mx-auto flex h-full max-w-[1440px] flex-col items-start justify-end px-6 pb-16 sm:pb-20 ${
         dark ? "text-ink" : "text-white"
       }`}
     >

@@ -31,7 +31,7 @@ export default function SiteHeader() {
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-ink/5 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-5">
+        <div className="mx-auto flex h-20 max-w-[1440px] items-center justify-between px-5">
         <LogoAnimated />
 
         <div className="flex shrink-0 items-center gap-3 pl-3">

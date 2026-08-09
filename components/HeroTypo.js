@@ -11,12 +11,12 @@ export default function HeroTypo() {
   return (
     <section className="relative flex h-[calc(100svh-5rem)] min-h-[520px] w-full flex-col items-center justify-center overflow-hidden bg-white px-6 text-center">
       {/* 거대 워드마크 (한 줄) — 글자마다 시차를 두고 얇아졌다 두꺼워짐 (가변폰트) */}
-      <h1 className="hero-typo-line whitespace-nowrap font-sans text-[clamp(2.4rem,13.3vw,11.5rem)] leading-none tracking-tight text-ink">
+      <h1 className="hero-typo-line whitespace-nowrap text-[clamp(2.6rem,14.6vw,12.5rem)] leading-none tracking-tight text-ink">
         {"EVENT+STORY".split("").map((ch, i) => (
           <span
             key={i}
             className="hero-letter inline-block"
-            style={{ animationDelay: `${i * 0.09}s` }}
+            style={{ ["--d"]: `${i * 0.09}s` }}
           >
             {ch}
           </span>

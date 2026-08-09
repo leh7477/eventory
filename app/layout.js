@@ -25,6 +25,14 @@ const poppins = Poppins({
   display: "swap",
 });
 
+// 타이포 히어로 워드마크(EVENT+STORY) 전용 — Geist 가변폰트(wght 축 애니메이션)
+const display = localFont({
+  src: "./fonts/GeistVariable.woff2",
+  variable: "--font-display",
+  display: "swap",
+  weight: "100 900",
+});
+
 import { SITE_URL } from "@/lib/constants";
 import FloatingContact from "@/components/FloatingContact";
 
@@ -46,7 +54,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="ko"
-      className={`${pretendard.variable} ${poppins.variable} ${handwriting.variable}`}
+      className={`${pretendard.variable} ${poppins.variable} ${handwriting.variable} ${display.variable}`}
     >
       <body className="font-sans antialiased">
         {children}

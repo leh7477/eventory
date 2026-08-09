@@ -66,17 +66,23 @@ body {
 
 /* 워드마크 굵기 변화 / 화살표 통통 — 브랜드 연출이라 항상 재생 (진입 페이드만 위에서 설정 존중).
    글자가 얇아졌다 두꺼워짐 (가변폰트 Pretendard의 wght 축을 이용). 폭이 변하며 자연스럽게 출렁임 */
-@keyframes hero-weight {
+/* 워드마크 글자 — 아이엠브랜드와 동일 방식: Geist 가변폰트의 wght 축을
+   font-variation-settings로 애니메이트. Geist는 굵기 변화 시 렌더가 깔끔해
+   "새로고침 느낌"(재렌더 깜빡임)이 없음. 글자별 시차(--d)로 물결처럼 흐름 */
+.hero-letter {
+  font-family: var(--font-display), sans-serif;
+  font-variation-settings: "wght" 200;
+  animation: hero-breath 2s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+@keyframes hero-breath {
   0%,
   100% {
-    font-weight: 200;
+    font-variation-settings: "wght" 200;
   }
   50% {
-    font-weight: 850;
+    font-variation-settings: "wght" 800;
   }
-}
-.hero-letter {
-  animation: hero-weight 2s ease-in-out infinite;
 }
 
 @keyframes hero-arrow-bounce {

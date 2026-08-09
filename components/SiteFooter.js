@@ -3,7 +3,7 @@ import { SITE } from "@/lib/constants";
 export default function SiteFooter() {
   return (
     <footer className="border-t border-ink/10 bg-white text-ink/55">
-      <div className="mx-auto max-w-6xl px-5 py-5">
+      <div className="mx-auto max-w-[1440px] px-5 py-5">
         <div className="flex flex-col items-center gap-1.5 text-center sm:flex-row sm:items-baseline sm:justify-between sm:text-left">
           <span className="font-logo text-lg font-extrabold tracking-tight text-ink">
             EVENTORY

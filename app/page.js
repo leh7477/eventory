@@ -98,13 +98,13 @@ export default async function Home() {
         </section>
 
         {/* 카테고리 — 왼쪽 소개 + 오른쪽 2×3 카드 그리드 */}
-        <section className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
+        <section className="mx-auto max-w-[1440px] px-5 py-16 lg:py-20">
           <CategoryGrid items={showcaseItems} />
         </section>
 
         {/* 인기 장비 (쇼츠 스타일 세로 카드 가로 스크롤) */}
         <section className="py-14">
-          <div className="mx-auto max-w-6xl px-5">
+          <div className="mx-auto max-w-[1440px] px-5">
             <p className="font-heading text-sm font-bold tracking-[0.2em] text-primary">
               POPULAR PICK
             </p>
@@ -122,7 +122,7 @@ export default async function Home() {
 
         {/* 행사 사례 (가로 스크롤 + 클릭 시 상세 모달) */}
         <section className="py-14">
-          <div className="mx-auto max-w-6xl px-5">
+          <div className="mx-auto max-w-[1440px] px-5">
             <p className="font-heading text-sm font-bold tracking-[0.2em] text-primary">
               REAL STORY
             </p>

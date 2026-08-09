@@ -48,7 +48,7 @@ export default async function CasesPage({ searchParams }) {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-6xl px-5 py-12">
+      <main className="mx-auto max-w-[1440px] px-5 py-12">
         <header className="mb-8">
           <p className="font-heading text-sm font-bold tracking-[0.25em] text-primary">
             EVENTORY

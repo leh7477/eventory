@@ -21,7 +21,7 @@ export default async function ProductDetailPage({ params }) {
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto max-w-6xl px-5 py-10 pb-28">
+      <main className="mx-auto max-w-[1440px] px-5 py-10 pb-28">
         <nav className="mb-6 text-sm text-ink/50">
           <Link href="/products" className="hover:text-primary">
             장비 목록
@@ -67,7 +67,7 @@ export default async function ProductDetailPage({ params }) {
 
       {/* 하단 고정 견적 문의 바 */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ink/10 bg-white/95 backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-5 py-3">
           <a
             href={`tel:${SITE.phone}`}
             className="text-sm font-medium text-ink"
