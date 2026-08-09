@@ -39,7 +39,7 @@ import FloatingContact from "@/components/FloatingContact";
 export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Eventory | 이벤트 장비 렌탈",
+    default: "이벤토리 | 가챠머신·룰렛 등 팝업·행사·이벤트 장비 렌탈·제작",
     template: "%s",
   },
   description:
