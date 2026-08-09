@@ -18,7 +18,7 @@ const SAMPLE_PRODUCTS = [
   { id: "p2", bg: "bg-gradient-to-br from-[#7A2F5A] to-[#2B2233]", name: "에어볼 추첨기", cat: "에어볼추첨기" },
   { id: "p3", bg: "bg-gradient-to-br from-[#E8345A] to-[#9B3B6E]", name: "스톱워치", cat: "스톱워치" },
   { id: "p4", bg: "bg-gradient-to-br from-[#C04A6A] to-[#5B2A48]", name: "룰렛", cat: "룰렛" },
-  { id: "p5", bg: "bg-gradient-to-br from-[#FF6B4A] to-[#C03A5A]", name: "사격게임기", cat: "사격게임기" },
+  { id: "p5", bg: "bg-gradient-to-br from-[#FF6B4A] to-[#C03A5A]", name: "사격게임", cat: "사격게임" },
   { id: "p6", bg: "bg-gradient-to-br from-[#9B3B6E] to-[#3A2540]", name: "핀볼게임", cat: "핀볼게임" },
 ];
 

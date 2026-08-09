@@ -43,7 +43,7 @@ export const metadata = {
     template: "%s",
   },
   description:
-    "가챠머신, 룰렛, 사격게임기 등 이벤트·행사 장비 렌탈 전문 Eventory. 견적 문의 환영합니다.",
+    "가챠머신, 룰렛, 사격게임 등 이벤트·행사 장비 렌탈 전문 Eventory. 견적 문의 환영합니다.",
   openGraph: {
     siteName: "EVENTORY",
     type: "website",

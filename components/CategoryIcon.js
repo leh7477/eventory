@@ -69,7 +69,7 @@ function Roulette() {
   );
 }
 
-// 사격게임기 — 과녁 + 조준선
+// 사격게임 — 과녁 + 조준선
 function Shooting() {
   return (
     <>

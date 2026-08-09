@@ -2,7 +2,8 @@
 
 // 사진 없이 거대 타이포로 한 화면을 꽉 채우는 히어로 (자료가 없을 때).
 // 가운데 정렬 워드마크 + 아래 통통 튀는 스크롤 화살표. 크림 배경 + 코랄 포인트.
-const SUBLINE = "가챠머신 · 룰렛 · 사격게임 · 팝업 · 행사 · 축제";
+const SUBLINE =
+  "가챠머신 · 에어볼추첨기 · 스톱워치 · 룰렛 · 사격게임 · 핀볼게임";
 
 export default function HeroTypo() {
   const scrollDown = () =>
