@@ -39,20 +39,20 @@ export default function HeroTypo() {
         type="button"
         onClick={scrollDown}
         aria-label="아래 내용 보기"
-        className="hero-arrow absolute bottom-8 left-1/2 flex h-11 w-11 -translate-x-1/2 items-center justify-center rounded-full bg-ink text-white transition hover:bg-black sm:bottom-10"
+        className="hero-arrow absolute bottom-8 left-1/2 flex h-16 w-11 -translate-x-1/2 items-center justify-center rounded-full bg-ink text-white transition hover:bg-black sm:bottom-10"
       >
         <svg
-          width="18"
-          height="18"
+          width="32"
+          height="32"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2.5"
+          strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"
         >
-          <path d="M12 5v14M6 13l6 6 6-6" />
+          <path d="M12 3v16M6 13l6 6 6-6" />
         </svg>
       </button>
     </section>
