@@ -18,6 +18,7 @@ const initial = {
   event_end: "",
   address: "",
   address_detail: "",
+  location_tbd: false, // 장소 미정
   message: "",
 };
 
@@ -104,10 +105,14 @@ export default function QuoteForm() {
       form.usage,
       form.event_start,
       form.event_end,
-      form.address,
     ];
     if (required.some((v) => !String(v).trim())) {
       setErrorMsg("필수 항목(•)을 모두 입력해주세요.");
+      return;
+    }
+    // 장소는 '미정'을 체크하지 않았을 때만 필수
+    if (!form.location_tbd && !form.address.trim()) {
+      setErrorMsg("장소를 입력하거나 '장소 미정'을 선택해주세요.");
       return;
     }
 
@@ -122,8 +127,8 @@ export default function QuoteForm() {
       usage: form.usage,
       event_start: form.event_start,
       event_end: form.event_end,
-      address: form.address,
-      address_detail: form.address_detail,
+      address: form.location_tbd ? "미정" : form.address,
+      address_detail: form.location_tbd ? "" : form.address_detail,
       message: form.message,
     });
 
@@ -270,32 +275,54 @@ export default function QuoteForm() {
         </div>
 
         <div>
-          <Label required>장소</Label>
-          <div className="space-y-2">
-            <div className="flex gap-2">
+          <div className="mb-2 flex items-center gap-3">
+            <span className="text-sm font-bold text-ink">
+              장소<span className="ml-1 text-primary">•</span>
+            </span>
+            <label className="flex cursor-pointer items-center gap-1.5 text-sm font-medium text-ink/70">
               <input
-                className={`${inputCls} flex-1 cursor-pointer`}
-                placeholder="주소"
-                value={form.address}
-                readOnly
-                onClick={openPostcode}
+                type="checkbox"
+                checked={form.location_tbd}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, location_tbd: e.target.checked }))
+                }
+                className="h-4 w-4 accent-primary"
               />
-              <button
-                type="button"
-                onClick={openPostcode}
-                className="shrink-0 whitespace-nowrap rounded-md bg-ink px-4 text-sm font-bold text-white transition hover:bg-black"
-              >
-                주소 검색
-              </button>
-            </div>
-            <input
-              ref={detailRef}
-              className={inputCls}
-              placeholder="상세주소"
-              value={form.address_detail}
-              onChange={set("address_detail")}
-            />
+              장소 미정 (추후 협의)
+            </label>
           </div>
+
+          {form.location_tbd ? (
+            <p className="rounded-md border border-dashed border-ink/20 bg-ink/[0.02] px-3 py-2.5 text-sm text-ink/50">
+              장소가 정해지면 알려주세요. 확정 전이라도 견적 상담이 가능합니다.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <input
+                  className={`${inputCls} flex-1 cursor-pointer`}
+                  placeholder="주소"
+                  value={form.address}
+                  readOnly
+                  onClick={openPostcode}
+                />
+                <button
+                  type="button"
+                  onClick={openPostcode}
+                  className="shrink-0 whitespace-nowrap rounded-md bg-ink px-4 text-sm font-bold text-white transition hover:bg-black"
+                >
+                  주소 검색
+                </button>
+              </div>
+              <input
+                ref={detailRef}
+                className={inputCls}
+                placeholder="상세주소"
+                value={form.address_detail}
+                onChange={set("address_detail")}
+              />
+            </div>
+          )}
         </div>
 
         <div>
