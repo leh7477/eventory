@@ -18,7 +18,7 @@ async function resolveCase(id) {
 
 export async function generateMetadata({ params }) {
   const item = await resolveCase(params.id);
-  if (!item) return { title: "Stories | Eventory" };
+  if (!item) return { title: "Stories | 이벤토리" };
 
   const metaTitle =
     item.seoTitle ||

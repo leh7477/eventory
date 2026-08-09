@@ -8,7 +8,7 @@ import { SAMPLE_CASES } from "@/lib/samples";
 export const revalidate = 0;
 
 export const metadata = {
-  title: "Stories | Eventory",
+  title: "Stories | 이벤토리",
 };
 
 export default async function CasesPage({ searchParams }) {

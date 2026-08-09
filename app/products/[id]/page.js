@@ -11,7 +11,7 @@ export const revalidate = 0;
 
 export async function generateMetadata({ params }) {
   const product = await getProductById(params.id);
-  return { title: product ? `${product.name} | Eventory` : "장비 | Eventory" };
+  return { title: product ? `${product.name} | 이벤토리` : "장비 | 이벤토리" };
 }
 
 export default async function ProductDetailPage({ params }) {

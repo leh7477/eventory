@@ -4,7 +4,7 @@ import QuoteButton from "@/components/QuoteButton";
 import { SITE } from "@/lib/constants";
 
 export const metadata = {
-  title: "회사소개 | Eventory",
+  title: "회사소개 | 이벤토리",
 };
 
 const POINTS = [

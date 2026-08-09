@@ -4,7 +4,7 @@ import { profileFromUser } from "@/lib/admin/sections";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 export const metadata = {
-  title: "관리자 | Eventory",
+  title: "관리자 | 이벤토리",
 };
 
 export default async function AdminPanelLayout({ children }) {
