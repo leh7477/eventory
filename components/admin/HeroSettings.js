@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateHeroMode } from "@/app/admin/(panel)/banner/actions";
 
 const MODES = [
+  { v: "type", label: "타이포", desc: "사진 없이 큰 글자(EVENT + STORY)로 채움" },
   { v: "static", label: "한 장 고정", desc: "맨 위 배너 1장을 흐리게 깔고 글자를 얹음" },
   { v: "slide", label: "슬라이드", desc: "대형 배너가 5초마다 한 장씩 넘어감" },
   { v: "marquee", label: "흐르게", desc: "등록된 배너가 옆으로 계속 흐름" },

@@ -5,6 +5,7 @@ import QuoteButton from "@/components/QuoteButton";
 import ShortsRow from "@/components/ShortsRow";
 import CaseGallery from "@/components/CaseGallery";
 import CategoryShowcase from "@/components/CategoryShowcase";
+import CategoryGrid from "@/components/CategoryGrid";
 import { normalizeCases } from "@/lib/samples";
 import { SITE } from "@/lib/constants";
 import { getActiveBanners, getCategories, getProducts, getCases, getSettings } from "@/lib/data";
@@ -71,31 +72,8 @@ export default async function Home() {
         {/* 히어로 */}
         <HeroSlider banners={banners} mode={settings.hero_mode || "static"} />
 
-        {/* 카테고리 — PC: 호버 / 모바일: 탭 + 자동 순환 */}
-        <section className="mx-auto max-w-6xl px-5 py-14">
-          <CategoryShowcase items={showcaseItems} />
-        </section>
-
-        {/* 인기 장비 (쇼츠 스타일 세로 카드 가로 스크롤) */}
-        <section className="py-14">
-          <div className="mx-auto max-w-6xl px-5">
-            <ShortsRow items={shortsItems} />
-          </div>
-        </section>
-
-        {/* 행사 사례 (제목 없이 사진 바로, 가로 스크롤 + 클릭 시 상세 모달) */}
-        <section className="py-14">
-          <div className="mx-auto max-w-6xl px-5">
-            <CaseGallery
-              items={caseItems}
-              mode={settings.home_stories_mode || "off"}
-              speed={settings.home_stories_speed || 30}
-            />
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="bg-white">
+        {/* 인트로 (히어로 다음, 스크롤하면 처음 만나는 소개 블록) */}
+        <section className="bg-[#f4f4f5]">
           <div className="mx-auto max-w-3xl px-5 py-24 text-center">
             <h2 className="text-balance text-2xl font-bold leading-snug text-ink sm:text-3xl">
               행사의 규모보다 중요한 것은 참여자의 경험입니다.
@@ -118,6 +96,52 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {/* 카테고리 — 왼쪽 소개 + 오른쪽 2×3 카드 그리드 */}
+        <section className="mx-auto max-w-6xl px-5 py-16 lg:py-20">
+          <CategoryGrid items={showcaseItems} />
+        </section>
+
+        {/* 인기 장비 (쇼츠 스타일 세로 카드 가로 스크롤) */}
+        <section className="py-14">
+          <div className="mx-auto max-w-6xl px-5">
+            <p className="font-heading text-sm font-bold tracking-[0.2em] text-primary">
+              POPULAR PICK
+            </p>
+            <h2 className="mt-3 text-balance text-2xl font-bold leading-snug text-ink sm:text-3xl">
+              지금 가장 많이 찾는 장비
+            </h2>
+            <p className="mt-2 text-ink/60 sm:text-lg">
+              현장에서 반응이 좋은 장비를 영상으로 확인해 보세요.
+            </p>
+            <div className="mt-8">
+              <ShortsRow items={shortsItems} />
+            </div>
+          </div>
+        </section>
+
+        {/* 행사 사례 (가로 스크롤 + 클릭 시 상세 모달) */}
+        <section className="py-14">
+          <div className="mx-auto max-w-6xl px-5">
+            <p className="font-heading text-sm font-bold tracking-[0.2em] text-primary">
+              REAL STORY
+            </p>
+            <h2 className="mt-3 text-balance text-2xl font-bold leading-snug text-ink sm:text-3xl">
+              이벤토리가 채운 현장
+            </h2>
+            <p className="mt-2 text-ink/60 sm:text-lg">
+              팝업스토어부터 지역축제까지, 실제로 진행한 행사 기록입니다.
+            </p>
+            <div className="mt-8">
+              <CaseGallery
+                items={caseItems}
+                mode={settings.home_stories_mode || "off"}
+                speed={settings.home_stories_speed || 30}
+              />
+            </div>
+          </div>
+        </section>
+
       </main>
       <SiteFooter />
     </>

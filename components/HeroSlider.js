@@ -1,6 +1,7 @@
 import Image from "next/image";
 import HeroCopy from "@/components/HeroCopy";
 import HeroCarousel from "@/components/HeroCarousel";
+import HeroTypo from "@/components/HeroTypo";
 
 // 배너가 없을 때 보여줄 데모 폴백 슬라이드 4종 (브랜드 톤: 코랄·핑크·플럼 계열로 통일)
 const FALLBACKS = [
@@ -77,9 +78,11 @@ function MarqueeHero({ slides }) {
   );
 }
 
-// mode: "static"(한 장 흐리게) | "slide"(대형 배너 전환) | "marquee"(옆으로 흐름)
+// mode: "type"(거대 타이포) | "static"(한 장 흐리게) | "slide"(대형 배너 전환) | "marquee"(옆으로 흐름)
 // 관리자 > 메인 배너에서 전환
 export default function HeroSlider({ banners = [], mode = "static" }) {
+  if (mode === "type") return <HeroTypo />;
+
   const slides =
     banners.length > 0
       ? banners
