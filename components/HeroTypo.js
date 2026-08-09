@@ -12,11 +12,13 @@ export default function HeroTypo() {
     <section className="relative flex h-[calc(100svh-5rem)] min-h-[520px] w-full flex-col items-center justify-center overflow-hidden bg-white px-6 text-center">
       {/* 거대 워드마크 (한 줄) — 글자마다 시차를 두고 얇아졌다 두꺼워짐 (가변폰트) */}
       <h1 className="hero-typo-line whitespace-nowrap text-[clamp(2.6rem,14.6vw,12.5rem)] leading-none tracking-tight text-ink">
-        {"EVENT+STORY".split("").map((ch, i) => (
+        {"EVENT+STORY".split("").map((ch, i, arr) => (
           <span
             key={i}
             className="hero-letter inline-block"
-            style={{ ["--d"]: `${i * 0.09}s` }}
+            // 음수 시차를 일정 간격으로 줘 매끄러운 그라데이션(앞 두꺼움→뒤 얇음).
+            // 뒤에서 앞으로 세어 파동이 앞→뒤 방향으로 자연스럽게 읽히게 함
+            style={{ ["--d"]: `-${((arr.length - 1 - i) * 0.1).toFixed(2)}s` }}
           >
             {ch}
           </span>
