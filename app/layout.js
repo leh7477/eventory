@@ -47,6 +47,18 @@ export const metadata = {
   openGraph: {
     siteName: "EVENTORY",
     type: "website",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "EVENT + STORY — 이벤토리 이벤트 장비 렌탈",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/og.png"],
   },
 };
 
