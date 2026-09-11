@@ -85,3 +85,26 @@ export async function updateHeroMode(mode) {
   rv();
   return { ok: true };
 }
+
+// 타이포 히어로 문구 저장 (워드마크·서브문구·장비 줄)
+export async function updateHeroText({ wordmark, subtitle, sublist }) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin.from("settings").upsert({
+    id: 1,
+    hero_wordmark: (wordmark ?? "").trim() || null,
+    hero_subtitle: (subtitle ?? "").trim() || null,
+    hero_sublist: (sublist ?? "").trim() || null,
+  });
+  if (error) {
+    if (/hero_wordmark|hero_subtitle|hero_sublist|schema cache|column/i.test(error.message)) {
+      return {
+        error:
+          "DB에 히어로 문구 컬럼이 아직 없습니다. 안내된 SQL(alter table settings add column ... hero_wordmark/subtitle/sublist)을 먼저 실행해주세요.",
+      };
+    }
+    return { error: "문구 저장에 실패했습니다. 잠시 후 다시 시도해주세요." };
+  }
+  rv();
+  return { ok: true };
+}

@@ -11,31 +11,6 @@ const FALLBACKS = [
   "bg-gradient-to-br from-[#E8345A] to-[#9B3B6E]",
 ];
 
-// 사진 한 장을 밝게 흐려서 깔고 그 위에 진한 글자 (사진이 적을 때)
-function StaticHero({ slide }) {
-  return (
-    <section className="relative h-[82vh] min-h-[520px] w-full overflow-hidden bg-cream">
-      {slide?.image_url ? (
-        <Image
-          src={slide.image_url}
-          alt={slide.title ?? "행사 현장"}
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-[#FFE3D6] to-[#FFD3E2]" />
-      )}
-
-      {/* 밝은 워시 — 사진은 분위기만 남김 */}
-      <div className="absolute inset-0 bg-cream/80" />
-
-      <HeroCopy tone="dark" />
-    </section>
-  );
-}
-
 // 사진이 옆으로 계속 흐름 (사진이 여러 장 쌓였을 때)
 function MarqueeHero({ slides }) {
   // 마퀴 seamless 루프를 위해 슬라이드를 2배로 복제
@@ -80,9 +55,7 @@ function MarqueeHero({ slides }) {
 
 // mode: "type"(거대 타이포) | "static"(한 장 흐리게) | "slide"(대형 배너 전환) | "marquee"(옆으로 흐름)
 // 관리자 > 메인 배너에서 전환
-export default function HeroSlider({ banners = [], mode = "static" }) {
-  if (mode === "type") return <HeroTypo />;
-
+export default function HeroSlider({ banners = [], mode = "type", heroText = {} }) {
   const slides =
     banners.length > 0
       ? banners
@@ -90,5 +63,6 @@ export default function HeroSlider({ banners = [], mode = "static" }) {
 
   if (mode === "marquee") return <MarqueeHero slides={slides} />;
   if (mode === "slide") return <HeroCarousel slides={slides} />;
-  return <StaticHero slide={banners[0] ?? null} />;
+  // type(및 그 외/구 static 값) → 타이포 히어로
+  return <HeroTypo {...heroText} />;
 }

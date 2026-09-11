@@ -2,10 +2,17 @@
 
 // 사진 없이 거대 타이포로 한 화면을 꽉 채우는 히어로 (자료가 없을 때).
 // 가운데 정렬 워드마크 + 아래 통통 튀는 스크롤 화살표. 크림 배경 + 코랄 포인트.
-const SUBLINE =
+// 문구는 관리자(settings)에서 편집. 값 없으면 아래 기본값 사용.
+const DEFAULT_WORDMARK = "EVENT+STORY";
+const DEFAULT_SUBTITLE = "Every Event Has a Story";
+const DEFAULT_SUBLIST =
   "가챠머신 · 에어볼추첨기 · 스톱워치 · 룰렛 · 사격게임 · 핀볼게임";
 
-export default function HeroTypo() {
+export default function HeroTypo({ wordmark, subtitle, sublist } = {}) {
+  const wm = (wordmark || DEFAULT_WORDMARK).trim();
+  const sub = subtitle ?? DEFAULT_SUBTITLE;
+  const list = sublist ?? DEFAULT_SUBLIST;
+
   const scrollDown = () =>
     window.scrollTo({ top: window.innerHeight * 0.9, behavior: "smooth" });
 
@@ -13,7 +20,7 @@ export default function HeroTypo() {
     <section className="relative flex h-[calc(100svh-5rem)] min-h-[520px] w-full flex-col items-center justify-center overflow-hidden bg-white px-6 text-center">
       {/* 거대 워드마크 (한 줄) — 글자마다 시차를 두고 얇아졌다 두꺼워짐 (가변폰트) */}
       <h1 className="hero-typo-line whitespace-nowrap text-[12vw] leading-none tracking-tight text-ink lg:text-[clamp(7rem,13.5vw,12.5rem)]">
-        {"EVENT+STORY".split("").map((ch, i, arr) => (
+        {wm.split("").map((ch, i, arr) => (
           <span
             key={i}
             className="hero-letter inline-block"
@@ -21,18 +28,22 @@ export default function HeroTypo() {
             // 뒤에서 앞으로 세어 파동이 앞→뒤 방향으로 자연스럽게 읽히게 함
             style={{ ["--d"]: `-${((arr.length - 1 - i) * 0.1).toFixed(2)}s` }}
           >
-            {ch}
+            {ch === " " ? " " : ch}
           </span>
         ))}
       </h1>
 
       {/* 서브 문구 */}
-      <p className="hero-typo-line mt-7 font-heading text-lg font-bold tracking-wide text-ink sm:mt-9 sm:text-2xl">
-        Every Event Has a Story
-      </p>
-      <p className="hero-typo-line mt-2.5 text-sm text-ink/60 sm:text-lg">
-        {SUBLINE}
-      </p>
+      {sub && (
+        <p className="hero-typo-line mt-7 font-heading text-lg font-bold tracking-wide text-ink sm:mt-9 sm:text-2xl">
+          {sub}
+        </p>
+      )}
+      {list && (
+        <p className="hero-typo-line mt-2.5 text-sm text-ink/60 sm:text-lg">
+          {list}
+        </p>
+      )}
 
       {/* 스크롤 유도 화살표 (아래로 통통) */}
       <button

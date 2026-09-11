@@ -72,7 +72,15 @@ export default async function Home() {
       <SiteHeader />
       <main>
         {/* 히어로 */}
-        <HeroSlider banners={banners} mode={settings.hero_mode || "static"} />
+        <HeroSlider
+          banners={banners}
+          mode={settings.hero_mode || "type"}
+          heroText={{
+            wordmark: settings.hero_wordmark,
+            subtitle: settings.hero_subtitle,
+            sublist: settings.hero_sublist,
+          }}
+        />
 
         {/* 인트로 (히어로 다음, 스크롤하면 처음 만나는 소개 블록) */}
         <section className="bg-[#f4f4f5]">

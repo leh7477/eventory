@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ADMIN_SECTIONS } from "@/lib/admin/sections";
+import { ADMIN_SECTIONS, ADMIN_GROUP_ORDER } from "@/lib/admin/sections";
 import PasswordChangeModal from "@/components/admin/PasswordChangeModal";
 
 export default function AdminSidebar({ email, isOwner = true, permissions = [] }) {
@@ -13,11 +13,9 @@ export default function AdminSidebar({ email, isOwner = true, permissions = [] }
   const [open, setOpen] = useState(false);
   const [pwOpen, setPwOpen] = useState(false);
 
-  const NAV = [
-    { href: "/admin/dashboard", label: "대시보드" },
-    ...ADMIN_SECTIONS.filter((s) => isOwner || permissions.includes(s.key)),
-    ...(isOwner ? [{ href: "/admin/accounts", label: "ID 관리" }] : []),
-  ];
+  const accessibleSections = ADMIN_SECTIONS.filter(
+    (s) => isOwner || permissions.includes(s.key)
+  );
 
   const logout = async () => {
     const supabase = createClient();
@@ -28,23 +26,112 @@ export default function AdminSidebar({ email, isOwner = true, permissions = [] }
 
   const displayName = (email ?? "").replace("@eventory.local", "");
 
-  const navLinks = (onClick) =>
-    NAV.map((item) => {
-      const active =
-        pathname === item.href || pathname.startsWith(item.href + "/");
+  const isActive = (href) =>
+    pathname === href || pathname.startsWith(href + "/");
+
+  const linkClass = (href) =>
+    `mb-0.5 block rounded-md px-3 py-2.5 text-sm font-medium transition ${
+      isActive(href) ? "bg-ink text-white" : "text-ink/70 hover:bg-ink/5"
+    }`;
+
+  // 그룹 구분: 위에 구분선 + 간격
+  const groupWrap = "mt-5 border-t border-ink/10 pt-4";
+
+  // 그룹별 아이콘 (한눈에 구분)
+  const groupIcon = (group) => {
+    const common = {
+      width: 17,
+      height: 17,
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
+      strokeWidth: 2,
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+    };
+    if (group === "홈페이지")
       return (
-        <Link
-          key={item.href}
-          href={item.href}
-          onClick={onClick}
-          className={`mb-0.5 block rounded-md px-3 py-2.5 text-sm font-medium transition ${
-            active ? "bg-ink text-white" : "text-ink/70 hover:bg-ink/5"
-          }`}
-        >
-          {item.label}
-        </Link>
+        <svg {...common}>
+          <path d="M3 10.5 12 4l9 6.5M5 9.5V20h5v-6h4v6h5V9.5" />
+        </svg>
       );
-    });
+    if (group === "운영 관리")
+      return (
+        <svg {...common}>
+          <rect x="6" y="4" width="12" height="17" rx="2" />
+          <path d="M9 4V3h6v1M9 10h6M9 14h4" />
+        </svg>
+      );
+    // 설정
+    return (
+      <svg {...common}>
+        <path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h7M15 17h5" />
+        <circle cx="15" cy="7" r="2" />
+        <circle cx="9" cy="12" r="2" />
+        <circle cx="13" cy="17" r="2" />
+      </svg>
+    );
+  };
+
+  const groupHeader = (group) => (
+    <div className="mb-2 flex items-center gap-2 px-3">
+      <span className="text-primary">{groupIcon(group)}</span>
+      <span className="text-sm font-bold tracking-wide text-ink/60">
+        {group}
+      </span>
+    </div>
+  );
+
+  // 대시보드(단독) + 그룹별 메뉴 + 설정(owner)
+  const navLinks = (onClick) => (
+    <>
+      <Link
+        href="/admin/dashboard"
+        onClick={onClick}
+        className={linkClass("/admin/dashboard")}
+      >
+        대시보드
+      </Link>
+
+      {ADMIN_GROUP_ORDER.map((group) => {
+        const items = accessibleSections.filter((s) => s.group === group);
+        if (items.length === 0) return null;
+        return (
+          <div key={group} className={groupWrap}>
+            {groupHeader(group)}
+            {items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClick}
+                className={`${linkClass(item.href)} flex items-center justify-between`}
+              >
+                <span>{item.label}</span>
+                {item.badge && (
+                  <span className="rounded bg-ink/10 px-1.5 py-0.5 text-[10px] font-semibold text-ink/45">
+                    {item.badge}
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+        );
+      })}
+
+      {isOwner && (
+        <div className={groupWrap}>
+          {groupHeader("설정")}
+          <Link
+            href="/admin/accounts"
+            onClick={onClick}
+            className={linkClass("/admin/accounts")}
+          >
+            ID 관리
+          </Link>
+        </div>
+      )}
+    </>
+  );
 
   return (
     <>
