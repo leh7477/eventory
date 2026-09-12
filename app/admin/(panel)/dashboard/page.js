@@ -86,10 +86,6 @@ export default async function DashboardPage() {
   const tm = new Date(now);
   tm.setDate(now.getDate() + 1);
   const tomorrowS = ds(tm);
-  // 금주 = 월요일 ~ 일요일 기준 → 이번 주 일요일까지
-  const weekEnd = new Date(now);
-  weekEnd.setDate(now.getDate() + (now.getDay() === 0 ? 0 : 7 - now.getDay()));
-  const weekEndS = ds(weekEnd);
 
   const [inqRes, schRes] = await Promise.all([
     admin
@@ -98,7 +94,7 @@ export default async function DashboardPage() {
     admin
       .from("schedules")
       .select("*")
-      .lte("start_date", weekEndS)
+      .lte("start_date", tomorrowS) // 오늘·내일 일정만 필요
       .order("start_date", { ascending: true }),
   ]);
 
