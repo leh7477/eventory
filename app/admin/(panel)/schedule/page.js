@@ -6,11 +6,12 @@ export const revalidate = 0;
 export default async function AdminSchedulePage() {
   const admin = createAdminClient();
 
-  const [{ data: schedules }, { data: equipment }, { data: items }] =
+  const [{ data: schedules }, { data: equipment }, { data: items }, { data: vendors }] =
     await Promise.all([
       admin.from("schedules").select("*").order("start_date", { ascending: true }),
       admin.from("equipment").select("category, active"),
       admin.from("schedule_items").select("schedule_id, category, quantity"),
+      admin.from("vendors").select("id, name").order("name", { ascending: true }),
     ]);
 
   // 종류별 보유(운영중) 대수
@@ -36,6 +37,7 @@ export default async function AdminSchedulePage() {
           equipmentTotals={totals}
           equipmentCategories={categories}
           scheduleItems={items ?? []}
+          vendors={(vendors ?? []).map((v) => v.name)}
         />
       </div>
     </div>

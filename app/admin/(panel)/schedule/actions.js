@@ -194,6 +194,36 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
   return { ok: true };
 }
 
+// 거래처(발주처) 추가
+export async function createVendor(name) {
+  await requireAdmin();
+  const nm = (name ?? "").trim();
+  if (!nm) return { error: "거래처 이름을 입력하세요." };
+  const admin = createAdminClient();
+  const { data, error } = await admin.from("vendors").insert({ name: nm }).select().single();
+  if (error) {
+    if (/vendors|does not exist|Could not find the table/i.test(error.message)) {
+      return { error: "거래처(vendors) 테이블이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
+    }
+    return { error: error.message };
+  }
+  rv();
+  return { ok: true, vendor: data };
+}
+
+// 일정의 발주처 지정 (schedule.vendor에 저장)
+export async function setScheduleVendor(id, vendor) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("schedules")
+    .update({ vendor: (vendor ?? "").trim() || null })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  rv();
+  return { ok: true };
+}
+
 // 행사 일정 진행 단계 설정 (0~4)
 export async function setScheduleStage(id, stage) {
   await requireAdmin();

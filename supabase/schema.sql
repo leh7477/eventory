@@ -272,3 +272,12 @@ alter table schedules add column if not exists note text;            -- 비고/�
 
 -- 행사 일정 진행 단계 (0=시작전, 1=디자인 발주, 2=랩핑, 3=출고, 4=회수/완료)
 alter table schedules add column if not exists stage int default 0;
+
+-- 거래처(발주처) 목록 — 출력물 발주 단계에서 선택
+create table if not exists vendors (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  memo text,
+  created_at timestamptz default now()
+);
+alter table vendors enable row level security;  -- service_role만

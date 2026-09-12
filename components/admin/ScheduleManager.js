@@ -9,10 +9,12 @@ import {
   deleteSchedule,
   updateScheduleDatetime,
   setScheduleStage,
+  createVendor,
+  setScheduleVendor,
 } from "@/app/admin/(panel)/schedule/actions";
 
 // 행사 일정 진행 단계
-const STAGES = ["디자인 발주", "랩핑", "출고", "회수"];
+const STAGES = ["출력물 발주", "랩핑", "출고", "회수"];
 import TimeSelect from "@/components/admin/TimeSelect";
 import DatePicker from "@/components/DatePicker";
 import ScheduleEquipment from "@/components/admin/ScheduleEquipment";
@@ -44,6 +46,7 @@ export default function ScheduleManager({
   equipmentTotals = {},
   equipmentCategories = [],
   scheduleItems = [],
+  vendors = [],
 }) {
   const router = useRouter();
   const now = new Date();
@@ -657,6 +660,45 @@ export default function ScheduleManager({
                        </span>
                      )}
                    </div>
+
+                   {/* 출력물 발주 단계 → 발주처(거래처) 선택 */}
+                   {(ev.stage || 0) >= 1 && (
+                     <div className="mt-2 flex flex-wrap items-center gap-2">
+                       <span className="text-xs font-bold text-ink/50">발주처</span>
+                       <select
+                         value={ev.vendor || ""}
+                         disabled={pending}
+                         onChange={(e) => run(() => setScheduleVendor(ev.id, e.target.value))}
+                         className="rounded-md border border-ink/15 bg-white px-2.5 py-1 text-xs outline-none focus:border-primary"
+                       >
+                         <option value="">선택 안 함</option>
+                         {vendors.map((v) => (
+                           <option key={v} value={v}>
+                             {v}
+                           </option>
+                         ))}
+                         {ev.vendor && !vendors.includes(ev.vendor) && (
+                           <option value={ev.vendor}>{ev.vendor}</option>
+                         )}
+                       </select>
+                       <button
+                         type="button"
+                         disabled={pending}
+                         onClick={() => {
+                           const name = window.prompt("새 거래처 이름");
+                           if (name && name.trim())
+                             run(async () => {
+                               const res = await createVendor(name);
+                               if (!res?.error) await setScheduleVendor(ev.id, name.trim());
+                               return res;
+                             });
+                         }}
+                         className="rounded-md border border-ink/15 px-2 py-1 text-xs text-ink/60 hover:bg-ink/5 disabled:opacity-50"
+                       >
+                         + 거래처
+                       </button>
+                     </div>
+                   )}
 
                    {/* 액션 버튼 (아래 줄, 우측 정렬) */}
                    <div className="mt-2.5 flex flex-wrap justify-end gap-2">
