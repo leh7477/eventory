@@ -269,3 +269,6 @@ alter table schedules add column if not exists client_manager text;  -- 업체 �
 alter table schedules add column if not exists client_phone text;    -- 담당자 연락처
 alter table schedules add column if not exists vendor text;          -- 발주/제작처
 alter table schedules add column if not exists note text;            -- 비고/특이사항
+
+-- 행사 일정 진행 단계 (0=시작전, 1=디자인 발주, 2=랩핑, 3=출고, 4=회수/완료)
+alter table schedules add column if not exists stage int default 0;

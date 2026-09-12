@@ -194,6 +194,23 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
   return { ok: true };
 }
 
+// 행사 일정 진행 단계 설정 (0~4)
+export async function setScheduleStage(id, stage) {
+  await requireAdmin();
+  const n = parseInt(stage, 10);
+  if (!Number.isFinite(n) || n < 0 || n > 4) return { error: "단계 값이 올바르지 않습니다." };
+  const admin = createAdminClient();
+  const { error } = await admin.from("schedules").update({ stage: n }).eq("id", id);
+  if (error) {
+    if (/stage|column/i.test(error.message)) {
+      return { error: "진행 단계(stage) 컬럼이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
+    }
+    return { error: error.message };
+  }
+  rv();
+  return { ok: true };
+}
+
 // 일정 현장 정보 저장 (장소/담당자/연락처/발주처/비고)
 export async function updateScheduleInfo(id, fields = {}) {
   await requireAdmin();

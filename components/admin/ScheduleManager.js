@@ -8,7 +8,11 @@ import {
   updateTask,
   deleteSchedule,
   updateScheduleDatetime,
+  setScheduleStage,
 } from "@/app/admin/(panel)/schedule/actions";
+
+// 행사 일정 진행 단계
+const STAGES = ["디자인 발주", "랩핑", "출고", "회수"];
 import TimeSelect from "@/components/admin/TimeSelect";
 import DatePicker from "@/components/DatePicker";
 import ScheduleEquipment from "@/components/admin/ScheduleEquipment";
@@ -611,6 +615,47 @@ export default function ScheduleManager({
                         </p>
                       )}
                     </div>
+                   </div>
+
+                   {/* 진행 단계: 디자인 발주 → 랩핑 → 출고 → 회수 */}
+                   <div className="mt-3 flex items-center gap-1 overflow-x-auto pb-0.5">
+                     {STAGES.map((s, i) => {
+                       const step = i + 1;
+                       const cur = (ev.stage || 0) === step;
+                       const done = (ev.stage || 0) >= step;
+                       return (
+                         <div key={s} className="flex items-center">
+                           <button
+                             type="button"
+                             disabled={pending}
+                             onClick={() =>
+                               run(() => setScheduleStage(ev.id, cur ? i : step))
+                             }
+                             title={done ? `${s} 완료 (클릭해 되돌리기)` : `${s}(으)로 진행`}
+                             className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold transition ${
+                               done
+                                 ? "bg-emerald-600 text-white"
+                                 : "bg-ink/5 text-ink/45 hover:bg-ink/10"
+                             } ${cur ? "ring-2 ring-emerald-300" : ""}`}
+                           >
+                             {done ? "✓ " : ""}
+                             {s}
+                           </button>
+                           {i < STAGES.length - 1 && (
+                             <span
+                               className={`h-0.5 w-3 shrink-0 ${
+                                 (ev.stage || 0) > step ? "bg-emerald-500" : "bg-ink/15"
+                               }`}
+                             />
+                           )}
+                         </div>
+                       );
+                     })}
+                     {(ev.stage || 0) >= 4 && (
+                       <span className="ml-1.5 shrink-0 rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                         완료
+                       </span>
+                     )}
                    </div>
 
                    {/* 액션 버튼 (아래 줄, 우측 정렬) */}
