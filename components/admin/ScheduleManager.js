@@ -613,8 +613,8 @@ export default function ScheduleManager({
                     </div>
                    </div>
 
-                   {/* 액션 버튼 (아래 줄) */}
-                   <div className="mt-2.5 flex flex-wrap gap-2">
+                   {/* 액션 버튼 (아래 줄, 우측 정렬) */}
+                   <div className="mt-2.5 flex flex-wrap justify-end gap-2">
                     <button
                       type="button"
                       onClick={() =>
