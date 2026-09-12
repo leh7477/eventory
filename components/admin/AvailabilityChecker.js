@@ -3,6 +3,25 @@
 import { useMemo, useState } from "react";
 import { availableFor } from "@/lib/inventory";
 
+// 고객이 쓴 제품명(자유 입력)을 등록된 종류에 근접 매칭
+// 예: "가챠머신기", "가챠 머신 3대" → "가챠머신"
+function matchCategory(text, categories) {
+  const norm = (s) => String(s || "").toLowerCase().replace(/\s+/g, "");
+  const t = norm(text);
+  if (!t) return "";
+  // 1) 정확 일치
+  const exact = categories.find((c) => norm(c) === t);
+  if (exact) return exact;
+  // 2) 포함 관계 (가장 긴 종류 우선)
+  const cand = categories
+    .filter((c) => {
+      const n = norm(c);
+      return n && (t.includes(n) || n.includes(t));
+    })
+    .sort((a, b) => norm(b).length - norm(a).length);
+  return cand[0] || "";
+}
+
 // 견적 전달 전 재고 확인 (읽기 전용) — 확정된 일정 예약분과 대조
 // 점유 기준은 설치~회수지만, 견적 단계에선 행사 날짜로 미리 가늠
 export default function AvailabilityChecker({
@@ -14,9 +33,7 @@ export default function AvailabilityChecker({
   defaultStart = "",
   defaultEnd = "",
 }) {
-  const [cat, setCat] = useState(
-    categories.includes(defaultCategory) ? defaultCategory : ""
-  );
+  const [cat, setCat] = useState(() => matchCategory(defaultCategory, categories));
   const [qty, setQty] = useState("1");
   const [start, setStart] = useState(defaultStart || "");
   const [end, setEnd] = useState(defaultEnd || defaultStart || "");
@@ -31,7 +48,19 @@ export default function AvailabilityChecker({
 
   return (
     <div className="rounded-lg border border-ink/10 bg-white p-3">
-      <p className="mb-2 text-xs font-bold text-ink/60">재고 확인 (전달 전)</p>
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <p className="text-xs font-bold text-ink/60">재고 확인 (전달 전)</p>
+        {defaultCategory && (
+          <span className="text-[11px] text-ink/45">
+            고객 요청: <b className="text-ink/70">{defaultCategory}</b>
+            {cat && (
+              <>
+                {" "}→ <b className="text-blue-700">{cat}</b>로 인식
+              </>
+            )}
+          </span>
+        )}
+      </div>
       <div className="flex flex-wrap items-center gap-2">
         <select
           value={cat}
