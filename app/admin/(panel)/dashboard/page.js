@@ -105,18 +105,18 @@ export default async function DashboardPage() {
   const schedules = schRes.data ?? [];
   const isTask = (ev) => ev.kind === "task";
 
-  // 행사 일정: 설치(시작일)/회수(종료일) 발생 기준
+  // 행사(설치/회수 발생) + 업무를 하나로 합쳐 날짜별 · 시간순
   const eventOcc = toOccurrences(schedules.filter((ev) => !isTask(ev)));
-  const todayEventOcc = eventOcc.filter((o) => o.date === todayS);
-  const tomorrowEventOcc = eventOcc.filter((o) => o.date === tomorrowS);
-
-  // 행사 외(업무) 일정: 해당 날짜 · 시간순
   const taskOcc = schedules
     .filter((ev) => isTask(ev))
-    .map((ev) => ({ type: "업무", date: ev.start_date, time: hm(ev.start_time), ev }))
-    .sort((a, b) => (a.time ?? "99").localeCompare(b.time ?? "99"));
-  const todayTaskOcc = taskOcc.filter((o) => o.date === todayS);
-  const tomorrowTaskOcc = taskOcc.filter((o) => o.date === tomorrowS);
+    .map((ev) => ({ type: "업무", date: ev.start_date, time: hm(ev.start_time), ev }));
+  const allOcc = [...eventOcc, ...taskOcc].sort(
+    (a, b) =>
+      (a.date < b.date ? -1 : a.date > b.date ? 1 : 0) ||
+      (a.time ?? "99").localeCompare(b.time ?? "99")
+  );
+  const todayOcc = allOcc.filter((o) => o.date === todayS);
+  const tomorrowOcc = allOcc.filter((o) => o.date === tomorrowS);
 
   // 문의 KPI
   const inquiries = inqRes.data ?? [];
@@ -196,24 +196,14 @@ export default async function DashboardPage() {
       </div>
       <div className="mt-3 grid gap-4 md:grid-cols-2">
         <ScheduleGroup
-          title="오늘 행사 일정"
-          occurrences={todayEventOcc}
-          emptyText="오늘 설치/회수 일정이 없습니다."
+          title="오늘 일정"
+          occurrences={todayOcc}
+          emptyText="오늘 일정이 없습니다."
         />
         <ScheduleGroup
-          title="오늘 행사 외 일정"
-          occurrences={todayTaskOcc}
-          emptyText="오늘 업무 일정이 없습니다."
-        />
-        <ScheduleGroup
-          title="내일 행사 일정"
-          occurrences={tomorrowEventOcc}
-          emptyText="내일 설치/회수 일정이 없습니다."
-        />
-        <ScheduleGroup
-          title="내일 행사 외 일정"
-          occurrences={tomorrowTaskOcc}
-          emptyText="내일 업무 일정이 없습니다."
+          title="내일 일정"
+          occurrences={tomorrowOcc}
+          emptyText="내일 일정이 없습니다."
         />
       </div>
     </div>
