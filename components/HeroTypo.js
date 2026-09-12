@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SITE } from "@/lib/constants";
 
 // 사진 없이 거대 타이포로 한 화면을 꽉 채우는 히어로 (자료가 없을 때).
 // 가운데 정렬 워드마크 + 아래 통통 튀는 스크롤 화살표. 크림 배경 + 코랄 포인트.
@@ -54,12 +55,12 @@ export default function HeroTypo({ wordmark, subtitle, sublist } = {}) {
         >
           견적문의
         </Link>
-        <Link
-          href="/cases"
+        <a
+          href={`tel:${(SITE.phone || "").replace(/[^0-9]/g, "")}`}
           className="min-w-[160px] rounded-full border border-ink/20 bg-white/70 px-8 py-3 text-sm font-bold text-ink backdrop-blur-sm transition hover:bg-white active:scale-[0.98]"
         >
-          행사 사례
-        </Link>
+          전화 문의
+        </a>
       </div>
 
       {/* 스크롤 유도 화살표 (아래로 통통) */}
