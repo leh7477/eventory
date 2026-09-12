@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateHeroText } from "@/app/admin/(panel)/banner/actions";
 
 const DEFAULTS = {
-  wordmark: "EVENT+STORY",
+  wordmark: "EVENT LAND",
   subtitle: "Every Event Has a Story",
   sublist: "가챠머신 · 에어볼추첨기 · 스톱워치 · 룰렛 · 사격게임 · 핀볼게임",
 };
@@ -63,7 +63,7 @@ export default function HeroTextEditor({ settings }) {
             className={`${inputCls} font-logo font-extrabold`}
             value={wordmark}
             onChange={(e) => setWordmark(e.target.value)}
-            placeholder="EVENT+STORY"
+            placeholder="EVENT LAND"
           />
         </div>
         <div>

@@ -18,7 +18,7 @@ export default function ProductCard({ product }) {
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-festive">
             <span className="font-heading text-xl font-bold tracking-widest text-white/80">
-              EVENTORY
+              EVENT LAND
             </span>
           </div>
         )}

@@ -75,7 +75,7 @@ export default function SiteHeader() {
       >
         <div className="flex h-20 items-center justify-between border-b border-ink/5 px-5">
           <span className="font-logo text-xl font-extrabold tracking-tight text-ink">
-            EVENTORY
+            EVENT LAND
           </span>
           <button
             type="button"

@@ -89,7 +89,7 @@ export default async function Home() {
               행사의 규모보다 중요한 것은 참여자의 경험입니다.
             </h2>
             <p className="mt-6 leading-relaxed text-ink/70 sm:text-lg">
-              이벤토리는 가챠머신, 에어볼추첨기, 룰렛, 사격게임, 핀볼게임 등 다양한
+              이벤트랜드는 가챠머신, 에어볼추첨기, 룰렛, 사격게임, 핀볼게임 등 다양한
               이벤트 장비를 통해{" "}
               <br className="hidden sm:block" />
               브랜드 프로모션, 팝업스토어, 박람회, 기업행사, 지역축제까지 목적에 맞는
@@ -142,7 +142,7 @@ export default async function Home() {
                 REAL STORY
               </p>
               <h2 className="mt-3 text-balance text-2xl font-bold leading-snug text-ink sm:text-3xl">
-                이벤토리가 채운 현장
+                이벤트랜드가 채운 현장
               </h2>
               <p className="mt-2 text-ink/60 sm:text-lg">
                 팝업스토어부터 지역축제까지, 실제로 진행한 행사 기록입니다.

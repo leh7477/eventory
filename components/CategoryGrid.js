@@ -18,7 +18,7 @@ export default function CategoryGrid({ items = [] }) {
         <h2 className="mt-4 text-balance text-2xl font-bold leading-snug text-ink sm:text-3xl xl:text-4xl">
           현장을 채우는 재미,
           <br />
-          이벤토리가 준비했습니다.
+          이벤트랜드가 준비했습니다.
         </h2>
 
         {/* 행사 유형 태그 (제목 아래 한 줄) */}

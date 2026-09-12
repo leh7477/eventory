@@ -25,7 +25,7 @@ const poppins = Poppins({
   display: "swap",
 });
 
-// 타이포 히어로 워드마크(EVENT+STORY) 전용 — Geist 가변폰트(wght 축 애니메이션)
+// 타이포 히어로 워드마크(EVENT LAND) 전용 — Geist 가변폰트(wght 축 애니메이션)
 const display = localFont({
   src: "./fonts/GeistVariable.woff2",
   variable: "--font-display",
@@ -39,20 +39,20 @@ import FloatingContact from "@/components/FloatingContact";
 export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "이벤토리 | 가챠머신·룰렛 등 팝업·행사·이벤트 장비 렌탈·제작",
+    default: "이벤트랜드 | 가챠머신·룰렛 등 팝업·행사·이벤트 장비 렌탈·제작",
     template: "%s",
   },
   description:
-    "가챠머신, 룰렛, 사격게임 등 이벤트·행사 장비 렌탈 전문 Eventory. 견적 문의 환영합니다.",
+    "가챠머신, 룰렛, 사격게임 등 이벤트·행사 장비 렌탈 전문 Event Land. 견적 문의 환영합니다.",
   openGraph: {
-    siteName: "EVENTORY",
+    siteName: "EVENT LAND",
     type: "website",
     images: [
       {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "EVENT + STORY — 이벤토리 이벤트 장비 렌탈",
+        alt: "EVENT + STORY — 이벤트랜드 이벤트 장비 렌탈",
       },
     ],
   },

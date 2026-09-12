@@ -48,7 +48,7 @@ function ModePreview({ mode, wordmark, subtitle }) {
           style={{ fontFamily: "var(--font-display), sans-serif" }}
           className="max-w-full truncate text-2xl font-bold tracking-tight text-ink sm:text-3xl"
         >
-          {wordmark || "EVENT+STORY"}
+          {wordmark || "EVENT LAND"}
         </span>
         {subtitle && (
           <span className="mt-1.5 text-[11px] font-bold tracking-wide text-ink sm:text-xs">
@@ -160,7 +160,7 @@ export default function HeroSettings({ settings }) {
         <p className="mb-2 text-xs font-medium text-ink/45">미리보기</p>
         <ModePreview
           mode={mode}
-          wordmark={settings?.hero_wordmark || "EVENT+STORY"}
+          wordmark={settings?.hero_wordmark || "EVENT LAND"}
           subtitle={settings?.hero_subtitle || "Every Event Has a Story"}
         />
       </div>

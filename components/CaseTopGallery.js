@@ -21,7 +21,7 @@ export default function CaseTopGallery({ images = [], title }) {
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-festive">
             <span className="font-heading text-2xl font-bold tracking-widest text-white/80">
-              EVENTORY
+              EVENT LAND
             </span>
           </div>
         )}

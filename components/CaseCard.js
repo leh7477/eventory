@@ -19,7 +19,7 @@ export default function CaseCard({ item }) {
         ) : (
           <div className="flex aspect-[3/4] items-center justify-center bg-festive">
             <span className="font-heading font-bold tracking-widest text-white/80">
-              EVENTORY
+              EVENT LAND
             </span>
           </div>
         )}

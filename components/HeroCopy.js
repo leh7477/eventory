@@ -19,7 +19,7 @@ export default function HeroCopy({ tone = "light" }) {
           dark ? "text-primary" : "text-white/70"
         }`}
       >
-        EVENTORY
+        EVENT LAND
       </p>
       <p
         className={`mt-1.5 font-heading text-base font-semibold tracking-wide sm:text-lg ${

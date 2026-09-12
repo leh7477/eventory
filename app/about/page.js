@@ -4,7 +4,7 @@ import QuoteButton from "@/components/QuoteButton";
 import { SITE } from "@/lib/constants";
 
 export const metadata = {
-  title: "회사소개 | 이벤토리",
+  title: "회사소개 | 이벤트랜드",
 };
 
 const POINTS = [
@@ -30,7 +30,7 @@ export default function AboutPage() {
         {/* 인트로 */}
         <header className="max-w-2xl">
           <p className="font-heading text-sm font-bold tracking-[0.25em] text-primary">
-            ABOUT EVENTORY
+            ABOUT EVENT LAND
           </p>
           <h1 className="mt-2 font-heading text-4xl font-extrabold leading-tight text-ink sm:text-5xl">
             EVENT <span className="text-primary">+</span> STORY
@@ -43,7 +43,7 @@ export default function AboutPage() {
             만들어드립니다.
           </p>
           <p className="mt-3 leading-relaxed text-ink/70">
-            성공적인 이벤트를 위한 경험과 솔루션, 그것이 EVENTORY가 추구하는
+            성공적인 이벤트를 위한 경험과 솔루션, 그것이 EVENT LAND가 추구하는
             가치입니다.
           </p>
         </header>

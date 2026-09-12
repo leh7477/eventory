@@ -61,7 +61,7 @@ export default function CategoryShowcase({ items = [] }) {
 
               <div>
                 <p className="font-heading text-[11px] font-bold tracking-[0.35em] text-white/60 sm:text-xs">
-                  EVENTORY
+                  EVENT LAND
                 </p>
                 <p className="mt-2 text-3xl font-bold leading-tight text-white sm:mt-3 sm:text-4xl xl:text-5xl">
                   {c.name}

@@ -139,7 +139,7 @@ export default async function DashboardPage() {
   return (
     <div>
       <h1 className="text-xl font-bold text-ink sm:text-2xl">대시보드</h1>
-      <p className="mt-1 text-sm text-ink/50">Eventory 관리자 페이지입니다.</p>
+      <p className="mt-1 text-sm text-ink/50">Event Land 관리자 페이지입니다.</p>
 
       {/* KPI 카드 */}
       <div className="mt-5 grid grid-cols-3 gap-3">

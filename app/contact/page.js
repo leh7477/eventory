@@ -3,7 +3,7 @@ import SiteFooter from "@/components/SiteFooter";
 import QuoteForm from "@/components/QuoteForm";
 
 export const metadata = {
-  title: "견적 문의 | 이벤토리",
+  title: "견적 문의 | 이벤트랜드",
 };
 
 export default function ContactPage() {

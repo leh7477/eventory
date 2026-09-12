@@ -6,7 +6,7 @@ export default function SiteFooter() {
       <div className="mx-auto max-w-[1440px] px-5 py-5">
         <div className="flex flex-col items-center gap-1.5 text-center sm:flex-row sm:items-baseline sm:justify-between sm:text-left">
           <span className="font-logo text-lg font-extrabold tracking-tight text-ink">
-            EVENTORY
+            EVENT LAND
           </span>
           <p className="text-xs text-ink/55">
             상호 {SITE.nameKo} · 사업자등록번호 {SITE.bizNumber} · 전화{" "}
