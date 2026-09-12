@@ -1,14 +1,36 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import VendorsManager from "@/components/admin/VendorsManager";
+import { kstDate } from "@/lib/date";
 
 export const revalidate = 0;
 
 export default async function AdminVendorsPage() {
   const admin = createAdminClient();
-  const { data: vendors, error } = await admin
-    .from("vendors")
-    .select("*")
-    .order("name", { ascending: true });
+  const [{ data: vendors, error }, { data: scheds }, { data: items }] =
+    await Promise.all([
+      admin.from("vendors").select("*").order("name", { ascending: true }),
+      admin.from("schedules").select("id, vendor, stage, stage_dates, start_date"),
+      admin.from("schedule_items").select("schedule_id, quantity"),
+    ]);
+
+  // 일정별 기기 수량 합계
+  const devCount = {};
+  for (const it of items ?? [])
+    devCount[it.schedule_id] = (devCount[it.schedule_id] || 0) + (Number(it.quantity) || 0);
+
+  // 거래처별 월별 발주 개수 (출력물 발주 단계≥1, 기기 수량 기준)
+  // 발주 월 = 출력물 발주 체크시각(stage_dates["1"]) 기준, 없으면 설치일 기준
+  const statsByVendor = {};
+  for (const s of scheds ?? []) {
+    if (!s.vendor || (s.stage || 0) < 1) continue;
+    const iso =
+      s.stage_dates && typeof s.stage_dates === "object" ? s.stage_dates["1"] : null;
+    const month = iso ? kstDate(new Date(iso)).slice(0, 7) : (s.start_date || "").slice(0, 7);
+    if (!month) continue;
+    const cnt = devCount[s.id] || 0;
+    statsByVendor[s.vendor] = statsByVendor[s.vendor] || {};
+    statsByVendor[s.vendor][month] = (statsByVendor[s.vendor][month] || 0) + cnt;
+  }
 
   const tableMissing =
     !!error &&
@@ -37,7 +59,7 @@ alter table vendors enable row level security;`}</pre>
         </div>
       ) : (
         <div className="mt-6">
-          <VendorsManager vendors={vendors ?? []} />
+          <VendorsManager vendors={vendors ?? []} statsByVendor={statsByVendor} />
         </div>
       )}
     </div>

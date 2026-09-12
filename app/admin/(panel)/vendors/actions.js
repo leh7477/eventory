@@ -16,25 +16,37 @@ function friendly(error) {
   return { error: error.message };
 }
 
-export async function createVendor({ name, memo } = {}) {
+const clean = (v) => ((v ?? "").trim() ? v.trim() : null);
+
+export async function createVendor({ name, contact, phone, memo } = {}) {
   await requireAdmin();
   const nm = (name ?? "").trim();
   if (!nm) return { error: "거래처 이름을 입력하세요." };
   const admin = createAdminClient();
-  const { error } = await admin.from("vendors").insert({ name: nm, memo: (memo ?? "").trim() || null });
+  const { error } = await admin.from("vendors").insert({
+    name: nm,
+    contact: clean(contact),
+    phone: clean(phone),
+    memo: clean(memo),
+  });
   if (error) return friendly(error);
   rv();
   return { ok: true };
 }
 
-export async function updateVendor(id, { name, memo } = {}) {
+export async function updateVendor(id, { name, contact, phone, memo } = {}) {
   await requireAdmin();
   const nm = (name ?? "").trim();
   if (!nm) return { error: "거래처 이름을 입력하세요." };
   const admin = createAdminClient();
   const { error } = await admin
     .from("vendors")
-    .update({ name: nm, memo: (memo ?? "").trim() || null })
+    .update({
+      name: nm,
+      contact: clean(contact),
+      phone: clean(phone),
+      memo: clean(memo),
+    })
     .eq("id", id);
   if (error) return friendly(error);
   rv();

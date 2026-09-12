@@ -284,3 +284,7 @@ alter table vendors enable row level security;  -- service_role만
 
 -- 진행 단계별 체크 시각 { "1": ISO, "2": ISO, ... }
 alter table schedules add column if not exists stage_dates jsonb default '{}'::jsonb;
+
+-- 거래처 담당자/연락처
+alter table vendors add column if not exists contact text;  -- 담당자 성함
+alter table vendors add column if not exists phone text;     -- 연락처
