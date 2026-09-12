@@ -207,7 +207,7 @@ export default function SiteHeaderClient({ categories = [] }) {
         <Link
           href="/contact"
           onClick={() => setOpen(false)}
-          className="mx-5 mb-5 mt-3 rounded-full bg-ink px-4 py-3 text-center text-sm font-bold text-white"
+          className="mx-5 mb-5 mt-3 rounded-full bg-[#3457dc] px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-[#2b48c0]"
         >
           견적문의
         </Link>
