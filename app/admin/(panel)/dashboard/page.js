@@ -80,12 +80,11 @@ function ScheduleGroup({ title, occurrences, emptyText, showDate = false }) {
 export default async function DashboardPage() {
   const admin = createAdminClient();
 
-  // 날짜 계산 (오늘 / 내일 / 금주 = 일~토)
+  // 날짜 계산 — 서버가 UTC라도 한국시간(KST) 기준으로 오늘/내일 산출
+  const kst = (d) => d.toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }); // 'YYYY-MM-DD'
   const now = new Date();
-  const todayS = ds(now);
-  const tm = new Date(now);
-  tm.setDate(now.getDate() + 1);
-  const tomorrowS = ds(tm);
+  const todayS = kst(now);
+  const tomorrowS = kst(new Date(now.getTime() + 24 * 60 * 60 * 1000));
 
   const [inqRes, schRes] = await Promise.all([
     admin
@@ -116,7 +115,7 @@ export default async function DashboardPage() {
 
   // 문의 KPI
   const inquiries = inqRes.data ?? [];
-  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const ym = todayS.slice(0, 7); // KST 기준 이번 달
   const unread = inquiries.filter((q) => !q.is_read).length;
   const monthCount = inquiries.filter(
     (q) => (q.created_at || "").slice(0, 7) === ym
