@@ -10,7 +10,7 @@ export default async function AdminInquiriesPage() {
       admin.from("inquiries").select("*").order("created_at", { ascending: false }),
       admin.from("equipment").select("category, active"),
       admin.from("schedule_items").select("schedule_id, category, quantity"),
-      admin.from("schedules").select("id, start_date, end_date"),
+      admin.from("schedules").select("id, inquiry_id, start_date, end_date"),
     ]);
 
   const list = data ?? [];
@@ -26,6 +26,10 @@ export default async function AdminInquiriesPage() {
   const schedById = Object.fromEntries(
     (scheds ?? []).map((s) => [s.id, { start_date: s.start_date, end_date: s.end_date }])
   );
+  // 일정이 등록된 문의 id 목록
+  const scheduledInquiryIds = [
+    ...new Set((scheds ?? []).map((s) => s.inquiry_id).filter(Boolean)),
+  ];
 
   return (
     <div className="max-w-3xl">
@@ -50,6 +54,7 @@ export default async function AdminInquiriesPage() {
           equipmentCategories={categories}
           scheduleItems={items ?? []}
           schedById={schedById}
+          scheduledInquiryIds={scheduledInquiryIds}
         />
       </div>
     </div>

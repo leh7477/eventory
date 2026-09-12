@@ -133,6 +133,7 @@ export default function InquiriesManager({
   equipmentCategories = [],
   scheduleItems = [],
   schedById = {},
+  scheduledInquiryIds = [],
 }) {
   const router = useRouter();
   const [openId, setOpenId] = useState(null);
@@ -802,22 +803,41 @@ export default function InquiriesManager({
                         )}
                       </StepBox>
                       {/* ④ 일정 등록 */}
-                      <StepBox n="4" title="일정 등록" active={st === "confirmed"}>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            disabled={pending || !(st === "confirmed" || eff === "done")}
-                            onClick={() => openSchedule(q)}
-                            className="rounded-md bg-ink px-4 py-2 text-xs font-bold text-white hover:bg-black disabled:opacity-40"
-                          >
-                            일정 등록
-                          </button>
-                          {!(st === "confirmed" || eff === "done") && (
-                            <span className="text-[11px] text-ink/40">
-                              확정 후 등록할 수 있어요
+                      <StepBox
+                        n="4"
+                        title="일정 등록"
+                        active={st === "confirmed" && !scheduledInquiryIds.includes(q.id)}
+                        done={scheduledInquiryIds.includes(q.id)}
+                      >
+                        {scheduledInquiryIds.includes(q.id) ? (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-medium text-green-600">
+                              일정에 등록됨
                             </span>
-                          )}
-                        </div>
+                            <a
+                              href="/admin/schedule"
+                              className="rounded-md border border-ink/15 px-3 py-1.5 text-xs text-ink/70 hover:bg-ink/5"
+                            >
+                              일정 관리에서 보기 →
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={pending || !(st === "confirmed" || eff === "done")}
+                              onClick={() => openSchedule(q)}
+                              className="rounded-md bg-ink px-4 py-2 text-xs font-bold text-white hover:bg-black disabled:opacity-40"
+                            >
+                              일정 등록
+                            </button>
+                            {!(st === "confirmed" || eff === "done") && (
+                              <span className="text-[11px] text-ink/40">
+                                확정 후 등록할 수 있어요
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </StepBox>
                     </div>
                   )}
