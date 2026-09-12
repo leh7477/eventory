@@ -42,6 +42,53 @@ export async function createSchedule({
   return { ok: true };
 }
 
+// 행사 외(업무) 일정 추가 — 날짜 + 시간 + 업무 내용만
+export async function createTask({ date, start_time, end_time, title, memo }) {
+  await requireAdmin();
+  if (!title?.trim()) return { error: "업무 내용을 입력하세요." };
+  if (!date) return { error: "날짜를 선택하세요." };
+  const admin = createAdminClient();
+  const { error } = await admin.from("schedules").insert({
+    kind: "task",
+    title: title.trim(),
+    start_date: date,
+    end_date: date,
+    start_time: start_time || null,
+    end_time: end_time || null,
+    memo: memo?.trim() || null,
+  });
+  if (error) {
+    if (/kind/.test(error.message)) {
+      return { error: "일정 종류(kind) 컬럼이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
+    }
+    return { error: error.message };
+  }
+  rv();
+  return { ok: true };
+}
+
+// 행사 외 일정 수정 (날짜/시간/내용)
+export async function updateTask(id, { date, start_time, end_time, title, memo }) {
+  await requireAdmin();
+  if (!title?.trim()) return { error: "업무 내용을 입력하세요." };
+  if (!date) return { error: "날짜를 선택하세요." };
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("schedules")
+    .update({
+      title: title.trim(),
+      start_date: date,
+      end_date: date,
+      start_time: start_time || null,
+      end_time: end_time || null,
+      memo: memo?.trim() || null,
+    })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  rv();
+  return { ok: true };
+}
+
 // 행사 기간 + 설치/회수 일시 수정 — 전날 설치 등 대응
 export async function updateScheduleDatetime(
   id,

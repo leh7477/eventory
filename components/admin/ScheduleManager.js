@@ -4,6 +4,8 @@ import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   createSchedule,
+  createTask,
+  updateTask,
   deleteSchedule,
   updateScheduleDatetime,
 } from "@/app/admin/(panel)/schedule/actions";
@@ -47,6 +49,13 @@ export default function ScheduleManager({
   );
   const itemsBySchedule = (id) => scheduleItems.filter((it) => it.schedule_id === id);
   const [equipEditId, setEquipEditId] = useState(null);
+
+  // 행사 외(업무) 일정 — 추가/편집
+  const emptyTask = { date: "", start_time: "", end_time: "", title: "", memo: "" };
+  const [showTaskAdd, setShowTaskAdd] = useState(false);
+  const [newTask, setNewTask] = useState(emptyTask);
+  const [taskEditId, setTaskEditId] = useState(null);
+  const [taskForm, setTaskForm] = useState(emptyTask);
   const [view, setView] = useState({ y: now.getFullYear(), m: now.getMonth() });
   const [form, setForm] = useState({
     title: "",
@@ -138,12 +147,15 @@ export default function ScheduleManager({
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
-  // 그날의 설치/회수 액션 + 장비 배치(설치~회수) 기간 여부
+  const isTask = (ev) => ev.kind === "task";
+
+  // 그날의 설치/회수 액션 + 장비 배치(설치~회수) 기간 여부 (행사 외 업무는 제외)
   const dayInfo = (ds) => ({
-    installs: schedules.filter((ev) => ev.start_date === ds),
-    pickups: schedules.filter((ev) => (ev.end_date || ev.start_date) === ds),
+    installs: schedules.filter((ev) => !isTask(ev) && ev.start_date === ds),
+    pickups: schedules.filter((ev) => !isTask(ev) && (ev.end_date || ev.start_date) === ds),
+    tasks: schedules.filter((ev) => isTask(ev) && ev.start_date === ds),
     deployed: schedules.some(
-      (ev) => ev.start_date <= ds && ds <= (ev.end_date || ev.start_date)
+      (ev) => !isTask(ev) && ev.start_date <= ds && ds <= (ev.end_date || ev.start_date)
     ),
   });
 
@@ -154,6 +166,11 @@ export default function ScheduleManager({
   const occFor = (ds) => {
     const list = [];
     schedules.forEach((ev) => {
+      if (isTask(ev)) {
+        if (ev.start_date === ds)
+          list.push({ type: "업무", ev, time: hm(ev.start_time) });
+        return;
+      }
       if (ev.start_date === ds)
         list.push({ type: "설치", ev, time: hm(ev.start_time) });
       if ((ev.end_date || ev.start_date) === ds)
@@ -199,7 +216,9 @@ export default function ScheduleManager({
                   className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
                     o.type === "설치"
                       ? "bg-blue-100 text-blue-700"
-                      : "bg-amber-100 text-amber-700"
+                      : o.type === "회수"
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-slate-200 text-slate-700"
                   }`}
                 >
                   {o.type}
@@ -207,7 +226,11 @@ export default function ScheduleManager({
                 {o.time && (
                   <span
                     className={`shrink-0 text-xs font-bold ${
-                      o.type === "설치" ? "text-blue-700" : "text-amber-700"
+                      o.type === "설치"
+                        ? "text-blue-700"
+                        : o.type === "회수"
+                        ? "text-amber-700"
+                        : "text-slate-600"
                     }`}
                   >
                     {o.time}
@@ -281,7 +304,25 @@ export default function ScheduleManager({
             const isToday = ds === today;
             const past = ds < today;
             const col = i % 7;
-            const { installs, pickups, deployed } = dayInfo(ds);
+            const { installs, pickups, tasks, deployed } = dayInfo(ds);
+
+            const taskChip = (ev) => {
+              const t = hm(ev.start_time);
+              return (
+                <div
+                  key={`task-${ev.id}`}
+                  onClick={() => focusEvent(ev)}
+                  title={`업무 · ${ev.title}${t ? ` ${t}` : ""}`}
+                  className={`flex cursor-pointer items-center gap-1 truncate rounded px-1 py-0.5 text-[10px] leading-tight ${
+                    past ? "bg-ink/[0.05] text-ink/40" : "bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  <span className="shrink-0 font-bold">업무</span>
+                  {t && <span className="shrink-0 font-semibold">{t}</span>}
+                  <span className="truncate">{ev.title}</span>
+                </div>
+              );
+            };
 
             const chip = (kind, ev) => {
               const t = kind === "install" ? hm(ev.start_time) : hm(ev.end_time);
@@ -329,6 +370,7 @@ export default function ScheduleManager({
                 <div className="mt-1 space-y-0.5">
                   {installs.map((ev) => chip("install", ev))}
                   {pickups.map((ev) => chip("pickup", ev))}
+                  {tasks.map((ev) => taskChip(ev))}
                 </div>
               </div>
             );
@@ -344,6 +386,10 @@ export default function ScheduleManager({
           <span className="flex items-center gap-1.5">
             <span className="rounded bg-amber-100 px-1 py-0.5 font-bold text-amber-800">◀회수</span>{" "}
             회수 나가는 날
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="rounded bg-slate-200 px-1 py-0.5 font-bold text-slate-700">업무</span>{" "}
+            행사 외 일정
           </span>
           <span className="flex items-center gap-1.5">
             <span className="h-3 w-4 rounded-sm bg-ink/[0.04]" /> 장비 나가있는 기간
@@ -365,6 +411,126 @@ export default function ScheduleManager({
             {monthEvents.map((ev) => {
               const past = (ev.end_date || ev.start_date) < today;
               const usage = usageOf(ev);
+
+              // 행사 외(업무) 일정 — 간단 레이아웃
+              if (isTask(ev)) {
+                const editing = taskEditId === ev.id;
+                return (
+                  <li
+                    key={ev.id}
+                    id={`sch-${ev.id}`}
+                    className={`transition-colors ${highlightId === ev.id ? "bg-primary/10" : ""}`}
+                  >
+                    {editing ? (
+                      <div className="space-y-2.5 bg-ink/[0.015] px-4 py-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="w-10 shrink-0 text-xs font-bold text-slate-600">날짜</span>
+                          <div className="w-36">
+                            <DatePicker
+                              value={taskForm.date}
+                              onChange={(v) => setTaskForm((f) => ({ ...f, date: v }))}
+                            />
+                          </div>
+                          <TimeSelect
+                            value={taskForm.start_time}
+                            onChange={(v) => setTaskForm((f) => ({ ...f, start_time: v }))}
+                          />
+                          <span className="text-ink/40">~</span>
+                          <TimeSelect
+                            value={taskForm.end_time}
+                            onChange={(v) => setTaskForm((f) => ({ ...f, end_time: v }))}
+                          />
+                        </div>
+                        <input
+                          value={taskForm.title}
+                          onChange={(e) => setTaskForm((f) => ({ ...f, title: e.target.value }))}
+                          placeholder="업무 내용"
+                          className={inputCls}
+                        />
+                        <input
+                          value={taskForm.memo}
+                          onChange={(e) => setTaskForm((f) => ({ ...f, memo: e.target.value }))}
+                          placeholder="메모 (선택)"
+                          className={inputCls}
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            disabled={pending}
+                            onClick={() =>
+                              run(async () => {
+                                const res = await updateTask(ev.id, taskForm);
+                                if (res?.error) alert(res.error);
+                                else setTaskEditId(null);
+                                return res;
+                              })
+                            }
+                            className="rounded-md bg-ink px-4 py-1.5 text-xs font-bold text-white hover:bg-black disabled:opacity-60"
+                          >
+                            저장
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTaskEditId(null)}
+                            className="rounded-md border border-ink/15 px-3 py-1.5 text-xs text-ink/60 hover:bg-ink/5"
+                          >
+                            취소
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3">
+                        <span className={`w-full shrink-0 text-xs sm:w-52 ${past ? "text-ink/35" : "text-ink/70"}`}>
+                          <span className="mr-1.5 rounded bg-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-700 align-middle">
+                            업무
+                          </span>
+                          {ev.start_date}
+                          {ev.start_time ? ` ${hm(ev.start_time)}` : ""}
+                          {ev.end_time ? ` ~ ${hm(ev.end_time)}` : ""}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className={`truncate text-sm font-semibold ${past ? "text-ink/40" : "text-ink"}`}>
+                            {ev.title}
+                          </p>
+                          {ev.memo && (
+                            <p className={`truncate text-xs ${past ? "text-ink/30" : "text-ink/50"}`}>
+                              {ev.memo}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTaskEditId(ev.id);
+                            setTaskForm({
+                              date: ev.start_date || "",
+                              start_time: hm(ev.start_time),
+                              end_time: hm(ev.end_time),
+                              title: ev.title || "",
+                              memo: ev.memo || "",
+                            });
+                          }}
+                          className="shrink-0 rounded-md border border-ink/15 px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-ink/5"
+                        >
+                          수정
+                        </button>
+                        <button
+                          type="button"
+                          disabled={pending}
+                          onClick={() => {
+                            if (confirm(`'${ev.title}' 업무를 삭제할까요?`))
+                              run(() => deleteSchedule(ev.id));
+                          }}
+                          className="shrink-0 rounded-md border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/5"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    )}
+                  </li>
+                );
+              }
+
               return (
                 <li
                   key={ev.id}
@@ -553,20 +719,115 @@ export default function ScheduleManager({
         )}
       </div>
 
-      {/* 수동 일정 추가 (기본 접힘) */}
-      {!showAdd && (
-        <button
-          type="button"
-          onClick={() => setShowAdd(true)}
-          className="w-full rounded-xl border border-dashed border-ink/20 py-3 text-sm font-medium text-ink/60 transition hover:border-ink/40 hover:bg-ink/[0.02]"
-        >
-          + 일정 직접 추가
-        </button>
+      {/* 수동 일정 추가 (기본 접힘) — 행사 일정 / 행사 외 업무 */}
+      {!showAdd && !showTaskAdd && (
+        <div className="grid gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setShowAdd(true)}
+            className="rounded-xl border border-dashed border-ink/20 py-3 text-sm font-medium text-ink/60 transition hover:border-ink/40 hover:bg-ink/[0.02]"
+          >
+            + 행사 일정 추가
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setNewTask(emptyTask);
+              setShowTaskAdd(true);
+            }}
+            className="rounded-xl border border-dashed border-slate-300 py-3 text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:bg-slate-50"
+          >
+            + 행사 외 일정 추가
+          </button>
+        </div>
       )}
+
+      {/* 행사 외(업무) 일정 추가 폼 */}
+      {showTaskAdd && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            run(async () => {
+              const res = await createTask(newTask);
+              if (!res?.error) {
+                setNewTask(emptyTask);
+                setShowTaskAdd(false);
+              }
+              return res;
+            });
+          }}
+          className="rounded-xl border border-slate-200 bg-white p-5"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-bold text-ink">행사 외 일정 추가</p>
+            <button
+              type="button"
+              onClick={() => setShowTaskAdd(false)}
+              className="rounded-md border border-ink/15 px-2.5 py-1 text-xs text-ink/50 hover:bg-ink/5"
+            >
+              접기
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-ink/45">
+            날짜·시간과 업무 내용만 적으면 됩니다. (예: 창고 정리, 거래처 미팅)
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink/60">날짜</label>
+              <DatePicker
+                value={newTask.date}
+                onChange={(v) => setNewTask((f) => ({ ...f, date: v }))}
+              />
+            </div>
+            <div className="flex items-end gap-2">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-ink/60">시작 시간 (선택)</label>
+                <TimeSelect
+                  value={newTask.start_time}
+                  onChange={(v) => setNewTask((f) => ({ ...f, start_time: v }))}
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-ink/60">종료 시간 (선택)</label>
+                <TimeSelect
+                  value={newTask.end_time}
+                  onChange={(v) => setNewTask((f) => ({ ...f, end_time: v }))}
+                />
+              </div>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-xs font-medium text-ink/60">업무 내용</label>
+              <input
+                value={newTask.title}
+                onChange={(e) => setNewTask((f) => ({ ...f, title: e.target.value }))}
+                placeholder="예: 창고 정리 / 거래처 미팅"
+                className={inputCls}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-xs font-medium text-ink/60">메모 (선택)</label>
+              <input
+                value={newTask.memo}
+                onChange={(e) => setNewTask((f) => ({ ...f, memo: e.target.value }))}
+                className={inputCls}
+              />
+            </div>
+          </div>
+          {error && <p className="mt-3 text-sm font-medium text-primary">{error}</p>}
+          <button
+            type="submit"
+            disabled={pending}
+            className="mt-4 rounded-md bg-ink px-5 py-2.5 text-sm font-bold text-white transition hover:bg-black disabled:opacity-60"
+          >
+            {pending ? "처리 중..." : "업무 일정 추가"}
+          </button>
+        </form>
+      )}
+
       {showAdd && (
       <form onSubmit={onAdd} className="rounded-xl border border-ink/10 bg-white p-5">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-bold text-ink">일정 직접 추가</p>
+          <p className="text-sm font-bold text-ink">행사 일정 추가</p>
           <button
             type="button"
             onClick={() => setShowAdd(false)}

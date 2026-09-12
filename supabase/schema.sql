@@ -260,3 +260,6 @@ create table if not exists schedule_items (
 alter table schedule_items enable row level security;  -- service_role만
 create index if not exists idx_schedule_items_schedule on schedule_items (schedule_id);
 create index if not exists idx_schedule_items_category on schedule_items (category);
+
+-- 일정 종류: 'event'(행사) | 'task'(행사 외 업무). 미지정=행사
+alter table schedules add column if not exists kind text default 'event';
