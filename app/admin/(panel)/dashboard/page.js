@@ -25,33 +25,34 @@ function toOccurrences(schedules) {
 }
 
 function OccurrenceItem({ o, showDate }) {
+  const badge =
+    o.type === "설치"
+      ? "bg-blue-100 text-blue-700"
+      : o.type === "회수"
+      ? "bg-amber-100 text-amber-700"
+      : "bg-slate-200 text-slate-700";
+  const timeColor =
+    o.type === "설치"
+      ? "text-blue-700"
+      : o.type === "회수"
+      ? "text-amber-700"
+      : "text-slate-600";
+  const sub = o.ev.location || o.ev.memo || "";
   return (
     <li className="px-5 py-3">
       <p className="text-sm font-semibold text-ink">
-        <span
-          className={`mr-1.5 rounded px-1.5 py-0.5 text-[10px] font-bold align-middle ${
-            o.type === "설치"
-              ? "bg-blue-100 text-blue-700"
-              : "bg-amber-100 text-amber-700"
-          }`}
-        >
+        <span className={`mr-1.5 rounded px-1.5 py-0.5 text-[10px] font-bold align-middle ${badge}`}>
           {o.type}
         </span>
-        {o.time && (
-          <span
-            className={`mr-1.5 font-bold ${
-              o.type === "설치" ? "text-blue-700" : "text-amber-700"
-            }`}
-          >
-            {o.time}
-          </span>
-        )}
+        {o.time && <span className={`mr-1.5 font-bold ${timeColor}`}>{o.time}</span>}
         {o.ev.title}
       </p>
-      <p className="mt-0.5 text-xs text-ink/50">
-        {showDate ? `${o.date} · ` : ""}
-        {o.ev.location || ""}
-      </p>
+      {(showDate || sub) && (
+        <p className="mt-0.5 text-xs text-ink/50">
+          {showDate ? `${o.date}${sub ? " · " : ""}` : ""}
+          {sub}
+        </p>
+      )}
     </li>
   );
 }
@@ -102,14 +103,20 @@ export default async function DashboardPage() {
   ]);
 
   const schedules = schRes.data ?? [];
-  // 설치(시작일)/회수(종료일) 발생 기준으로 분리
-  const occurrences = toOccurrences(schedules);
-  const todayOcc = occurrences.filter((o) => o.date === todayS);
-  const tomorrowOcc = occurrences.filter((o) => o.date === tomorrowS);
-  // 금주: 이번 주(토요일까지) 중 오늘·내일 이후 남은 설치/회수
-  const weekOcc = occurrences.filter(
-    (o) => o.date > tomorrowS && o.date <= weekEndS
-  );
+  const isTask = (ev) => ev.kind === "task";
+
+  // 행사 일정: 설치(시작일)/회수(종료일) 발생 기준
+  const eventOcc = toOccurrences(schedules.filter((ev) => !isTask(ev)));
+  const todayEventOcc = eventOcc.filter((o) => o.date === todayS);
+  const tomorrowEventOcc = eventOcc.filter((o) => o.date === tomorrowS);
+
+  // 행사 외(업무) 일정: 해당 날짜 · 시간순
+  const taskOcc = schedules
+    .filter((ev) => isTask(ev))
+    .map((ev) => ({ type: "업무", date: ev.start_date, time: hm(ev.start_time), ev }))
+    .sort((a, b) => (a.time ?? "99").localeCompare(b.time ?? "99"));
+  const todayTaskOcc = taskOcc.filter((o) => o.date === todayS);
+  const tomorrowTaskOcc = taskOcc.filter((o) => o.date === tomorrowS);
 
   // 문의 KPI
   const inquiries = inqRes.data ?? [];
@@ -187,22 +194,26 @@ export default async function DashboardPage() {
           전체 일정 보기 →
         </Link>
       </div>
-      <div className="mt-3 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-3 grid gap-4 md:grid-cols-2">
         <ScheduleGroup
-          title="오늘 일정"
-          occurrences={todayOcc}
+          title="오늘 행사 일정"
+          occurrences={todayEventOcc}
           emptyText="오늘 설치/회수 일정이 없습니다."
         />
         <ScheduleGroup
-          title="내일 일정"
-          occurrences={tomorrowOcc}
+          title="오늘 행사 외 일정"
+          occurrences={todayTaskOcc}
+          emptyText="오늘 업무 일정이 없습니다."
+        />
+        <ScheduleGroup
+          title="내일 행사 일정"
+          occurrences={tomorrowEventOcc}
           emptyText="내일 설치/회수 일정이 없습니다."
         />
         <ScheduleGroup
-          title="금주 일정"
-          occurrences={weekOcc}
-          emptyText="이번 주 남은 설치/회수 일정이 없습니다."
-          showDate
+          title="내일 행사 외 일정"
+          occurrences={tomorrowTaskOcc}
+          emptyText="내일 업무 일정이 없습니다."
         />
       </div>
     </div>
