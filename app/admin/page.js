@@ -33,7 +33,7 @@ export default function AdminLogin() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-ink px-5">
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
-        <p className="text-center font-logo text-2xl font-extrabold tracking-tight text-ink">
+        <p className="text-center font-tesla text-xl font-semibold tracking-[0.3em] text-ink">
           EVENT LAND
         </p>
         <p className="mt-1 text-center text-sm text-ink/50">관리자 로그인</p>

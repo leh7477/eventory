@@ -137,8 +137,8 @@ export default function AdminSidebar({ email, isOwner = true, permissions = [] }
     <>
       {/* ── 모바일 상단바 ── */}
       <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-ink/10 bg-white px-4 md:hidden">
-        <Link href="/admin/dashboard" className="font-logo text-lg font-extrabold tracking-tight text-ink">
-          EVENT LAND <span className="text-xs font-bold text-primary">ADMIN</span>
+        <Link href="/admin/dashboard" className="font-tesla text-base font-semibold tracking-[0.28em] text-ink">
+          EVENT LAND <span className="ml-1 font-sans text-xs font-bold tracking-normal text-primary">ADMIN</span>
         </Link>
         <button
           type="button"
@@ -169,7 +169,7 @@ export default function AdminSidebar({ email, isOwner = true, permissions = [] }
       >
         <div className="flex items-center justify-between px-5 py-4">
           <div>
-            <p className="font-logo text-lg font-extrabold tracking-tight text-ink">EVENT LAND</p>
+            <p className="font-tesla text-base font-semibold tracking-[0.28em] text-ink">EVENT LAND</p>
             <p className="text-xs font-semibold tracking-widest text-primary">ADMIN</p>
           </div>
           <button
@@ -209,7 +209,7 @@ export default function AdminSidebar({ email, isOwner = true, permissions = [] }
       {/* ── 데스크탑 사이드바 ── */}
       <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-ink/10 bg-white md:flex">
         <div className="px-5 py-5">
-          <Link href="/admin/dashboard" className="font-logo text-xl font-extrabold tracking-tight text-ink">
+          <Link href="/admin/dashboard" className="font-tesla text-lg font-semibold tracking-[0.3em] text-ink">
             EVENT LAND
           </Link>
           <p className="mt-0.5 text-xs font-semibold tracking-widest text-primary">ADMIN</p>
