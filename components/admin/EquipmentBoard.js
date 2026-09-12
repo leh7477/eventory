@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { addDays, MAINT_BUFFER_DAYS } from "@/lib/inventory";
 
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
 const pad = (n) => String(n).padStart(2, "0");
@@ -72,7 +73,7 @@ export default function EquipmentBoard({ equipment = [], schedules = [], schedul
         for (let r = 0; r < rowCount && placed < b.qty; r++) {
           if (rowEndUntil[r] === null || rowEndUntil[r] < b.start) {
             rowBookings[r].push(b);
-            rowEndUntil[r] = b.end;
+            rowEndUntil[r] = addDays(b.end, MAINT_BUFFER_DAYS); // 정비일까지 점유
             placed++;
           }
         }
@@ -179,7 +180,7 @@ export default function EquipmentBoard({ equipment = [], schedules = [], schedul
       )}
 
       <p className="mt-2 text-xs text-ink/40">
-        색 막대 = 해당 기기가 그 기간(설치~회수) 어떤 행사에 배정됨. 빈 칸 = 가용.
+        색 막대 = 배정된 행사(설치~회수). 빗금 = 정비일(회수 다음날, 재고 불가). 빈 칸 = 가용.
       </p>
     </div>
   );
@@ -204,12 +205,27 @@ function FragmentRows({ cat, units, rows, days, bookingOn }) {
           {days.map((dy) => {
             const b = bookingOn(rows[r] || [], dy.key);
             const isStart = b && b.start === dy.key;
+            // 정비일 = 어떤 예약의 회수 다음날 (해당 칸에 다른 예약이 없을 때)
+            const maint =
+              !b && (rows[r] || []).some((x) => addDays(x.end, 1) === dy.key);
             return (
               <td
                 key={dy.key}
-                title={b ? `${b.title} (${b.start}~${b.end})` : ""}
+                title={
+                  b
+                    ? `${b.title} (${b.start}~${b.end})`
+                    : maint
+                    ? "정비 (회수 다음날 · 재고 불가)"
+                    : ""
+                }
                 className="relative border-b border-ink/5 p-0"
-                style={{ background: b ? colorFor(b.id) : undefined }}
+                style={{
+                  background: b
+                    ? colorFor(b.id)
+                    : maint
+                    ? "repeating-linear-gradient(45deg,#E5E7EB,#E5E7EB 3px,#F3F4F6 3px,#F3F4F6 6px)"
+                    : undefined,
+                }}
               >
                 {isStart && (
                   <span className="pointer-events-none absolute left-1 top-1/2 z-10 -translate-y-1/2 whitespace-nowrap text-[10px] font-bold text-ink/80">
