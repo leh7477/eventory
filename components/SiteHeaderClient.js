@@ -59,13 +59,6 @@ export default function SiteHeaderClient({ categories = [] }) {
 
           {/* 우: 액션 */}
           <div className="flex shrink-0 items-center gap-3">
-            <Link
-              href="/contact"
-              className="hidden whitespace-nowrap rounded-full bg-ink px-5 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-black active:scale-[0.98] sm:inline-block"
-            >
-              견적문의
-            </Link>
-
             {/* 햄버거 → 우측 드로어 열기 */}
             <button
               type="button"
