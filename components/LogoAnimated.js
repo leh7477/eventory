@@ -6,7 +6,7 @@ export default function LogoAnimated() {
     <Link
       href="/"
       aria-label="EVENT LAND 홈"
-      className="font-tesla whitespace-nowrap text-base tracking-[0.32em] text-ink sm:text-lg sm:tracking-[0.4em]"
+      className="font-tesla whitespace-nowrap text-lg font-semibold tracking-[0.32em] text-ink sm:text-xl sm:tracking-[0.4em]"
     >
       EVENT LAND
     </Link>

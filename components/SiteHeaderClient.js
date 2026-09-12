@@ -151,7 +151,7 @@ export default function SiteHeaderClient({ categories = [] }) {
         }`}
       >
         <div className="flex h-16 items-center justify-between border-b border-ink/5 px-5">
-          <span className="font-tesla text-sm tracking-[0.3em] text-ink">
+          <span className="font-tesla text-sm font-semibold tracking-[0.3em] text-ink">
             EVENT LAND
           </span>
           <button

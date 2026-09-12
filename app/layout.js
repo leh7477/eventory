@@ -1,4 +1,4 @@
-import { Poppins, Michroma } from "next/font/google";
+import { Poppins, Jura } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -25,9 +25,9 @@ const poppins = Poppins({
   display: "swap",
 });
 
-// 헤더 로고 전용 — 테슬라풍 와이드 지오메트릭 워드마크
-const tesla = Michroma({
-  weight: "400",
+// 헤더 로고 전용 — 테슬라풍 얇고 넓은 지오메트릭 워드마크(Jura)
+const tesla = Jura({
+  weight: ["500", "600", "700"],
   subsets: ["latin"],
   variable: "--font-tesla",
   display: "swap",
