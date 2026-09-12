@@ -50,10 +50,6 @@ export default function ScheduleInfo({ schedule }) {
           <input value={form.client_phone} onChange={set("client_phone")} className={inputCls} />
         </div>
         <div className="sm:col-span-2">
-          <label className="mb-1 block text-xs font-medium text-ink/55">발주 / 제작처</label>
-          <input value={form.vendor} onChange={set("vendor")} className={inputCls} />
-        </div>
-        <div className="sm:col-span-2">
           <label className="mb-1 block text-xs font-medium text-ink/55">비고 / 특이사항</label>
           <textarea
             value={form.note}

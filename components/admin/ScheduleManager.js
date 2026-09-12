@@ -593,15 +593,10 @@ export default function ScheduleManager({
                           {ev.location}
                         </p>
                       )}
-                      {(ev.client_manager || ev.client_phone || ev.vendor) && (
+                      {(ev.client_manager || ev.client_phone) && (
                         <p className={`truncate text-xs ${past ? "text-ink/30" : "text-ink/45"}`}>
-                          {[
-                            ev.client_manager &&
-                              `${ev.client_manager}${ev.client_phone ? ` (${ev.client_phone})` : ""}`,
-                            ev.vendor && `발주 ${ev.vendor}`,
-                          ]
-                            .filter(Boolean)
-                            .join(" · ")}
+                          {ev.client_manager}
+                          {ev.client_phone ? ` (${ev.client_phone})` : ""}
                         </p>
                       )}
                     </div>
