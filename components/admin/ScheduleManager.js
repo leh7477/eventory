@@ -544,7 +544,8 @@ export default function ScheduleManager({
                     highlightId === ev.id ? "bg-primary/10" : ""
                   }`}
                 >
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-3">
+                  <div className="px-4 py-3">
+                   <div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
                     <span
                       className={`w-full shrink-0 text-xs sm:w-52 ${past ? "text-ink/35" : "text-ink/70"}`}
                     >
@@ -589,8 +590,12 @@ export default function ScheduleManager({
                         )}
                       </p>
                       {ev.location && (
-                        <p className={`truncate text-xs ${past ? "text-ink/30" : "text-ink/50"}`}>
-                          {ev.location}
+                        <p className={`mt-0.5 flex items-start gap-1 break-words text-xs ${past ? "text-ink/40" : "text-ink/60"}`}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mt-[1px] shrink-0 text-ink/40">
+                            <path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z" />
+                            <circle cx="12" cy="10" r="2.5" />
+                          </svg>
+                          <span className="min-w-0">{ev.location}</span>
                         </p>
                       )}
                       {(ev.client_manager || ev.client_phone) && (
@@ -606,6 +611,10 @@ export default function ScheduleManager({
                         </p>
                       )}
                     </div>
+                   </div>
+
+                   {/* 액션 버튼 (아래 줄) */}
+                   <div className="mt-2.5 flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() =>
@@ -659,6 +668,7 @@ export default function ScheduleManager({
                     >
                       삭제
                     </button>
+                   </div>
                   </div>
 
                   {/* 설치/회수 일시 인라인 편집 */}

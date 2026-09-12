@@ -22,7 +22,7 @@ export default async function AdminSchedulePage() {
   const categories = Object.keys(totals).sort((a, b) => a.localeCompare(b));
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-4xl">
       <h1 className="text-2xl font-bold text-ink">일정 관리</h1>
       <p className="mt-1 text-sm text-ink/50">
         확정된 행사 일정을 관리합니다. 견적 문의에서 &lsquo;일정 등록&rsquo;을
