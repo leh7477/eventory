@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { todayKST, kstPlusDays } from "@/lib/date";
 
 export const revalidate = 0;
 
@@ -80,11 +81,9 @@ function ScheduleGroup({ title, occurrences, emptyText, showDate = false }) {
 export default async function DashboardPage() {
   const admin = createAdminClient();
 
-  // 날짜 계산 — 서버가 UTC라도 한국시간(KST) 기준으로 오늘/내일 산출
-  const kst = (d) => d.toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }); // 'YYYY-MM-DD'
-  const now = new Date();
-  const todayS = kst(now);
-  const tomorrowS = kst(new Date(now.getTime() + 24 * 60 * 60 * 1000));
+  // 날짜 계산 — 한국시간(KST) 기준 오늘/내일
+  const todayS = todayKST();
+  const tomorrowS = kstPlusDays(1);
 
   const [inqRes, schRes] = await Promise.all([
     admin

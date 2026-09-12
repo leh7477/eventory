@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import StatsYearList from "@/components/admin/StatsYearList";
+import { kstParts } from "@/lib/date";
 
 export const revalidate = 0;
 
@@ -35,7 +36,7 @@ export default async function AdminStatsPage({ searchParams }) {
     total += d.contract_amount;
   });
 
-  const thisYear = String(new Date().getFullYear());
+  const { year: thisYear, month: thisMonthNum } = kstParts();
   const selectedYear = String(searchParams?.year || thisYear);
 
   // 선택 연도 1~12월
@@ -48,17 +49,16 @@ export default async function AdminStatsPage({ searchParams }) {
 
   const count = deals.length;
   const thisYearRevenue = byYear[thisYear] || 0;
-  const now = new Date();
-  const thisMonthKey = `${thisYear}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const thisMonthKey = `${thisYear}-${String(thisMonthNum).padStart(2, "0")}`;
   const thisMonthRevenue = byMonth[thisMonthKey] || 0;
   const thisMonthCount = countByMonth[thisMonthKey] || 0;
-  const mLabel = now.getMonth() + 1;
+  const mLabel = thisMonthNum;
 
-  // 다음 달 예정 매출 (행사 기준)
-  const nextM = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  const nextMonthKey = `${nextM.getFullYear()}-${String(nextM.getMonth() + 1).padStart(2, "0")}`;
+  // 다음 달 예정 매출 (행사 기준) — KST 기준
+  const nextLabel = thisMonthNum === 12 ? 1 : thisMonthNum + 1;
+  const nextYear = thisMonthNum === 12 ? String(parseInt(thisYear, 10) + 1) : thisYear;
+  const nextMonthKey = `${nextYear}-${String(nextLabel).padStart(2, "0")}`;
   const nextMonthRevenue = byMonth[nextMonthKey] || 0;
-  const nextLabel = nextM.getMonth() + 1;
 
   const cards = [
     { label: `${thisYear}년 매출`, value: `₩ ${won(thisYearRevenue)}` },
