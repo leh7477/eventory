@@ -36,6 +36,14 @@ const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
 const pad = (n) => String(n).padStart(2, "0");
 const dstr = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
 
+// ISO → "MM/DD HH:mm" (브라우저=KST)
+const fmtStamp = (iso) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  return `${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 function todayStr() {
   const t = new Date();
   return dstr(t.getFullYear(), t.getMonth(), t.getDate());
@@ -414,6 +422,90 @@ export default function ScheduleManager({
         </div>
       </div>
 
+      {/* 행사 외 일정 추가 (목록 위) */}
+      {!showTaskAdd ? (
+        <button
+          type="button"
+          onClick={() => {
+            setNewTask(emptyTask);
+            setShowTaskAdd(true);
+          }}
+          className="w-full rounded-xl border border-dashed border-slate-300 py-3 text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:bg-slate-50"
+        >
+          + 행사 외 일정 추가
+        </button>
+      ) : (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            run(async () => {
+              const res = await createTask(newTask);
+              if (!res?.error) {
+                setNewTask(emptyTask);
+                setShowTaskAdd(false);
+              }
+              return res;
+            });
+          }}
+          className="rounded-xl border border-slate-200 bg-white p-5"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-bold text-ink">행사 외 일정 추가</p>
+            <button
+              type="button"
+              onClick={() => setShowTaskAdd(false)}
+              className="rounded-md border border-ink/15 px-2.5 py-1 text-xs text-ink/50 hover:bg-ink/5"
+            >
+              접기
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-ink/45">
+            날짜·시간과 업무 내용만 적으면 됩니다. (예: 창고 정리, 거래처 미팅)
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink/60">날짜</label>
+              <DatePicker
+                value={newTask.date}
+                onChange={(v) => setNewTask((f) => ({ ...f, date: v }))}
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink/60">시간 (선택)</label>
+              <TimeSelect
+                value={newTask.start_time}
+                onChange={(v) => setNewTask((f) => ({ ...f, start_time: v }))}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-xs font-medium text-ink/60">업무 내용</label>
+              <input
+                value={newTask.title}
+                onChange={(e) => setNewTask((f) => ({ ...f, title: e.target.value }))}
+                placeholder="예: 창고 정리 / 거래처 미팅"
+                className={inputCls}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-xs font-medium text-ink/60">메모 (선택)</label>
+              <input
+                value={newTask.memo}
+                onChange={(e) => setNewTask((f) => ({ ...f, memo: e.target.value }))}
+                className={inputCls}
+              />
+            </div>
+          </div>
+          {error && <p className="mt-3 text-sm font-medium text-primary">{error}</p>}
+          <button
+            type="submit"
+            disabled={pending}
+            className="mt-4 rounded-md bg-ink px-5 py-2.5 text-sm font-bold text-white transition hover:bg-black disabled:opacity-60"
+          >
+            {pending ? "처리 중..." : "업무 일정 추가"}
+          </button>
+        </form>
+      )}
+
       {/* 이번 달 일정 목록 */}
       <div className="rounded-xl border border-ink/10 bg-white">
         <p className="border-b border-ink/10 px-4 py-2.5 text-sm font-bold text-ink">
@@ -630,16 +722,24 @@ export default function ScheduleManager({
                          <div key={s} className="flex items-center">
                            <button
                              type="button"
-                             disabled={pending}
+                             disabled={pending || step > (ev.stage || 0) + 1}
                              onClick={() =>
                                run(() => setScheduleStage(ev.id, cur ? i : step))
                              }
-                             title={done ? `${s} 완료 (클릭해 되돌리기)` : `${s}(으)로 진행`}
+                             title={
+                               step > (ev.stage || 0) + 1
+                                 ? "이전 단계를 먼저 진행하세요"
+                                 : done
+                                 ? `${s} 완료 (클릭해 되돌리기)`
+                                 : `${s}(으)로 진행`
+                             }
                              className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold transition ${
                                done
                                  ? "bg-emerald-600 text-white"
                                  : "bg-ink/5 text-ink/45 hover:bg-ink/10"
-                             } ${cur ? "ring-2 ring-emerald-300" : ""}`}
+                             } ${cur ? "ring-2 ring-emerald-300" : ""} ${
+                               step > (ev.stage || 0) + 1 ? "cursor-not-allowed opacity-40" : ""
+                             }`}
                            >
                              {done ? "✓ " : ""}
                              {s}
@@ -660,6 +760,21 @@ export default function ScheduleManager({
                        </span>
                      )}
                    </div>
+
+                   {/* 단계별 체크 시각 */}
+                   {(ev.stage || 0) >= 1 && ev.stage_dates && (
+                     <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-ink/45">
+                       {STAGES.slice(0, ev.stage || 0).map((s, i) => {
+                         const ts = ev.stage_dates?.[String(i + 1)];
+                         return (
+                           <span key={s}>
+                             <b className="font-semibold text-ink/55">{s}</b>{" "}
+                             {ts ? fmtStamp(ts) : "-"}
+                           </span>
+                         );
+                       })}
+                     </div>
+                   )}
 
                    {/* 출력물 발주 단계 → 발주처(거래처) 선택 */}
                    {(ev.stage || 0) >= 1 && (
@@ -847,173 +962,6 @@ export default function ScheduleManager({
         )}
       </div>
 
-      {/* 수동 일정 추가 (기본 접힘) — 행사 일정 / 행사 외 업무 */}
-      {!showAdd && !showTaskAdd && (
-        <div className="grid gap-2 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setShowAdd(true)}
-            className="rounded-xl border border-dashed border-ink/20 py-3 text-sm font-medium text-ink/60 transition hover:border-ink/40 hover:bg-ink/[0.02]"
-          >
-            + 행사 일정 추가
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setNewTask(emptyTask);
-              setShowTaskAdd(true);
-            }}
-            className="rounded-xl border border-dashed border-slate-300 py-3 text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:bg-slate-50"
-          >
-            + 행사 외 일정 추가
-          </button>
-        </div>
-      )}
-
-      {/* 행사 외(업무) 일정 추가 폼 */}
-      {showTaskAdd && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            run(async () => {
-              const res = await createTask(newTask);
-              if (!res?.error) {
-                setNewTask(emptyTask);
-                setShowTaskAdd(false);
-              }
-              return res;
-            });
-          }}
-          className="rounded-xl border border-slate-200 bg-white p-5"
-        >
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-bold text-ink">행사 외 일정 추가</p>
-            <button
-              type="button"
-              onClick={() => setShowTaskAdd(false)}
-              className="rounded-md border border-ink/15 px-2.5 py-1 text-xs text-ink/50 hover:bg-ink/5"
-            >
-              접기
-            </button>
-          </div>
-          <p className="mt-1 text-xs text-ink/45">
-            날짜·시간과 업무 내용만 적으면 됩니다. (예: 창고 정리, 거래처 미팅)
-          </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink/60">날짜</label>
-              <DatePicker
-                value={newTask.date}
-                onChange={(v) => setNewTask((f) => ({ ...f, date: v }))}
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-ink/60">시간 (선택)</label>
-              <TimeSelect
-                value={newTask.start_time}
-                onChange={(v) => setNewTask((f) => ({ ...f, start_time: v }))}
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-ink/60">업무 내용</label>
-              <input
-                value={newTask.title}
-                onChange={(e) => setNewTask((f) => ({ ...f, title: e.target.value }))}
-                placeholder="예: 창고 정리 / 거래처 미팅"
-                className={inputCls}
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-ink/60">메모 (선택)</label>
-              <input
-                value={newTask.memo}
-                onChange={(e) => setNewTask((f) => ({ ...f, memo: e.target.value }))}
-                className={inputCls}
-              />
-            </div>
-          </div>
-          {error && <p className="mt-3 text-sm font-medium text-primary">{error}</p>}
-          <button
-            type="submit"
-            disabled={pending}
-            className="mt-4 rounded-md bg-ink px-5 py-2.5 text-sm font-bold text-white transition hover:bg-black disabled:opacity-60"
-          >
-            {pending ? "처리 중..." : "업무 일정 추가"}
-          </button>
-        </form>
-      )}
-
-      {showAdd && (
-      <form onSubmit={onAdd} className="rounded-xl border border-ink/10 bg-white p-5">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-bold text-ink">행사 일정 추가</p>
-          <button
-            type="button"
-            onClick={() => setShowAdd(false)}
-            className="rounded-md border border-ink/15 px-2.5 py-1 text-xs text-ink/50 hover:bg-ink/5"
-          >
-            접기
-          </button>
-        </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="sm:col-span-2">
-            <label className="mb-1.5 block text-xs font-medium text-ink/60">제목</label>
-            <input
-              value={form.title}
-              onChange={set("title")}
-              placeholder="예: ○○업체 · 가챠머신"
-              className={inputCls}
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink/60">행사 시작일 (선택)</label>
-            <DatePicker value={form.event_start} onChange={setD("event_start")} />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink/60">행사 종료일 (선택)</label>
-            <DatePicker value={form.event_end} min={form.event_start || undefined} onChange={setD("event_end")} />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink/60">설치 날짜</label>
-            <DatePicker value={form.start_date} onChange={setD("start_date")} />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink/60">회수 날짜 (비우면 당일)</label>
-            <DatePicker value={form.end_date} min={form.start_date || undefined} onChange={setD("end_date")} />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink/60">설치 시간 (선택)</label>
-            <TimeSelect
-              value={form.start_time}
-              onChange={(v) => setForm((f) => ({ ...f, start_time: v }))}
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-ink/60">회수 시간 (선택)</label>
-            <TimeSelect
-              value={form.end_time}
-              onChange={(v) => setForm((f) => ({ ...f, end_time: v }))}
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="mb-1.5 block text-xs font-medium text-ink/60">장소 (선택)</label>
-            <input value={form.location} onChange={set("location")} className={inputCls} />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="mb-1.5 block text-xs font-medium text-ink/60">메모 (선택)</label>
-            <input value={form.memo} onChange={set("memo")} className={inputCls} />
-          </div>
-        </div>
-        {error && <p className="mt-3 text-sm font-medium text-primary">{error}</p>}
-        <button
-          type="submit"
-          disabled={pending}
-          className="mt-4 rounded-md bg-ink px-5 py-2.5 text-sm font-bold text-white transition hover:bg-black disabled:opacity-60"
-        >
-          {pending ? "처리 중..." : "일정 추가"}
-        </button>
-      </form>
-      )}
     </div>
   );
 }

@@ -224,13 +224,32 @@ export async function setScheduleVendor(id, vendor) {
   return { ok: true };
 }
 
-// 행사 일정 진행 단계 설정 (0~4)
+// 행사 일정 진행 단계 설정 (0~4) — 단계별 체크 시각 기록
 export async function setScheduleStage(id, stage) {
   await requireAdmin();
   const n = parseInt(stage, 10);
   if (!Number.isFinite(n) || n < 0 || n > 4) return { error: "단계 값이 올바르지 않습니다." };
   const admin = createAdminClient();
-  const { error } = await admin.from("schedules").update({ stage: n }).eq("id", id);
+
+  // 기존 체크 시각 유지 + 새로 도달한 단계 시각 기록, n 초과 단계는 제거
+  const { data: cur } = await admin
+    .from("schedules")
+    .select("stage_dates")
+    .eq("id", id)
+    .maybeSingle();
+  const prev = cur && typeof cur.stage_dates === "object" && cur.stage_dates ? cur.stage_dates : {};
+  const nowIso = new Date().toISOString();
+  const dates = {};
+  for (let i = 1; i <= n; i++) dates[String(i)] = prev[String(i)] || nowIso;
+
+  let { error } = await admin
+    .from("schedules")
+    .update({ stage: n, stage_dates: dates })
+    .eq("id", id);
+  // stage_dates 컬럼이 아직 없으면 단계만 저장 (시각은 SQL 실행 후 기록)
+  if (error && /stage_dates/i.test(error.message)) {
+    ({ error } = await admin.from("schedules").update({ stage: n }).eq("id", id));
+  }
   if (error) {
     if (/stage|column/i.test(error.message)) {
       return { error: "진행 단계(stage) 컬럼이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };

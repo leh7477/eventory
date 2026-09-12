@@ -281,3 +281,6 @@ create table if not exists vendors (
   created_at timestamptz default now()
 );
 alter table vendors enable row level security;  -- service_role만
+
+-- 진행 단계별 체크 시각 { "1": ISO, "2": ISO, ... }
+alter table schedules add column if not exists stage_dates jsonb default '{}'::jsonb;
