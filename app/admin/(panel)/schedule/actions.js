@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { availableFor } from "@/lib/inventory";
+import { logActor } from "@/lib/admin/sections";
 
 function rv() {
   revalidatePath("/admin/schedule");
@@ -132,7 +133,7 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
   }
 
   // 활동 로그 기록 (best-effort)
-  const who = (user.email || "").replace(/@.*/, "");
+  const who = logActor(user);
   const { data: cur } = await admin
     .from("inquiries")
     .select("activity_log")

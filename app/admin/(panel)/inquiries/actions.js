@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logActor } from "@/lib/admin/sections";
 
 function rv() {
   revalidatePath("/admin/inquiries");
@@ -22,7 +23,7 @@ export async function setInquiryRead(id, isRead) {
 export async function setInquiryHandled(id, handled) {
   const user = await requireAdmin();
   const admin = createAdminClient();
-  const who = (user.email || "").replace(/@.*/, "");
+  const who = logActor(user);
   const update = handled
     ? {
         handled: true,
@@ -50,7 +51,7 @@ export async function updateInquiryStatus(id, status) {
   const user = await requireAdmin();
   if (!STATUS_LABEL[status]) return { error: "잘못된 상태입니다." };
   const admin = createAdminClient();
-  const who = (user.email || "").replace(/@.*/, "");
+  const who = logActor(user);
   const closed = status === "done" || status === "cancelled";
   const { error } = await admin
     .from("inquiries")
@@ -83,7 +84,7 @@ export async function saveQuotedAmount(id, amount) {
   if (val && (!cur?.status || cur.status === "new")) update.status = "quoted";
   const { error } = await admin.from("inquiries").update(update).eq("id", id);
   if (error) return { error: "견적 금액 저장에 실패했습니다." };
-  const who = (user.email || "").replace(/@.*/, "");
+  const who = logActor(user);
   await appendActivityLog(
     admin,
     id,
@@ -105,7 +106,7 @@ export async function setContractAmount(id, amount) {
     .update({ contract_amount: val })
     .eq("id", id);
   if (error) return { error: "계약 금액 저장에 실패했습니다." };
-  const who = (user.email || "").replace(/@.*/, "");
+  const who = logActor(user);
   await appendActivityLog(
     admin,
     id,
@@ -182,7 +183,7 @@ export async function updateInquiry(id, fields) {
   ].forEach(([k, l]) => changed.has(k) && labels.push(l));
 
   if (labels.length > 0) {
-    const who = (user.email || "").replace(/@.*/, "");
+    const who = logActor(user);
     await appendActivityLog(admin, id, who, `${labels.join(", ")} 수정`);
   }
 
