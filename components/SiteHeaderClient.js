@@ -38,14 +38,14 @@ export default function SiteHeaderClient({ categories = [] }) {
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-ink/5 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-6 lg:px-10">
-          {/* 좌: 로고 */}
+        <div className="relative flex h-16 items-center justify-between gap-4 px-6 sm:px-8">
+          {/* 좌: 로고 — 왼쪽 끝 (풀-폭, 테슬라식) */}
           <div className="shrink-0">
             <LogoAnimated />
           </div>
 
-          {/* 중앙: 카테고리 메뉴 (테슬라식 와이드 간격) — 로고·액션 사이 공간에서 중앙정렬 */}
-          <nav className="hidden flex-1 items-center justify-center gap-8 xl:flex 2xl:gap-12">
+          {/* 중앙: 카테고리 메뉴 (테슬라식 와이드 간격) — 페이지 정중앙 고정 */}
+          <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-10 xl:flex 2xl:gap-16">
             {cats.map((item) => (
               <Link
                 key={item.label}
@@ -57,15 +57,14 @@ export default function SiteHeaderClient({ categories = [] }) {
             ))}
           </nav>
 
-          {/* 우: 액션 */}
+          {/* 우: 햄버거 — 모바일/태블릿만 (데스크톱은 숨김) */}
           <div className="flex shrink-0 items-center gap-3">
-            {/* 햄버거 → 우측 드로어 열기 */}
             <button
               type="button"
               aria-label="메뉴 열기"
               aria-expanded={open}
               onClick={() => setOpen(true)}
-              className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-full transition hover:bg-ink/5"
+              className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-full transition hover:bg-ink/5 xl:hidden"
             >
               <span className="h-0.5 w-6 bg-ink" />
               <span className="h-0.5 w-6 bg-ink" />
