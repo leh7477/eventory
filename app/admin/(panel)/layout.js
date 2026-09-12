@@ -22,10 +22,12 @@ export default async function AdminPanelLayout({ children }) {
   // 신규(미처리) 견적 문의 건수 — 사이드바 배지용
   let newInquiries = 0;
   if (profile.isOwner || profile.permissions.includes("inquiries")) {
+    // 신규 = status 'new' & 아직 처리(회신)되지 않은 건
     const { count } = await createAdminClient()
       .from("inquiries")
       .select("id", { count: "exact", head: true })
-      .eq("status", "new");
+      .eq("status", "new")
+      .or("handled.is.null,handled.eq.false");
     newInquiries = count ?? 0;
   }
 
