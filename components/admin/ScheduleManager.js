@@ -435,11 +435,6 @@ export default function ScheduleManager({
                             value={taskForm.start_time}
                             onChange={(v) => setTaskForm((f) => ({ ...f, start_time: v }))}
                           />
-                          <span className="text-ink/40">~</span>
-                          <TimeSelect
-                            value={taskForm.end_time}
-                            onChange={(v) => setTaskForm((f) => ({ ...f, end_time: v }))}
-                          />
                         </div>
                         <input
                           value={taskForm.title}
@@ -779,21 +774,12 @@ export default function ScheduleManager({
                 onChange={(v) => setNewTask((f) => ({ ...f, date: v }))}
               />
             </div>
-            <div className="flex items-end gap-2">
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink/60">시작 시간 (선택)</label>
-                <TimeSelect
-                  value={newTask.start_time}
-                  onChange={(v) => setNewTask((f) => ({ ...f, start_time: v }))}
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-ink/60">종료 시간 (선택)</label>
-                <TimeSelect
-                  value={newTask.end_time}
-                  onChange={(v) => setNewTask((f) => ({ ...f, end_time: v }))}
-                />
-              </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink/60">시간 (선택)</label>
+              <TimeSelect
+                value={newTask.start_time}
+                onChange={(v) => setNewTask((f) => ({ ...f, start_time: v }))}
+              />
             </div>
             <div className="sm:col-span-2">
               <label className="mb-1.5 block text-xs font-medium text-ink/60">업무 내용</label>
