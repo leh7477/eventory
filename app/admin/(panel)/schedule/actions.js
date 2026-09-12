@@ -159,9 +159,9 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
       start_time: opts?.start_time || null,
       end_time: opts?.end_time || null,
       location,
-      memo: [q.usage ? `용도: ${q.usage}` : null, q.contact_name ? `담당: ${q.contact_name} (${q.phone ?? "-"})` : null]
-        .filter(Boolean)
-        .join("\n") || null,
+      client_manager: q.contact_name || q.name || null,
+      client_phone: q.phone || null,
+      note: q.usage ? `용도: ${q.usage}` : null,
       inquiry_id: inquiryId,
     })
     .select("id")
@@ -190,6 +190,34 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
   log.push({ at: new Date().toISOString(), by: who, action: "일정 등록" });
   await admin.from("inquiries").update({ activity_log: log }).eq("id", inquiryId);
 
+  rv();
+  return { ok: true };
+}
+
+// 일정 현장 정보 저장 (장소/담당자/연락처/발주처/비고)
+export async function updateScheduleInfo(id, fields = {}) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const clean = (v) => {
+    const s = typeof v === "string" ? v.trim() : v;
+    return s ? s : null;
+  };
+  const { error } = await admin
+    .from("schedules")
+    .update({
+      location: clean(fields.location),
+      client_manager: clean(fields.client_manager),
+      client_phone: clean(fields.client_phone),
+      vendor: clean(fields.vendor),
+      note: clean(fields.note),
+    })
+    .eq("id", id);
+  if (error) {
+    if (/client_manager|client_phone|vendor|note|column/i.test(error.message)) {
+      return { error: "현장 정보 컬럼이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
+    }
+    return { error: error.message };
+  }
   rv();
   return { ok: true };
 }

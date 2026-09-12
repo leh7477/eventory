@@ -263,3 +263,9 @@ create index if not exists idx_schedule_items_category on schedule_items (catego
 
 -- 일정 종류: 'event'(행사) | 'task'(행사 외 업무). 미지정=행사
 alter table schedules add column if not exists kind text default 'event';
+
+-- 일정 현장 정보 (업체 담당자/연락처/발주처/비고). 장소는 기존 location 사용
+alter table schedules add column if not exists client_manager text;  -- 업체 담당자
+alter table schedules add column if not exists client_phone text;    -- 담당자 연락처
+alter table schedules add column if not exists vendor text;          -- 발주/제작처
+alter table schedules add column if not exists note text;            -- 비고/특이사항

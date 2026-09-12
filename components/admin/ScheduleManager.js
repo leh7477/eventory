@@ -12,6 +12,7 @@ import {
 import TimeSelect from "@/components/admin/TimeSelect";
 import DatePicker from "@/components/DatePicker";
 import ScheduleEquipment from "@/components/admin/ScheduleEquipment";
+import ScheduleInfo from "@/components/admin/ScheduleInfo";
 
 // "10:00:00" → "10:00"
 const hm = (t) => (t ? String(t).slice(0, 5) : "");
@@ -49,6 +50,7 @@ export default function ScheduleManager({
   );
   const itemsBySchedule = (id) => scheduleItems.filter((it) => it.schedule_id === id);
   const [equipEditId, setEquipEditId] = useState(null);
+  const [infoEditId, setInfoEditId] = useState(null);
 
   // 행사 외(업무) 일정 — 추가/편집
   const emptyTask = { date: "", start_time: "", end_time: "", title: "", memo: "" };
@@ -591,6 +593,17 @@ export default function ScheduleManager({
                           {ev.location}
                         </p>
                       )}
+                      {(ev.client_manager || ev.client_phone || ev.vendor) && (
+                        <p className={`truncate text-xs ${past ? "text-ink/30" : "text-ink/45"}`}>
+                          {[
+                            ev.client_manager &&
+                              `${ev.client_manager}${ev.client_phone ? ` (${ev.client_phone})` : ""}`,
+                            ev.vendor && `발주 ${ev.vendor}`,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                      )}
                     </div>
                     <button
                       type="button"
@@ -609,6 +622,17 @@ export default function ScheduleManager({
                           {itemsBySchedule(ev.id).length}
                         </span>
                       )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setInfoEditId((v) => (v === ev.id ? null : ev.id))}
+                      className={`shrink-0 rounded-md border px-3 py-1.5 text-xs font-medium ${
+                        infoEditId === ev.id
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-ink/15 text-ink/70 hover:bg-ink/5"
+                      }`}
+                    >
+                      정보
                     </button>
                     <button
                       type="button"
@@ -715,6 +739,9 @@ export default function ScheduleManager({
                       schedById={schedById}
                     />
                   )}
+
+                  {/* 현장 정보 패널 */}
+                  {infoEditId === ev.id && <ScheduleInfo schedule={ev} />}
                 </li>
               );
             })}
