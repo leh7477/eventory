@@ -161,7 +161,7 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
       location,
       client_manager: q.contact_name || q.name || null,
       client_phone: q.phone || null,
-      note: q.usage ? `용도: ${q.usage}` : null,
+      memo: q.usage ? `용도: ${q.usage}` : null, // 용도 배지는 memo에서 읽음(usageOf)
       inquiry_id: inquiryId,
     })
     .select("id")
