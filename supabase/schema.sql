@@ -231,3 +231,17 @@ from (values
   ('캡슐뽑기', 6)
 ) as v(name, order_num)
 where not exists (select 1 from categories c where c.name = v.name);
+
+-- ─────────────────────────────────────────────
+-- 재고 관리: 개별 기기(유닛) 등록 (예: 가챠머신1, 스탑워치1)
+-- 행사 일정에서 기기별 스케줄 배정 + 견적 확정 시 가용 재고 체크에 사용
+create table if not exists equipment (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,               -- 기기 이름 (예: 가챠머신1)
+  category text,                    -- 종류 그룹 (예: 가챠머신)
+  active boolean default true,      -- 운영(재고 포함) 여부
+  memo text,
+  created_at timestamptz default now()
+);
+alter table equipment enable row level security;  -- 정책 없음 → 관리자(service_role)만 접근
+create index if not exists idx_equipment_category on equipment (category);
