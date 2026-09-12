@@ -245,3 +245,18 @@ create table if not exists equipment (
 );
 alter table equipment enable row level security;  -- 정책 없음 → 관리자(service_role)만 접근
 create index if not exists idx_equipment_category on equipment (category);
+
+-- ─────────────────────────────────────────────
+-- 일정별 기기 배정 (수량 기준) — 재고 가용 체크에 사용
+-- 점유 기간은 연결된 schedule 의 설치~회수(start_date~end_date)
+create table if not exists schedule_items (
+  id uuid default gen_random_uuid() primary key,
+  schedule_id uuid references schedules(id) on delete cascade,
+  category text not null,         -- 기기 종류 (equipment.category 와 매칭)
+  quantity int not null default 1,
+  created_at timestamptz default now(),
+  unique (schedule_id, category)
+);
+alter table schedule_items enable row level security;  -- service_role만
+create index if not exists idx_schedule_items_schedule on schedule_items (schedule_id);
+create index if not exists idx_schedule_items_category on schedule_items (category);

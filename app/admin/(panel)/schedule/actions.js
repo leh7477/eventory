@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { availableFor } from "@/lib/inventory";
 
 function rv() {
   revalidatePath("/admin/schedule");
@@ -137,4 +138,87 @@ export async function deleteSchedule(id) {
   if (error) return { error: error.message };
   rv();
   return { ok: true };
+}
+
+// ─────────────────────────────────────────────
+// 일정 기기 배정 (수량 기준) + 가용 재고 검증
+function equipFriendly(error) {
+  if (error?.message && /schedule_items|equipment.*does not exist|Could not find the table/i.test(error.message)) {
+    return { error: "재고 연동 테이블(schedule_items)이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
+  }
+  return { error: error.message };
+}
+
+// 특정 일정에 특정 종류를 quantity 대 배정 (0이면 배정 해제)
+export async function setScheduleItem(scheduleId, category, quantity) {
+  await requireAdmin();
+  const cat = (category ?? "").trim();
+  const qty = parseInt(quantity, 10);
+  if (!scheduleId) return { error: "일정이 없습니다." };
+  if (!cat) return { error: "기기 종류를 선택하세요." };
+  if (!Number.isFinite(qty) || qty < 0) return { error: "수량이 올바르지 않습니다." };
+
+  const admin = createAdminClient();
+
+  // 해제
+  if (qty === 0) {
+    const { error } = await admin
+      .from("schedule_items")
+      .delete()
+      .eq("schedule_id", scheduleId)
+      .eq("category", cat);
+    if (error) return equipFriendly(error);
+    rv();
+    return { ok: true };
+  }
+
+  // 이 일정 기간
+  const { data: sched, error: sErr } = await admin
+    .from("schedules")
+    .select("id, start_date, end_date")
+    .eq("id", scheduleId)
+    .maybeSingle();
+  if (sErr) return { error: sErr.message };
+  if (!sched) return { error: "일정을 찾을 수 없습니다." };
+
+  // 보유 대수(운영중) & 다른 일정 점유 계산용 데이터
+  const [{ data: equip, error: eErr }, { data: items, error: iErr }, { data: scheds }] =
+    await Promise.all([
+      admin.from("equipment").select("category").eq("active", true).eq("category", cat),
+      admin.from("schedule_items").select("schedule_id, category, quantity"),
+      admin.from("schedules").select("id, start_date, end_date"),
+    ]);
+  if (eErr) return equipFriendly(eErr);
+  if (iErr) return equipFriendly(iErr);
+
+  const totals = { [cat]: (equip ?? []).length };
+  const schedById = Object.fromEntries((scheds ?? []).map((s) => [s.id, s]));
+  const { total, available } = availableFor(
+    totals,
+    items ?? [],
+    schedById,
+    cat,
+    sched.start_date,
+    sched.end_date,
+    scheduleId // 자기 자신 제외
+  );
+
+  if (total === 0) return { error: `'${cat}' 보유 기기가 없습니다. 재고 관리에서 먼저 등록하세요.` };
+  if (qty > available) {
+    return {
+      error: `이 기간 '${cat}' 가용 ${available}대(보유 ${total}대). ${qty}대는 배정할 수 없습니다.`,
+    };
+  }
+
+  // upsert (schedule_id, category)
+  const { error } = await admin
+    .from("schedule_items")
+    .upsert({ schedule_id: scheduleId, category: cat, quantity: qty }, { onConflict: "schedule_id,category" });
+  if (error) return equipFriendly(error);
+  rv();
+  return { ok: true };
+}
+
+export async function removeScheduleItem(scheduleId, category) {
+  return setScheduleItem(scheduleId, category, 0);
 }

@@ -9,6 +9,7 @@ import {
 } from "@/app/admin/(panel)/schedule/actions";
 import TimeSelect from "@/components/admin/TimeSelect";
 import DatePicker from "@/components/DatePicker";
+import ScheduleEquipment from "@/components/admin/ScheduleEquipment";
 
 // "10:00:00" → "10:00"
 const hm = (t) => (t ? String(t).slice(0, 5) : "");
@@ -31,9 +32,21 @@ function todayStr() {
   return dstr(t.getFullYear(), t.getMonth(), t.getDate());
 }
 
-export default function ScheduleManager({ schedules }) {
+export default function ScheduleManager({
+  schedules,
+  equipmentTotals = {},
+  equipmentCategories = [],
+  scheduleItems = [],
+}) {
   const router = useRouter();
   const now = new Date();
+
+  // 일정 id → 기간 매핑 (가용 계산용)
+  const schedById = Object.fromEntries(
+    schedules.map((s) => [s.id, { start_date: s.start_date, end_date: s.end_date }])
+  );
+  const itemsBySchedule = (id) => scheduleItems.filter((it) => it.schedule_id === id);
+  const [equipEditId, setEquipEditId] = useState(null);
   const [view, setView] = useState({ y: now.getFullYear(), m: now.getMonth() });
   const [form, setForm] = useState({
     title: "",
@@ -413,6 +426,24 @@ export default function ScheduleManager({ schedules }) {
                     <button
                       type="button"
                       onClick={() =>
+                        setEquipEditId((v) => (v === ev.id ? null : ev.id))
+                      }
+                      className={`relative shrink-0 rounded-md border px-3 py-1.5 text-xs font-medium ${
+                        equipEditId === ev.id
+                          ? "border-blue-600 bg-blue-600 text-white"
+                          : "border-ink/15 text-ink/70 hover:bg-ink/5"
+                      }`}
+                    >
+                      기기
+                      {itemsBySchedule(ev.id).length > 0 && (
+                        <span className="ml-1 rounded-full bg-blue-100 px-1.5 text-[10px] font-bold text-blue-700">
+                          {itemsBySchedule(ev.id).length}
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
                         timeEditId === ev.id ? setTimeEditId(null) : openTimeEdit(ev)
                       }
                       className={`shrink-0 rounded-md border px-3 py-1.5 text-xs font-medium ${
@@ -503,6 +534,17 @@ export default function ScheduleManager({ schedules }) {
                         </button>
                       </div>
                     </div>
+                  )}
+
+                  {/* 기기 배정 패널 */}
+                  {equipEditId === ev.id && (
+                    <ScheduleEquipment
+                      schedule={ev}
+                      totals={equipmentTotals}
+                      categories={equipmentCategories}
+                      items={scheduleItems}
+                      schedById={schedById}
+                    />
                   )}
                 </li>
               );
