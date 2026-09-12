@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ADMIN_SECTIONS, ADMIN_GROUP_ORDER } from "@/lib/admin/sections";
 import PasswordChangeModal from "@/components/admin/PasswordChangeModal";
 
-export default function AdminSidebar({ email, isOwner = true, permissions = [] }) {
+export default function AdminSidebar({ email, isOwner = true, permissions = [], newInquiries = 0 }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -107,10 +107,16 @@ export default function AdminSidebar({ email, isOwner = true, permissions = [] }
                 className={`${linkClass(item.href)} flex items-center justify-between`}
               >
                 <span>{item.label}</span>
-                {item.badge && (
-                  <span className="rounded bg-ink/10 px-1.5 py-0.5 text-[10px] font-semibold text-ink/45">
-                    {item.badge}
+                {item.key === "inquiries" && newInquiries > 0 ? (
+                  <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    신규 {newInquiries}
                   </span>
+                ) : (
+                  item.badge && (
+                    <span className="rounded bg-ink/10 px-1.5 py-0.5 text-[10px] font-semibold text-ink/45">
+                      {item.badge}
+                    </span>
+                  )
                 )}
               </Link>
             ))}

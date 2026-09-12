@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { profileFromUser } from "@/lib/admin/sections";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
@@ -18,12 +19,23 @@ export default async function AdminPanelLayout({ children }) {
 
   const profile = profileFromUser(user);
 
+  // 신규(미처리) 견적 문의 건수 — 사이드바 배지용
+  let newInquiries = 0;
+  if (profile.isOwner || profile.permissions.includes("inquiries")) {
+    const { count } = await createAdminClient()
+      .from("inquiries")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "new");
+    newInquiries = count ?? 0;
+  }
+
   return (
     <div className="min-h-screen bg-ink/[0.03] font-sans text-ink md:flex">
       <AdminSidebar
         email={user.email}
         isOwner={profile.isOwner}
         permissions={profile.permissions}
+        newInquiries={newInquiries}
       />
       <main className="min-w-0 max-w-full flex-1 overflow-x-hidden px-4 py-6 md:px-6 md:py-8 lg:px-10">
         {children}
