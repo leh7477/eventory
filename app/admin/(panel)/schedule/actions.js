@@ -100,21 +100,36 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
   const start_date = opts?.start_date || q.event_start;
   const end_date = opts?.end_date || q.event_end || q.event_start;
 
-  const { error } = await admin.from("schedules").insert({
-    title,
-    event_start: q.event_start,
-    event_end: q.event_end || q.event_start,
-    start_date,
-    end_date,
-    start_time: opts?.start_time || null,
-    end_time: opts?.end_time || null,
-    location,
-    memo: [q.usage ? `용도: ${q.usage}` : null, q.contact_name ? `담당: ${q.contact_name} (${q.phone ?? "-"})` : null]
-      .filter(Boolean)
-      .join("\n") || null,
-    inquiry_id: inquiryId,
-  });
+  const { data: newSched, error } = await admin
+    .from("schedules")
+    .insert({
+      title,
+      event_start: q.event_start,
+      event_end: q.event_end || q.event_start,
+      start_date,
+      end_date,
+      start_time: opts?.start_time || null,
+      end_time: opts?.end_time || null,
+      location,
+      memo: [q.usage ? `용도: ${q.usage}` : null, q.contact_name ? `담당: ${q.contact_name} (${q.phone ?? "-"})` : null]
+        .filter(Boolean)
+        .join("\n") || null,
+      inquiry_id: inquiryId,
+    })
+    .select("id")
+    .single();
   if (error) return { error: error.message };
+
+  // 기기 배정(선택) — 일정 생성과 함께 재고 배정 + 가용 검증
+  const eq = opts?.equipment;
+  if (eq?.category && Number(eq.quantity) > 0 && newSched?.id) {
+    const r = await setScheduleItem(newSched.id, eq.category, eq.quantity);
+    if (r?.error) {
+      // 배정 실패해도 일정은 생성됨 — 경고만 반환
+      rv();
+      return { ok: true, warning: `일정은 등록됐지만 기기 배정 실패: ${r.error}` };
+    }
+  }
 
   // 활동 로그 기록 (best-effort)
   const who = (user.email || "").replace(/@.*/, "");

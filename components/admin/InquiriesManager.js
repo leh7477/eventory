@@ -13,6 +13,7 @@ import { createScheduleFromInquiry } from "@/app/admin/(panel)/schedule/actions"
 import TimeSelect from "@/components/admin/TimeSelect";
 import DatePicker from "@/components/DatePicker";
 import AvailabilityChecker from "@/components/admin/AvailabilityChecker";
+import { availableFor, matchCategory } from "@/lib/inventory";
 
 // 문의 진행 단계 (파이프라인)
 const STATUS_META = {
@@ -164,6 +165,8 @@ export default function InquiriesManager({
   const [schEndDate, setSchEndDate] = useState("");
   const [schStart, setSchStart] = useState("");
   const [schEnd, setSchEnd] = useState("");
+  const [schCategory, setSchCategory] = useState(""); // 배정할 기기 종류
+  const [schQty, setSchQty] = useState("1"); // 배정 수량
 
   const openSchedule = (q) => {
     const st = statusOf(q);
@@ -175,8 +178,26 @@ export default function InquiriesManager({
     setSchEndDate(q.event_end ?? q.event_start ?? "");
     setSchStart("");
     setSchEnd("");
+    setSchCategory(matchCategory(q.product, equipmentCategories));
+    setSchQty("1");
     setScheduleFor(q);
   };
+
+  // 일정 등록 모달의 기기 배정 가용 (새 일정이므로 제외 대상 없음)
+  const schAvail =
+    schCategory && schStartDate
+      ? availableFor(
+          equipmentTotals,
+          scheduleItems,
+          schedById,
+          schCategory,
+          schStartDate,
+          schEndDate || schStartDate,
+          null
+        )
+      : null;
+  const schQtyNum = parseInt(schQty, 10) || 0;
+  const schOver = schAvail && schQtyNum > schAvail.available;
 
   const submitSchedule = () =>
     run(async () => {
@@ -185,11 +206,15 @@ export default function InquiriesManager({
         end_date: schEndDate,
         start_time: schStart,
         end_time: schEnd,
+        equipment:
+          schCategory && schQtyNum > 0
+            ? { category: schCategory, quantity: schQtyNum }
+            : null,
       });
       if (res?.error) alert(res.error);
       else {
         setScheduleFor(null);
-        alert("일정에 등록되었습니다. (행사 일정 메뉴에서 확인)");
+        alert(res?.warning || "일정에 등록되었습니다. (행사 일정 메뉴에서 확인)");
       }
     });
 
@@ -943,16 +968,61 @@ export default function InquiriesManager({
                   <TimeSelect value={schEnd} onChange={setSchEnd} />
                 </div>
               </div>
+              <div>
+                <label className="mb-1 block text-xs font-bold text-ink/60">
+                  기기 배정 (선택)
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={schCategory}
+                    onChange={(e) => setSchCategory(e.target.value)}
+                    className="rounded-md border border-ink/15 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+                  >
+                    <option value="">배정 안 함</option>
+                    {equipmentCategories.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    min="1"
+                    value={schQty}
+                    onChange={(e) => setSchQty(e.target.value)}
+                    disabled={!schCategory}
+                    className="w-16 rounded-md border border-ink/15 px-2.5 py-1.5 text-sm outline-none focus:border-primary disabled:bg-ink/5"
+                  />
+                  <span className="text-sm text-ink/50">대</span>
+                </div>
+                {schAvail && (
+                  <p
+                    className={`mt-1.5 text-[11px] font-medium ${
+                      schAvail.total === 0 || schAvail.available <= 0 || schOver
+                        ? "text-primary"
+                        : "text-green-600"
+                    }`}
+                  >
+                    {schAvail.total === 0
+                      ? `'${schCategory}' 보유 기기 없음`
+                      : schAvail.available <= 0
+                      ? `이 기간 '${schCategory}' 재고 없음 (보유 ${schAvail.total}대 모두 예약)`
+                      : schOver
+                      ? `가용 ${schAvail.available}대 — ${schQtyNum}대는 초과`
+                      : `가용 ${schAvail.available}대 / 보유 ${schAvail.total}대 → 배정 가능`}
+                  </p>
+                )}
+              </div>
             </div>
             <p className="mt-2 text-[11px] text-ink/40">
-              전날 설치라면 설치 날짜를 바꿔주세요. 시간은 비워도 되고 나중에
-              행사 일정에서 수정할 수 있어요.
+              전날 설치라면 설치 날짜를 바꿔주세요. 기기 배정은 선택이며 등록 후
+              행사 일정에서 추가·수정할 수 있어요.
             </p>
 
             <div className="mt-5 flex gap-2">
               <button
                 type="button"
-                disabled={pending}
+                disabled={pending || schOver}
                 onClick={submitSchedule}
                 className="flex-1 rounded-md bg-ink py-2.5 text-sm font-bold text-white hover:bg-black disabled:opacity-60"
               >
