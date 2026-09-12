@@ -55,18 +55,10 @@ export const metadata = {
   openGraph: {
     siteName: "EVENT LAND",
     type: "website",
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: "EVENT + STORY — 이벤트랜드 이벤트 장비 렌탈",
-      },
-    ],
+    // 공유 썸네일은 app/opengraph-image.js 에서 동적 생성 (EVENT LAND)
   },
   twitter: {
     card: "summary_large_image",
-    images: ["/og.png"],
   },
 };
 
