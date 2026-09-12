@@ -9,7 +9,7 @@ export default async function AdminVendorsPage() {
   const [{ data: vendors, error }, { data: scheds }, { data: items }] =
     await Promise.all([
       admin.from("vendors").select("*").order("name", { ascending: true }),
-      admin.from("schedules").select("id, vendor, stage, stage_dates, start_date"),
+      admin.from("schedules").select("id, vendor, stage, stage_dates, start_date, title"),
       admin.from("schedule_items").select("schedule_id, quantity"),
     ]);
 
@@ -18,18 +18,22 @@ export default async function AdminVendorsPage() {
   for (const it of items ?? [])
     devCount[it.schedule_id] = (devCount[it.schedule_id] || 0) + (Number(it.quantity) || 0);
 
-  // 거래처별 월별 발주 개수 (출력물 발주 단계≥1, 기기 수량 기준)
+  // 거래처별 발주 상세 (출력물 발주 단계≥1) — { month, date, title, count }
   // 발주 월 = 출력물 발주 체크시각(stage_dates["1"]) 기준, 없으면 설치일 기준
-  const statsByVendor = {};
+  const ordersByVendor = {};
   for (const s of scheds ?? []) {
     if (!s.vendor || (s.stage || 0) < 1) continue;
     const iso =
       s.stage_dates && typeof s.stage_dates === "object" ? s.stage_dates["1"] : null;
-    const month = iso ? kstDate(new Date(iso)).slice(0, 7) : (s.start_date || "").slice(0, 7);
+    const dateStr = iso ? kstDate(new Date(iso)) : s.start_date || "";
+    const month = (dateStr || "").slice(0, 7);
     if (!month) continue;
-    const cnt = devCount[s.id] || 0;
-    statsByVendor[s.vendor] = statsByVendor[s.vendor] || {};
-    statsByVendor[s.vendor][month] = (statsByVendor[s.vendor][month] || 0) + cnt;
+    (ordersByVendor[s.vendor] = ordersByVendor[s.vendor] || []).push({
+      month,
+      date: dateStr,
+      title: s.title || "행사",
+      count: devCount[s.id] || 0,
+    });
   }
 
   const tableMissing =
@@ -59,7 +63,7 @@ alter table vendors enable row level security;`}</pre>
         </div>
       ) : (
         <div className="mt-6">
-          <VendorsManager vendors={vendors ?? []} statsByVendor={statsByVendor} />
+          <VendorsManager vendors={vendors ?? []} ordersByVendor={ordersByVendor} />
         </div>
       )}
     </div>

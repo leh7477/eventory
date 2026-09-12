@@ -8,9 +8,24 @@ import {
   deleteVendor,
 } from "@/app/admin/(panel)/vendors/actions";
 
-export default function VendorsManager({ vendors, statsByVendor = {} }) {
+// 'YYYY-MM' 에 delta월 더하기
+function shiftMonth(ym, delta) {
+  const [y, m] = ym.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+function thisMonthKST() {
+  try {
+    return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }).slice(0, 7);
+  } catch {
+    return new Date().toISOString().slice(0, 7);
+  }
+}
+
+export default function VendorsManager({ vendors, ordersByVendor = {} }) {
   const router = useRouter();
   const [expandedId, setExpandedId] = useState(null);
+  const [viewMonth, setViewMonth] = useState(thisMonthKST());
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
   const [phone, setPhone] = useState("");
@@ -183,7 +198,17 @@ export default function VendorsManager({ vendors, statsByVendor = {} }) {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setExpandedId((x) => (x === v.id ? null : v.id))}
+                      onClick={() => {
+                        if (expandedId === v.id) {
+                          setExpandedId(null);
+                          return;
+                        }
+                        const months = (ordersByVendor[v.name] || [])
+                          .map((o) => o.month)
+                          .sort();
+                        setViewMonth(months.length ? months[months.length - 1] : thisMonthKST());
+                        setExpandedId(v.id);
+                      }}
                       className={`rounded-md border px-3 py-1.5 text-xs font-medium ${
                         expandedId === v.id
                           ? "border-ink bg-ink text-white"
@@ -211,42 +236,68 @@ export default function VendorsManager({ vendors, statsByVendor = {} }) {
                     </button>
                   </div>
 
-                  {expandedId === v.id && (
-                    <div className="mt-2.5 rounded-lg bg-ink/[0.03] p-3">
-                      <p className="mb-1.5 text-xs font-bold text-ink/50">
-                        월별 발주 (기기 수량 기준)
-                      </p>
-                      {(() => {
-                        const months = Object.entries(statsByVendor[v.name] || {}).sort(
-                          (a, b) => (a[0] < b[0] ? 1 : -1)
-                        );
-                        if (months.length === 0)
-                          return (
-                            <p className="text-xs text-ink/40">발주 내역이 없습니다.</p>
-                          );
-                        const total = months.reduce((s, [, c]) => s + c, 0);
-                        return (
-                          <ul className="space-y-1">
-                            {months.map(([mth, c]) => (
-                              <li
-                                key={mth}
-                                className="flex items-center justify-between text-xs"
-                              >
-                                <span className="text-ink/60">
-                                  {mth.replace("-", ". ")}
-                                </span>
-                                <span className="font-bold text-ink">{c}개</span>
+                  {expandedId === v.id &&
+                    (() => {
+                      const orders = (ordersByVendor[v.name] || [])
+                        .filter((o) => o.month === viewMonth)
+                        .sort((a, b) => (a.date < b.date ? -1 : 1));
+                      const total = orders.reduce((s, o) => s + o.count, 0);
+                      return (
+                        <div className="mt-2.5 rounded-lg bg-ink/[0.03] p-3">
+                          {/* 월 네비게이션 */}
+                          <div className="mb-2 flex items-center justify-between">
+                            <button
+                              type="button"
+                              onClick={() => setViewMonth((m) => shiftMonth(m, -1))}
+                              className="flex h-7 w-7 items-center justify-center rounded-md text-ink/60 hover:bg-ink/10"
+                              aria-label="이전 달"
+                            >
+                              ‹
+                            </button>
+                            <span className="text-sm font-bold text-ink">
+                              {viewMonth.replace("-", ". ")} 발주
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setViewMonth((m) => shiftMonth(m, 1))}
+                              className="flex h-7 w-7 items-center justify-center rounded-md text-ink/60 hover:bg-ink/10"
+                              aria-label="다음 달"
+                            >
+                              ›
+                            </button>
+                          </div>
+
+                          {orders.length === 0 ? (
+                            <p className="py-2 text-center text-xs text-ink/40">
+                              이 달 발주가 없습니다.
+                            </p>
+                          ) : (
+                            <ul className="space-y-1">
+                              {orders.map((o, i) => (
+                                <li
+                                  key={i}
+                                  className="flex items-center justify-between gap-2 text-xs"
+                                >
+                                  <span className="min-w-0 flex-1 truncate text-ink/70">
+                                    {o.title}
+                                    <span className="ml-1.5 text-ink/35">
+                                      {(o.date || "").slice(5).replace("-", "/")}
+                                    </span>
+                                  </span>
+                                  <span className="shrink-0 font-bold text-ink">
+                                    {o.count}개
+                                  </span>
+                                </li>
+                              ))}
+                              <li className="mt-1 flex items-center justify-between border-t border-ink/10 pt-1.5 text-xs">
+                                <span className="font-bold text-ink/70">합계</span>
+                                <span className="font-extrabold text-primary">{total}개</span>
                               </li>
-                            ))}
-                            <li className="mt-1 flex items-center justify-between border-t border-ink/10 pt-1.5 text-xs">
-                              <span className="font-bold text-ink/70">합계</span>
-                              <span className="font-extrabold text-primary">{total}개</span>
-                            </li>
-                          </ul>
-                        );
-                      })()}
-                    </div>
-                  )}
+                            </ul>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </>
                 )}
               </li>
