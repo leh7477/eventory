@@ -187,7 +187,11 @@ export default function ScheduleManager({
   const monthEnd = dstr(y, m, daysInMonth);
   const monthEvents = schedules
     .filter((ev) => ev.start_date <= monthEnd && (ev.end_date || ev.start_date) >= monthStart)
-    .sort((a, b) => (a.start_date < b.start_date ? -1 : 1));
+    .sort((a, b) => {
+      // 종류 무관 — 날짜 → 시간 순
+      if (a.start_date !== b.start_date) return a.start_date < b.start_date ? -1 : 1;
+      return (hm(a.start_time) || "99:99").localeCompare(hm(b.start_time) || "99:99");
+    });
 
   const inputCls =
     "w-full rounded-md border border-ink/15 px-3 py-2.5 text-sm outline-none focus:border-primary";
@@ -368,9 +372,13 @@ export default function ScheduleManager({
                   {d}
                 </span>
                 <div className="mt-1 space-y-0.5">
-                  {installs.map((ev) => chip("install", ev))}
-                  {pickups.map((ev) => chip("pickup", ev))}
-                  {tasks.map((ev) => taskChip(ev))}
+                  {[
+                    ...installs.map((ev) => ({ t: "install", ev, time: hm(ev.start_time) })),
+                    ...pickups.map((ev) => ({ t: "pickup", ev, time: hm(ev.end_time) })),
+                    ...tasks.map((ev) => ({ t: "task", ev, time: hm(ev.start_time) })),
+                  ]
+                    .sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"))
+                    .map((c) => (c.t === "task" ? taskChip(c.ev) : chip(c.t, c.ev)))}
                 </div>
               </div>
             );
