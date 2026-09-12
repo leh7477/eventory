@@ -5,13 +5,27 @@ export const revalidate = 0;
 
 export default async function AdminInquiriesPage() {
   const admin = createAdminClient();
-  const { data } = await admin
-    .from("inquiries")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const [{ data }, { data: equipment }, { data: items }, { data: scheds }] =
+    await Promise.all([
+      admin.from("inquiries").select("*").order("created_at", { ascending: false }),
+      admin.from("equipment").select("category, active"),
+      admin.from("schedule_items").select("schedule_id, category, quantity"),
+      admin.from("schedules").select("id, start_date, end_date"),
+    ]);
 
   const list = data ?? [];
   const unread = list.filter((x) => !x.is_read).length;
+
+  // 재고 확인용 데이터
+  const totals = {};
+  for (const e of equipment ?? []) {
+    if (!e.active || !e.category) continue;
+    totals[e.category] = (totals[e.category] || 0) + 1;
+  }
+  const categories = Object.keys(totals).sort((a, b) => a.localeCompare(b));
+  const schedById = Object.fromEntries(
+    (scheds ?? []).map((s) => [s.id, { start_date: s.start_date, end_date: s.end_date }])
+  );
 
   return (
     <div className="max-w-3xl">
@@ -30,7 +44,13 @@ export default async function AdminInquiriesPage() {
       </p>
 
       <div className="mt-6">
-        <InquiriesManager inquiries={list} />
+        <InquiriesManager
+          inquiries={list}
+          equipmentTotals={totals}
+          equipmentCategories={categories}
+          scheduleItems={items ?? []}
+          schedById={schedById}
+        />
       </div>
     </div>
   );

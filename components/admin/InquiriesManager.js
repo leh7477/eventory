@@ -12,6 +12,7 @@ import {
 import { createScheduleFromInquiry } from "@/app/admin/(panel)/schedule/actions";
 import TimeSelect from "@/components/admin/TimeSelect";
 import DatePicker from "@/components/DatePicker";
+import AvailabilityChecker from "@/components/admin/AvailabilityChecker";
 
 // 문의 진행 단계 (파이프라인)
 const STATUS_META = {
@@ -125,7 +126,13 @@ const FILTER_TABS = [
 ];
 const PAGE_SIZE = 20;
 
-export default function InquiriesManager({ inquiries }) {
+export default function InquiriesManager({
+  inquiries,
+  equipmentTotals = {},
+  equipmentCategories = [],
+  scheduleItems = [],
+  schedById = {},
+}) {
   const router = useRouter();
   const [openId, setOpenId] = useState(null);
   const [pending, startTransition] = useTransition();
@@ -627,6 +634,17 @@ export default function InquiriesManager({ inquiries }) {
                           })}
                         </div>
                       </div>
+
+                      {/* ① 재고 확인 (견적 전달 전) */}
+                      <AvailabilityChecker
+                        totals={equipmentTotals}
+                        categories={equipmentCategories}
+                        items={scheduleItems}
+                        schedById={schedById}
+                        defaultCategory={q.product || ""}
+                        defaultStart={q.event_start || ""}
+                        defaultEnd={q.event_end || q.event_start || ""}
+                      />
 
                       {/* ② 견적서 작성 */}
                       <StepBox
