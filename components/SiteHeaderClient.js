@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LogoAnimated from "@/components/LogoAnimated";
-import { DEFAULT_CATEGORIES } from "@/lib/constants";
+import { SITE, DEFAULT_CATEGORIES } from "@/lib/constants";
 
 // 보조 메뉴 (드로어 하단)
 const SECONDARY = [
@@ -14,13 +14,18 @@ const SECONDARY = [
 
 export default function SiteHeaderClient({ categories = [] }) {
   const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(null); // 호버 중인 카테고리(메가메뉴)
   const pathname = usePathname();
+  const tel = (SITE.phone || "").replace(/[^0-9]/g, "");
 
   // 카테고리 메뉴 (DB 우선, 없으면 기본값)
   const cats =
     categories.length > 0
       ? categories.map((c) => ({ label: c.name, href: `/cases?category=${c.id}` }))
       : DEFAULT_CATEGORIES.map((n) => ({ label: n, href: "/cases" }));
+
+  // 현재 호버된 카테고리 객체
+  const activeItem = cats.find((c) => c.label === active) || null;
 
   // 드로어 열렸을 때 body 스크롤 잠금 + ESC 닫기
   useEffect(() => {
@@ -37,7 +42,10 @@ export default function SiteHeaderClient({ categories = [] }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-ink/5 bg-white/80 backdrop-blur-md">
+      <header
+        className="sticky top-0 z-40 border-b border-ink/5 bg-white/80 backdrop-blur-md"
+        onMouseLeave={() => setActive(null)}
+      >
         <div className="relative flex h-16 items-center justify-between gap-4 px-6 sm:px-8">
           {/* 좌: 로고 — 왼쪽 끝 (풀-폭, 테슬라식) */}
           <div className="shrink-0">
@@ -50,7 +58,11 @@ export default function SiteHeaderClient({ categories = [] }) {
               <Link
                 key={item.label}
                 href={item.href}
-                className="whitespace-nowrap text-sm font-semibold tracking-wide text-ink/80 transition hover:text-primary"
+                onMouseEnter={() => setActive(item.label)}
+                onFocus={() => setActive(item.label)}
+                className={`whitespace-nowrap text-sm font-semibold tracking-wide transition hover:text-primary ${
+                  active === item.label ? "text-primary" : "text-ink/80"
+                }`}
               >
                 {item.label}
               </Link>
@@ -72,6 +84,55 @@ export default function SiteHeaderClient({ categories = [] }) {
             </button>
           </div>
         </div>
+
+        {/* 데스크톱 메가메뉴 — 카테고리에 마우스 올리면 아래로 펼쳐짐 (내용은 추후 채움) */}
+        {activeItem && (
+          <div
+            key={activeItem.label}
+            className="menu-drop absolute left-0 top-full hidden w-full border-b border-ink/10 bg-white shadow-xl xl:block"
+          >
+            <div className="mx-auto grid max-w-[1080px] grid-cols-[1fr_280px] gap-12 px-8 py-9">
+              {/* 왼쪽: 미리보기 영역 (사진/카드가 들어갈 자리) */}
+              <div>
+                <p className="text-xs font-bold tracking-widest text-primary">
+                  {activeItem.label.toUpperCase?.() || activeItem.label}
+                </p>
+                <h3 className="mt-1 text-xl font-bold text-ink">{activeItem.label}</h3>
+                <div className="mt-4 flex aspect-[16/7] items-center justify-center rounded-xl border border-dashed border-ink/15 bg-ink/[0.03] text-sm font-medium text-ink/35">
+                  {activeItem.label} 소개 내용이 들어갈 자리 (준비 중)
+                </div>
+              </div>
+
+              {/* 오른쪽: 링크 목록 (테슬라식) */}
+              <div className="flex flex-col gap-1 border-l border-ink/10 pl-8">
+                <Link
+                  href={activeItem.href}
+                  className="rounded-md px-2 py-2 text-sm font-semibold text-ink transition hover:bg-ink/5 hover:text-primary"
+                >
+                  {activeItem.label} 자세히 보기
+                </Link>
+                <Link
+                  href="/contact"
+                  className="rounded-md px-2 py-2 text-sm font-semibold text-ink transition hover:bg-ink/5 hover:text-primary"
+                >
+                  견적 문의
+                </Link>
+                <a
+                  href={`tel:${tel}`}
+                  className="rounded-md px-2 py-2 text-sm font-semibold text-ink transition hover:bg-ink/5 hover:text-primary"
+                >
+                  전화 문의
+                </a>
+                <Link
+                  href="/cases"
+                  className="rounded-md px-2 py-2 text-sm font-semibold text-ink transition hover:bg-ink/5 hover:text-primary"
+                >
+                  행사 사례 전체 보기
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* 배경 딤 */}

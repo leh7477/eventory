@@ -88,6 +88,21 @@ body {
   }
 }
 
+/* 헤더 메가메뉴 드롭다운 등장 */
+@keyframes menu-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.menu-drop {
+  animation: menu-drop 0.18s ease-out;
+}
+
 @keyframes hero-arrow-bounce {
   0%,
   100% {
