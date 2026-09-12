@@ -1,11 +1,12 @@
 import Link from "next/link";
 
-// 상단 로고 — EVENT LAND 정적 표시
+// 상단 로고 — EVENT LAND, 테슬라풍 와이드 워드마크(Michroma)
 export default function LogoAnimated() {
   return (
     <Link
       href="/"
-      className="font-logo text-2xl font-extrabold tracking-tight text-ink sm:text-4xl"
+      aria-label="EVENT LAND 홈"
+      className="font-tesla whitespace-nowrap text-base tracking-[0.32em] text-ink sm:text-lg sm:tracking-[0.4em]"
     >
       EVENT LAND
     </Link>

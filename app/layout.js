@@ -1,4 +1,4 @@
-import { Poppins } from "next/font/google";
+import { Poppins, Michroma } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -22,6 +22,14 @@ const poppins = Poppins({
   weight: ["500", "600", "700", "800"],
   subsets: ["latin"],
   variable: "--font-poppins",
+  display: "swap",
+});
+
+// 헤더 로고 전용 — 테슬라풍 와이드 지오메트릭 워드마크
+const tesla = Michroma({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-tesla",
   display: "swap",
 });
 
@@ -66,7 +74,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="ko"
-      className={`${pretendard.variable} ${poppins.variable} ${handwriting.variable} ${display.variable}`}
+      className={`${pretendard.variable} ${poppins.variable} ${tesla.variable} ${handwriting.variable} ${display.variable}`}
     >
       <body className="font-sans antialiased">
         {children}

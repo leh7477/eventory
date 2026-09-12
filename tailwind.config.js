@@ -22,6 +22,7 @@ module.exports = {
         sans: ["var(--font-pretendard)", "sans-serif"],
         heading: ["var(--font-pretendard)", "sans-serif"],
         logo: ["var(--font-poppins)", "sans-serif"],
+        tesla: ["var(--font-tesla)", "sans-serif"],
         handwriting: ["var(--font-handwriting)", "var(--font-pretendard)", "cursive"],
       },
       aspectRatio: {
