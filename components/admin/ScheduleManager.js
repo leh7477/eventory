@@ -599,6 +599,12 @@ export default function ScheduleManager({
                           {ev.client_phone ? ` (${ev.client_phone})` : ""}
                         </p>
                       )}
+                      {ev.note && (
+                        <p className={`mt-1 whitespace-pre-wrap break-words rounded bg-amber-50 px-2 py-1 text-xs ${past ? "text-ink/40" : "text-ink/70"}`}>
+                          <span className="font-bold text-amber-700">특이사항</span>{" "}
+                          {ev.note}
+                        </p>
+                      )}
                     </div>
                     <button
                       type="button"
