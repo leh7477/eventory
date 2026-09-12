@@ -18,15 +18,14 @@ export default function HeroTypo({ wordmark, subtitle, sublist } = {}) {
 
   return (
     <section className="relative flex h-[calc(100svh-5rem)] min-h-[520px] w-full flex-col items-center justify-center overflow-hidden bg-white px-6 text-center">
-      {/* 거대 워드마크 (한 줄) — 글자마다 시차를 두고 얇아졌다 두꺼워짐 (가변폰트) */}
+      {/* 거대 워드마크 (한 줄) — 글자마다 시차를 두고 위아래로 톡톡 튀김 */}
       <h1 className="hero-typo-line whitespace-nowrap text-[12vw] leading-none tracking-tight text-ink lg:text-[clamp(7rem,13.5vw,12.5rem)]">
         {wm.split("").map((ch, i, arr) => (
           <span
             key={i}
             className="hero-letter inline-block"
-            // 음수 시차를 일정 간격으로 줘 매끄러운 그라데이션(앞 두꺼움→뒤 얇음).
-            // 뒤에서 앞으로 세어 파동이 앞→뒤 방향으로 자연스럽게 읽히게 함
-            style={{ ["--d"]: `-${((arr.length - 1 - i) * 0.1).toFixed(2)}s` }}
+            // 앞→뒤 방향으로 순차적으로 튀도록 시차를 양수로 부여
+            style={{ ["--d"]: `${(i * 0.11).toFixed(2)}s` }}
           >
             {ch === " " ? " " : ch}
           </span>

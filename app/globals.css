@@ -71,17 +71,20 @@ body {
    "새로고침 느낌"(재렌더 깜빡임)이 없음. 글자별 시차(--d)로 물결처럼 흐름 */
 .hero-letter {
   font-family: var(--font-display), sans-serif;
-  font-variation-settings: "wght" 200;
-  animation: hero-breath 2s ease-in-out infinite;
+  font-variation-settings: "wght" 720;
+  transform-origin: center bottom;
+  /* 글자마다 시차를 두고 위아래로 톡톡 튀는(hop) 느낌 */
+  animation: hero-hop 1.3s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
   animation-delay: var(--d, 0s);
 }
-@keyframes hero-breath {
+@keyframes hero-hop {
   0%,
+  40%,
   100% {
-    font-variation-settings: "wght" 200;
+    transform: translateY(0);
   }
-  50% {
-    font-variation-settings: "wght" 800;
+  20% {
+    transform: translateY(-26px);
   }
 }
 
