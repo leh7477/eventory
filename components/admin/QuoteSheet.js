@@ -46,7 +46,7 @@ export default function QuoteSheet({ inquiry }) {
   const [shipping, setShipping] = useState(""); // 배송비 (수량 없이 금액만)
   const [vatIncluded, setVatIncluded] = useState(true);
   const [note, setNote] = useState(
-    "· 본 견적은 견적일로부터 30일간 유효합니다.\n· 예약은 계약금 입금 시 확정됩니다.\n· 행사 일정 변경·취소는 사전 협의 부탁드립니다."
+    "· 본 견적은 견적일로부터 30일간 유효합니다.\n· 예약은 계약금 입금 시 확정됩니다.\n· 행사 일정 변경·취소는 사전 협의 부탁드립니다.\n· '서비스' 표기 품목은 무상 증정이 아닌, 해당 장비와 함께 대여되는 구성품입니다."
   );
   const [quoteDate, setQuoteDate] = useState(todayStr());
   const router = useRouter();
