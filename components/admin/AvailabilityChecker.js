@@ -90,7 +90,7 @@ export default function AvailabilityChecker({
           {avail.total === 0
             ? `'${cat}' 보유 기기가 없습니다 (재고 관리에서 등록).`
             : avail.available <= 0
-            ? `이 기간 '${cat}' 재고 없음 — 보유 ${avail.total}대 모두 예약됨. 스케줄 불가.`
+            ? `이 기간 '${cat}' 재고가 없습니다. 보유 ${avail.total}대 모두 예약되어 스케줄 불가합니다.`
             : over
             ? `이 기간 '${cat}' 가용 ${avail.available}대 — 요청 ${qtyNum}대는 부족.`
             : `이 기간 '${cat}' 가용 ${avail.available}대 / 보유 ${avail.total}대 → ${qtyNum}대 스케줄 가능.`}

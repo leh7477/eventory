@@ -428,7 +428,7 @@ export default function InquiriesManager({
             ? ""
             : reqAvail.total === 0
             ? `'${reqCat}' 보유 기기가 없습니다.`
-            : `이 기간 '${reqCat}' 재고 없음 — 보유 ${reqAvail.total}대 모두 예약됨. 스케줄 불가.`;
+            : `이 기간 '${reqCat}' 재고가 없습니다. 보유 ${reqAvail.total}대 모두 예약되어 스케줄 불가합니다.`;
           return (
             <li key={q.id}>
               {/* 요약 행 */}
