@@ -59,12 +59,30 @@ function OccurrenceItem({ o, showDate }) {
 }
 
 function ScheduleGroup({ title, occurrences, emptyText, showDate = false }) {
+  const deliver = occurrences.filter((o) => o.type === "납품").length;
+  const pickup = occurrences.filter((o) => o.type === "회수").length;
+  const task = occurrences.filter((o) => o.type === "업무").length;
   return (
     <div className="rounded-2xl border border-ink/10 bg-white">
-      <p className="border-b border-ink/10 px-5 py-3 text-sm font-bold text-ink">
-        {title}
-        <span className="ml-1.5 text-ink/40">({occurrences.length})</span>
-      </p>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-ink/10 px-5 py-3">
+        <p className="text-sm font-bold text-ink">
+          {title}
+          <span className="ml-1.5 text-ink/40">({occurrences.length})</span>
+        </p>
+        <span className="flex items-center gap-1.5 text-[11px] font-bold">
+          <span className="rounded bg-blue-100 px-1.5 py-0.5 text-blue-700">
+            납품 {deliver}
+          </span>
+          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-700">
+            회수 {pickup}
+          </span>
+          {task > 0 && (
+            <span className="rounded bg-slate-200 px-1.5 py-0.5 text-slate-700">
+              업무 {task}
+            </span>
+          )}
+        </span>
+      </div>
       {occurrences.length === 0 ? (
         <p className="px-5 py-6 text-center text-xs text-ink/35">{emptyText}</p>
       ) : (
