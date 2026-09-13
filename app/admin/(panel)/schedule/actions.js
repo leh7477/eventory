@@ -288,6 +288,40 @@ export async function updateScheduleInfo(id, fields = {}) {
   return { ok: true };
 }
 
+// 배차 물품(준비물) 저장
+export async function setScheduleSupplies(id, supplies) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("schedules")
+    .update({ supplies: (supplies ?? "").trim() || null })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  rv();
+  return { ok: true };
+}
+
+// 배차 순번 재정렬 — stops: [{ id, type: 'install'|'pickup' }] 순서대로
+export async function reorderStops(stops = []) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  for (let i = 0; i < stops.length; i++) {
+    const col = stops[i].type === "install" ? "install_seq" : "pickup_seq";
+    const { error } = await admin
+      .from("schedules")
+      .update({ [col]: i })
+      .eq("id", stops[i].id);
+    if (error) {
+      if (/install_seq|pickup_seq|column/i.test(error.message)) {
+        return { error: "배차 컬럼이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
+      }
+      return { error: error.message };
+    }
+  }
+  rv();
+  return { ok: true };
+}
+
 export async function deleteSchedule(id) {
   await requireAdmin();
   const admin = createAdminClient();

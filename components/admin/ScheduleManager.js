@@ -19,6 +19,7 @@ import TimeSelect from "@/components/admin/TimeSelect";
 import DatePicker from "@/components/DatePicker";
 import ScheduleEquipment from "@/components/admin/ScheduleEquipment";
 import ScheduleInfo from "@/components/admin/ScheduleInfo";
+import DispatchView from "@/components/admin/DispatchView";
 
 // "10:00:00" → "10:00"
 const hm = (t) => (t ? String(t).slice(0, 5) : "");
@@ -66,6 +67,7 @@ export default function ScheduleManager({
   const itemsBySchedule = (id) => scheduleItems.filter((it) => it.schedule_id === id);
   const [equipEditId, setEquipEditId] = useState(null);
   const [infoEditId, setInfoEditId] = useState(null);
+  const [mode, setMode] = useState("list"); // 'list' | 'dispatch'
 
   // 행사 외(업무) 일정 — 추가/편집
   const emptyTask = { date: "", start_time: "", end_time: "", title: "", memo: "" };
@@ -275,6 +277,29 @@ export default function ScheduleManager({
 
   return (
     <div className="space-y-6">
+      {/* 뷰 전환: 일정 / 배차 */}
+      <div className="inline-flex rounded-lg border border-ink/10 bg-white p-0.5">
+        {[
+          ["list", "일정"],
+          ["dispatch", "배차"],
+        ].map(([v, label]) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setMode(v)}
+            className={`rounded-md px-4 py-1.5 text-sm font-bold transition ${
+              mode === v ? "bg-ink text-white" : "text-ink/50 hover:text-ink"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {mode === "dispatch" ? (
+        <DispatchView schedules={schedules} scheduleItems={scheduleItems} />
+      ) : (
+        <div className="space-y-6">
       {/* 오늘 / 내일 요약 */}
       <div className="grid gap-4 sm:grid-cols-2">
         <OccCard title="오늘 일정" ds={today} />
@@ -961,7 +986,8 @@ export default function ScheduleManager({
           </ul>
         )}
       </div>
-
+        </div>
+      )}
     </div>
   );
 }
