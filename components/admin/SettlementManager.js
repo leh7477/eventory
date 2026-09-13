@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import DatePicker from "@/components/DatePicker";
 import { updateSettlement } from "@/app/admin/(panel)/stats/actions";
@@ -51,6 +51,7 @@ function shiftMonth(ym, delta) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 const monthOf = (d) => (d.event_start || d.created_at || "").slice(0, 7);
+const PAGE_SIZE = 30;
 
 export default function SettlementManager({ deals }) {
   const router = useRouter();
@@ -58,6 +59,7 @@ export default function SettlementManager({ deals }) {
   const [month, setMonth] = useState(todayStr().slice(0, 7));
   const [allMonths, setAllMonths] = useState(false);
   const [query, setQuery] = useState("");
+  const [visible, setVisible] = useState(PAGE_SIZE);
   const [pending, startTransition] = useTransition();
   const [openInvoice, setOpenInvoice] = useState(null);
   const [openPay, setOpenPay] = useState(null);
@@ -126,6 +128,11 @@ export default function SettlementManager({ deals }) {
     }
     return { contract, paid, vat, unpaid: vat - paid };
   }, [monthDeals]);
+
+  // 필터/월/검색 바뀌면 표시 개수 초기화
+  useEffect(() => {
+    setVisible(PAGE_SIZE);
+  }, [month, allMonths, filter, q]);
 
   const label = (d) =>
     [d.company_name || d.contact_name || d.name || "고객", d.product].filter(Boolean).join(" · ");
@@ -249,7 +256,7 @@ export default function SettlementManager({ deals }) {
         <p className="py-8 text-center text-sm text-ink/40">해당 건이 없습니다.</p>
       ) : (
         <ul className="mt-4 space-y-3">
-          {filtered.map((d) => {
+          {filtered.slice(0, visible).map((d) => {
             const r = rows[d.id];
             const vat = vatTotalOf(d);
             const paidSaved = Number(d.paid_amount) || 0;
@@ -488,6 +495,16 @@ export default function SettlementManager({ deals }) {
             );
           })}
         </ul>
+      )}
+
+      {filtered.length > visible && (
+        <button
+          type="button"
+          onClick={() => setVisible((v) => v + PAGE_SIZE)}
+          className="mt-3 w-full rounded-lg border border-dashed border-ink/20 py-2.5 text-sm font-medium text-ink/60 hover:bg-ink/[0.02]"
+        >
+          더 보기 ({visible} / {filtered.length}건)
+        </button>
       )}
     </div>
   );
