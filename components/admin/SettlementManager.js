@@ -40,6 +40,7 @@ export default function SettlementManager({ deals }) {
   const [filter, setFilter] = useState("all");
   const [month, setMonth] = useState(todayStr().slice(0, 7));
   const [allMonths, setAllMonths] = useState(false);
+  const [query, setQuery] = useState("");
   const [pending, startTransition] = useTransition();
   const [openInvoice, setOpenInvoice] = useState(null);
   const [openPay, setOpenPay] = useState(null);
@@ -77,10 +78,16 @@ export default function SettlementManager({ deals }) {
       router.refresh();
     });
 
-  const monthDeals = useMemo(
-    () => (allMonths ? deals : deals.filter((d) => monthOf(d) === month)),
-    [deals, allMonths, month]
-  );
+  const q = query.trim().toLowerCase();
+  const monthDeals = useMemo(() => {
+    // 검색 중이면 월/전체 무시하고 전체에서 검색
+    const scope = q || allMonths ? deals : deals.filter((d) => monthOf(d) === month);
+    if (!q) return scope;
+    return scope.filter((d) =>
+      [d.company_name, d.contact_name, d.name, d.phone]
+        .some((v) => (v || "").toLowerCase().includes(q))
+    );
+  }, [deals, allMonths, month, q]);
   const filtered = useMemo(
     () => (filter === "all" ? monthDeals : monthDeals.filter((d) => statusOf(d) === filter)),
     [monthDeals, filter]
@@ -144,8 +151,20 @@ export default function SettlementManager({ deals }) {
         </span>
       </div>
 
+      {/* 검색 */}
+      <div className="mb-2">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="업체명·담당자·연락처 검색"
+          className="w-full rounded-md border border-ink/15 px-3 py-2 text-sm outline-none focus:border-primary"
+        />
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-xs text-ink/40">{allMonths ? "전체 기간" : `${month.replace("-", ". ")} 기준`}</span>
+        <span className="text-xs text-ink/40">
+          {q ? `'${query.trim()}' 검색` : allMonths ? "전체 기간" : `${month.replace("-", ". ")} 기준`}
+        </span>
         <div className="flex gap-1">
           {FILTERS.map((f) => (
             <button
@@ -175,7 +194,7 @@ export default function SettlementManager({ deals }) {
             const st = statusOf(d);
             return (
               <li key={d.id} className="rounded-xl border border-ink/10 p-3">
-                <div className="mb-2 flex items-center gap-2">
+                <div className="mb-1 flex items-center gap-2">
                   <span className="text-sm font-semibold text-ink">{label(d)}</span>
                   {d.event_start && <span className="text-xs text-ink/40">{d.event_start}</span>}
                   <span
@@ -190,6 +209,13 @@ export default function SettlementManager({ deals }) {
                     {st === "done" ? "입금완료" : st === "no_invoice" ? "미발행" : "미입금"}
                   </span>
                 </div>
+                {(d.contact_name || d.phone) && (
+                  <p className="mb-2 text-xs text-ink/45">
+                    {d.contact_name}
+                    {d.contact_name && d.phone ? " · " : ""}
+                    {d.phone}
+                  </p>
+                )}
 
                 {/* 금액 요약 */}
                 <div className="mb-2 grid grid-cols-4 gap-2 text-center">
