@@ -151,7 +151,13 @@ export default function DispatchView({ schedules = [], scheduleItems = [] }) {
             const isToday = day === today;
             const wd = dow(day);
             return (
-              <div key={day} id={`disp-${day}`} className="scroll-mt-4">
+              <div
+                key={day}
+                id={`disp-${day}`}
+                className={`scroll-mt-4 ${
+                  isToday ? "rounded-xl bg-primary/5 p-2 ring-1 ring-primary/20" : ""
+                }`}
+              >
                 {/* 날짜 헤더 */}
                 <div
                   className={`mb-1.5 flex items-center gap-2 rounded-lg px-3 py-1.5 ${
