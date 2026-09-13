@@ -64,7 +64,8 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   // 품목: 문의 제품으로 1행 프리필. 이름은 수량 제외, 수량은 별도 칸, 단가는 단가표에서 자동
   const firstMatch = inquiry.product ? matchRental(inquiry.product) : null;
   const firstQty = parseQty(inquiry.product) || 1;
-  const firstName = stripQty(inquiry.product);
+  // 단가표에 매칭되면 우리 카테고리명으로, 아니면 고객 입력(수량 제외)
+  const firstName = firstMatch ? firstMatch.product : stripQty(inquiry.product);
   const [items, setItems] = useState([
     {
       name: firstName
