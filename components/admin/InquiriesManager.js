@@ -408,6 +408,27 @@ export default function InquiriesManager({
             q.quoted_amount != null ||
             ["quoted", "confirmed"].includes(st) ||
             eff === "done";
+          // 재고 확인(요청 품목·행사일 기준) — 스케줄 불가 시 견적서 작성 클릭 경고
+          const reqCat = matchCategory(q.product || "", equipmentCategories);
+          const reqAvail =
+            reqCat && q.event_start
+              ? availableFor(
+                  equipmentTotals,
+                  scheduleItems,
+                  schedById,
+                  reqCat,
+                  q.event_start,
+                  q.event_end || q.event_start,
+                  null
+                )
+              : null;
+          const scheduleBlocked =
+            !!reqAvail && (reqAvail.total === 0 || reqAvail.available <= 0);
+          const blockMsg = !reqAvail
+            ? ""
+            : reqAvail.total === 0
+            ? `'${reqCat}' 보유 기기가 없습니다.`
+            : `이 기간 '${reqCat}' 재고 없음 — 보유 ${reqAvail.total}대 모두 예약됨. 스케줄 불가.`;
           return (
             <li key={q.id}>
               {/* 요약 행 */}
@@ -682,10 +703,25 @@ export default function InquiriesManager({
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
                           <a
                             href={`/admin/inquiries/${q.id}/quote`}
+                            onClick={(e) => {
+                              if (
+                                scheduleBlocked &&
+                                !window.confirm(
+                                  `${blockMsg}\n\n그래도 견적서를 작성할까요?`
+                                )
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
                             className="rounded-md bg-ink px-4 py-2 text-xs font-bold text-white hover:bg-black"
                           >
                             견적서 작성 →
                           </a>
+                          {scheduleBlocked && (
+                            <span className="text-xs font-bold text-primary">
+                              ⚠ 스케줄 불가
+                            </span>
+                          )}
                           {q.quoted_amount ? (
                             <span className="text-xs text-ink/60">
                               최근 견적{" "}
