@@ -11,11 +11,12 @@ export default function AvailabilityChecker({
   items = [],
   schedById = {},
   defaultCategory = "",
+  defaultQty = 0,
   defaultStart = "",
   defaultEnd = "",
 }) {
   const [cat, setCat] = useState(() => matchCategory(defaultCategory, categories));
-  const [qty, setQty] = useState("1");
+  const [qty, setQty] = useState(defaultQty > 0 ? String(defaultQty) : "1");
   const [start, setStart] = useState(defaultStart || "");
   const [end, setEnd] = useState(defaultEnd || defaultStart || "");
 

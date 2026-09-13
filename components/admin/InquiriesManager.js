@@ -13,7 +13,7 @@ import { createScheduleFromInquiry } from "@/app/admin/(panel)/schedule/actions"
 import TimeSelect from "@/components/admin/TimeSelect";
 import DatePicker from "@/components/DatePicker";
 import AvailabilityChecker from "@/components/admin/AvailabilityChecker";
-import { availableFor, matchCategory } from "@/lib/inventory";
+import { availableFor, matchCategory, parseQty } from "@/lib/inventory";
 
 // 문의 진행 단계 (파이프라인)
 const STATUS_META = {
@@ -422,13 +422,16 @@ export default function InquiriesManager({
                   null
                 )
               : null;
+          const reqQty = parseQty(q.product) || 1;
           const scheduleBlocked =
-            !!reqAvail && (reqAvail.total === 0 || reqAvail.available <= 0);
+            !!reqAvail && (reqAvail.total === 0 || reqAvail.available < reqQty);
           const blockMsg = !reqAvail
             ? ""
             : reqAvail.total === 0
             ? `'${reqCat}' 보유 기기가 없습니다.`
-            : `이 기간 '${reqCat}' 재고가 없습니다. 보유 ${reqAvail.total}대 모두 예약되어 스케줄 불가합니다.`;
+            : reqAvail.available <= 0
+            ? `이 기간 '${reqCat}' 재고가 없습니다. 보유 ${reqAvail.total}대 모두 예약되어 스케줄 불가합니다.`
+            : `이 기간 '${reqCat}' 가용 ${reqAvail.available}대인데 요청 ${reqQty}대라 재고가 부족합니다.`;
           return (
             <li key={q.id}>
               {/* 요약 행 */}
@@ -689,6 +692,7 @@ export default function InquiriesManager({
                         items={scheduleItems}
                         schedById={schedById}
                         defaultCategory={q.product || ""}
+                        defaultQty={reqQty}
                         defaultStart={q.event_start || ""}
                         defaultEnd={q.event_end || q.event_start || ""}
                       />
