@@ -25,10 +25,7 @@ export default async function AdminStatsPage({ searchParams }) {
     (d) => d.contract_amount && d.contract_amount > 0
   );
 
-  // 실입금 / 미수금 누계
-  const totalContract = deals.reduce((s, d) => s + (Number(d.contract_amount) || 0), 0);
-  const totalPaid = deals.reduce((s, d) => s + (Number(d.paid_amount) || 0), 0);
-  const totalUnpaid = totalContract - totalPaid;
+  const yearKeyOf = (d) => yearKey(d.event_start || d.created_at);
 
   const byYear = {};
   const countByYear = {};
@@ -57,6 +54,14 @@ export default async function AdminStatsPage({ searchParams }) {
   const maxMonth = Math.max(1, ...monthsOfYear.map((m) => byMonth[m] || 0));
   const selectedYearTotal = byYear[selectedYear] || 0;
 
+  // 선택 연도의 계약/실입금/미수 (행사 연도 기준)
+  const yearDeals = deals.filter((d) => yearKeyOf(d) === selectedYear);
+  const yContract = yearDeals.reduce((s, d) => s + (Number(d.contract_amount) || 0), 0);
+  const yPaid = yearDeals.reduce((s, d) => s + (Number(d.paid_amount) || 0), 0);
+  const yVat = yearDeals.reduce((s, d) => s + Math.round((Number(d.contract_amount) || 0) * 1.1), 0);
+  const yUnpaid = yVat - yPaid;
+  const initialTab = searchParams?.tab === "stats" ? 1 : 0;
+
   const count = deals.length;
   const thisYearRevenue = byYear[thisYear] || 0;
   const thisMonthKey = `${thisYear}-${String(thisMonthNum).padStart(2, "0")}`;
@@ -71,7 +76,7 @@ export default async function AdminStatsPage({ searchParams }) {
   const nextMonthRevenue = byMonth[nextMonthKey] || 0;
 
   const cards = [
-    { label: `${thisYear}년 매출`, value: `₩ ${won(thisYearRevenue)}` },
+    { label: `${selectedYear}년 매출`, value: `₩ ${won(selectedYearTotal)}` },
     { label: `이번 달 계약 건수 (${mLabel}월)`, value: `${thisMonthCount}건` },
     { label: `이번 달 매출 (${mLabel}월)`, value: `₩ ${won(thisMonthRevenue)}`, hl: true },
     { label: `다음 달 예정 매출 (${nextLabel}월)`, value: `₩ ${won(nextMonthRevenue)}` },
@@ -85,26 +90,26 @@ export default async function AdminStatsPage({ searchParams }) {
       </p>
 
       <div className="mt-5">
-      <SalesTabs tabs={["정산", "통계"]}>
+      <SalesTabs tabs={["정산", "통계"]} initial={initialTab}>
         {/* 정산 (먼저) */}
         <SettlementManager deals={deals} />
 
         {/* 통계 */}
         <div>
-      {/* 실입금 / 미수금 누계 */}
+      {/* 선택 연도 계약/실입금/미수 */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-2xl border border-ink/10 bg-white p-4">
-          <p className="text-xs text-ink/50">계약 누계</p>
-          <p className="mt-1 text-lg font-extrabold text-ink">₩ {won(totalContract)}</p>
+          <p className="text-xs text-ink/50">{selectedYear}년 계약</p>
+          <p className="mt-1 text-lg font-extrabold text-ink">₩ {won(yContract)}</p>
         </div>
         <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
-          <p className="text-xs text-green-700/70">실입금 누계</p>
-          <p className="mt-1 text-lg font-extrabold text-green-700">₩ {won(totalPaid)}</p>
+          <p className="text-xs text-green-700/70">{selectedYear}년 실입금</p>
+          <p className="mt-1 text-lg font-extrabold text-green-700">₩ {won(yPaid)}</p>
         </div>
-        <div className={`rounded-2xl border p-4 ${totalUnpaid > 0 ? "border-red-200 bg-red-50" : "border-ink/10 bg-white"}`}>
-          <p className={`text-xs ${totalUnpaid > 0 ? "text-red-600/70" : "text-ink/50"}`}>미수금</p>
-          <p className={`mt-1 text-lg font-extrabold ${totalUnpaid > 0 ? "text-red-600" : "text-ink"}`}>
-            ₩ {won(totalUnpaid)}
+        <div className={`rounded-2xl border p-4 ${yUnpaid > 0 ? "border-red-200 bg-red-50" : "border-ink/10 bg-white"}`}>
+          <p className={`text-xs ${yUnpaid > 0 ? "text-red-600/70" : "text-ink/50"}`}>{selectedYear}년 미수금</p>
+          <p className={`mt-1 text-lg font-extrabold ${yUnpaid > 0 ? "text-red-600" : "text-ink"}`}>
+            ₩ {won(yUnpaid)}
           </p>
         </div>
       </div>
@@ -142,7 +147,7 @@ export default async function AdminStatsPage({ searchParams }) {
           {/* 연도 전환 (화살표) */}
           <div className="flex items-center gap-1.5">
             <Link
-              href={`/admin/stats?year=${Number(selectedYear) - 1}`}
+              href={`/admin/stats?year=${Number(selectedYear) - 1}&tab=stats`}
               aria-label="이전 연도"
               className="flex h-7 w-7 items-center justify-center rounded-md border border-ink/15 text-ink/60 hover:bg-ink/5"
             >
@@ -152,7 +157,7 @@ export default async function AdminStatsPage({ searchParams }) {
               {selectedYear}년
             </span>
             <Link
-              href={`/admin/stats?year=${Number(selectedYear) + 1}`}
+              href={`/admin/stats?year=${Number(selectedYear) + 1}&tab=stats`}
               aria-label="다음 연도"
               className="flex h-7 w-7 items-center justify-center rounded-md border border-ink/15 text-ink/60 hover:bg-ink/5"
             >

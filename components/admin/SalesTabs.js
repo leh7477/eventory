@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 // 매출 관리 뷰 토글 (정산 / 통계) — children 순서대로 tabs와 매칭
-export default function SalesTabs({ tabs = [], children }) {
-  const [i, setI] = useState(0);
+export default function SalesTabs({ tabs = [], children, initial = 0 }) {
+  const [i, setI] = useState(initial);
   const items = Array.isArray(children) ? children : [children];
   return (
     <div className="space-y-4">
