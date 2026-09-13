@@ -397,13 +397,13 @@ export default function ScheduleManager({
               <div
                 key={i}
                 className={`min-h-24 border border-ink/5 p-1 ${
-                  isToday ? "bg-primary/5" : deployed ? "bg-ink/[0.02]" : ""
+                  isToday ? "bg-violet-50" : deployed ? "bg-ink/[0.02]" : ""
                 }`}
               >
                 <span
                   className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-xs ${
                     isToday
-                      ? "bg-primary font-bold text-white"
+                      ? "bg-violet-600 font-bold text-white"
                       : col === 0
                       ? "text-primary"
                       : col === 6

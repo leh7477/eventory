@@ -155,13 +155,13 @@ export default function DispatchView({ schedules = [], scheduleItems = [] }) {
                 key={day}
                 id={`disp-${day}`}
                 className={`scroll-mt-4 ${
-                  isToday ? "rounded-xl bg-primary/5 p-2 ring-1 ring-primary/20" : ""
+                  isToday ? "rounded-xl bg-violet-50 p-2 ring-1 ring-violet-200" : ""
                 }`}
               >
                 {/* 날짜 헤더 */}
                 <div
                   className={`mb-1.5 flex items-center gap-2 rounded-lg px-3 py-1.5 ${
-                    isToday ? "bg-primary/10" : "bg-ink/[0.04]"
+                    isToday ? "bg-violet-100" : "bg-ink/[0.04]"
                   }`}
                 >
                   <span
@@ -172,7 +172,7 @@ export default function DispatchView({ schedules = [], scheduleItems = [] }) {
                     {day.slice(5).replace("-", "/")} ({WEEK[wd]})
                   </span>
                   {isToday && (
-                    <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-white">
+                    <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold text-white">
                       오늘
                     </span>
                   )}
