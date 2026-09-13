@@ -202,9 +202,12 @@ function FragmentRows({ cat, units, rows, days, bookingOn }) {
           <td className="sticky left-0 z-10 border-b border-r border-ink/10 bg-white px-2 py-1 font-medium text-ink/80">
             {u.name}
           </td>
-          {days.map((dy) => {
+          {days.map((dy, di) => {
             const b = bookingOn(rows[r] || [], dy.key);
-            const isStart = b && b.start === dy.key;
+            // 라벨은 예약 실제 시작일, 또는 지난달에서 이어져 온 경우 이 달 첫날에도 표시
+            const contFromPrev = b && di === 0 && b.start < dy.key;
+            const isStart = b && (b.start === dy.key || contFromPrev);
+            const contToNext = b && di === days.length - 1 && b.end > dy.key;
             // 정비일 = 어떤 예약의 회수 다음날 (해당 칸에 다른 예약이 없을 때)
             const maint =
               !b && (rows[r] || []).some((x) => addDays(x.end, 1) === dy.key);
@@ -229,7 +232,13 @@ function FragmentRows({ cat, units, rows, days, bookingOn }) {
               >
                 {isStart && (
                   <span className="pointer-events-none absolute left-1 top-1/2 z-10 -translate-y-1/2 whitespace-nowrap text-[10px] font-bold text-ink/80">
-                    {b.title}
+                    {contFromPrev ? "‹ " : ""}
+                    {String(b.title).split(" · ")[0]}
+                  </span>
+                )}
+                {contToNext && (
+                  <span className="pointer-events-none absolute right-0.5 top-1/2 z-10 -translate-y-1/2 text-[10px] font-bold text-ink/50">
+                    ›
                   </span>
                 )}
                 <div className="h-6" />
