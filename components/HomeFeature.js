@@ -41,7 +41,7 @@ export default function HomeFeature({ items = [] }) {
   };
 
   return (
-    <section className="mx-auto max-w-[1600px] px-3 pt-6 pb-2 sm:px-6 sm:pt-8">
+    <section className="mx-auto max-w-[1840px] px-3 pt-6 pb-2 sm:px-5 sm:pt-8">
       <div className="relative">
         <div
           ref={scroller}
