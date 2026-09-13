@@ -96,6 +96,11 @@ export default async function Home() {
               tagline: "참여자가 몰리는 타이밍 게임",
               bg: "bg-gradient-to-br from-[#E8345A] to-[#9B3B6E]",
             },
+            {
+              name: "에어볼추첨기",
+              tagline: "추첨·경품 순간을 극적으로",
+              bg: "bg-gradient-to-br from-[#7A2F5A] to-[#2B2233]",
+            },
           ]}
         />
 
