@@ -16,6 +16,9 @@ body {
   color: var(--ink);
   background: #ffffff;
   -webkit-font-smoothing: antialiased;
+  /* 한글이 단어 중간에서 잘려 줄바꿈되는 것 방지 (띄어쓰기 단위로 줄바꿈) */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* iOS Safari는 16px 미만 입력칸을 탭하면 화면을 자동 확대함 → 모바일에서 16px로 고정해 방지.

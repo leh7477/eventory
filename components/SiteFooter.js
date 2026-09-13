@@ -5,7 +5,7 @@ export default function SiteFooter() {
     <footer className="border-t border-ink/10 bg-white text-ink/55">
       <div className="mx-auto max-w-[1440px] px-5 py-5">
         <div className="flex flex-col items-center gap-1.5 text-center sm:flex-row sm:items-baseline sm:justify-between sm:text-left">
-          <span className="font-logo text-lg font-extrabold tracking-tight text-ink">
+          <span className="shrink-0 whitespace-nowrap font-logo text-lg font-extrabold tracking-tight text-ink">
             EVENT LAND
           </span>
           <p className="text-xs text-ink/55">
