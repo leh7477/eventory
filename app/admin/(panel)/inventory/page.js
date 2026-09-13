@@ -63,7 +63,7 @@ create index if not exists idx_equipment_category on equipment (category);`}</pr
           <div className="mt-6">
             <h2 className="text-lg font-bold text-ink">기기 스케줄 현황</h2>
             <p className="mb-3 mt-1 text-sm text-ink/50">
-              기기별로 어떤 행사에 언제 나가는지 한눈에 봅니다. (설치~회수 기준)
+              기기별로 어떤 행사에 언제 나가는지 한눈에 봅니다. (납품~회수 기준)
             </p>
             <EquipmentBoard
               equipment={equipment ?? []}

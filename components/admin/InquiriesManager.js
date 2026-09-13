@@ -160,7 +160,7 @@ export default function InquiriesManager({
   const setAmt = (id, raw) =>
     setAmounts((a) => ({ ...a, [id]: raw.replace(/\D/g, "") }));
 
-  // 일정 등록 팝업 (설치/회수 일시 — 전날 설치 등 날짜 변경 가능)
+  // 일정 등록 팝업 (납품/회수 일시 — 전날 납품 등 날짜 변경 가능)
   const [scheduleFor, setScheduleFor] = useState(null); // 대상 문의 객체
   const [schStartDate, setSchStartDate] = useState("");
   const [schEndDate, setSchEndDate] = useState("");
@@ -971,7 +971,7 @@ export default function InquiriesManager({
 
             <div className="mt-5 space-y-4">
               <div>
-                <label className="mb-1 block text-xs font-bold text-blue-700">설치 일시</label>
+                <label className="mb-1 block text-xs font-bold text-blue-700">납품 일시</label>
                 <div className="space-y-1.5">
                   <DatePicker value={schStartDate} onChange={setSchStartDate} />
                   <TimeSelect value={schStart} onChange={setSchStart} />
@@ -1035,7 +1035,7 @@ export default function InquiriesManager({
               </div>
             </div>
             <p className="mt-2 text-[11px] text-ink/40">
-              전날 설치라면 설치 날짜를 바꿔주세요. 기기 배정은 선택이며 등록 후
+              전날 납품라면 납품 날짜를 바꿔주세요. 기기 배정은 선택이며 등록 후
               행사 일정에서 추가·수정할 수 있어요.
             </p>
 

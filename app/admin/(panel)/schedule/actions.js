@@ -24,7 +24,7 @@ export async function createSchedule({
 }) {
   await requireAdmin();
   if (!title?.trim()) return { error: "일정 제목을 입력하세요." };
-  if (!start_date) return { error: "설치 날짜를 선택하세요." };
+  if (!start_date) return { error: "납품 날짜를 선택하세요." };
   const admin = createAdminClient();
   const { error } = await admin.from("schedules").insert({
     title: title.trim(),
@@ -89,13 +89,13 @@ export async function updateTask(id, { date, start_time, end_time, title, memo }
   return { ok: true };
 }
 
-// 행사 기간 + 설치/회수 일시 수정 — 전날 설치 등 대응
+// 행사 기간 + 납품/회수 일시 수정 — 전날 납품 등 대응
 export async function updateScheduleDatetime(
   id,
   { event_start, event_end, start_date, end_date, start_time, end_time }
 ) {
   await requireAdmin();
-  if (!start_date) return { error: "설치 날짜를 선택하세요." };
+  if (!start_date) return { error: "납품 날짜를 선택하세요." };
   const admin = createAdminClient();
   const { error } = await admin
     .from("schedules")
@@ -114,7 +114,7 @@ export async function updateScheduleDatetime(
 }
 
 // 견적 문의 → 행사 픽스 시 일정 자동 등록
-// opts: 설치/회수 일시 { start_date, end_date, start_time, end_time } (날짜 미지정 시 행사 기간 사용)
+// opts: 납품/회수 일시 { start_date, end_date, start_time, end_time } (날짜 미지정 시 행사 기간 사용)
 export async function createScheduleFromInquiry(inquiryId, opts = {}) {
   const user = await requireAdmin();
   const admin = createAdminClient();

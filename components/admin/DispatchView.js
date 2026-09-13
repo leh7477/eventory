@@ -47,7 +47,7 @@ export default function DispatchView({ schedules = [], scheduleItems = [] }) {
     return m;
   }, [scheduleItems]);
 
-  // 이 달의 날짜별 설치/회수 스톱
+  // 이 달의 날짜별 납품/회수 스톱
   const { days, byDay } = useMemo(() => {
     const map = {};
     const push = (ev, type, date, time, seq) => {
@@ -139,7 +139,7 @@ export default function DispatchView({ schedules = [], scheduleItems = [] }) {
 
       {days.length === 0 ? (
         <p className="rounded-xl border border-ink/10 bg-white px-4 py-10 text-center text-sm text-ink/40">
-          이 달 배차(설치/회수)가 없습니다.
+          이 달 배차(납품/회수)가 없습니다.
         </p>
       ) : (
         <div ref={rowsRef} className="space-y-4">
@@ -221,7 +221,7 @@ export default function DispatchView({ schedules = [], scheduleItems = [] }) {
                                     : "bg-amber-100 text-amber-700"
                                 }`}
                               >
-                                {isInstall ? "설치/납품" : "회수"}
+                                {isInstall ? "납품" : "회수"}
                               </span>
                               {s.time && (
                                 <span

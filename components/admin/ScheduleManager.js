@@ -106,7 +106,7 @@ export default function ScheduleManager({
     return () => clearTimeout(t);
   }, [highlightId]);
 
-  // 일정별 행사 기간 + 설치/회수 일시 인라인 편집
+  // 일정별 행사 기간 + 납품/회수 일시 인라인 편집
   const [timeEditId, setTimeEditId] = useState(null);
   const [editEventStart, setEditEventStart] = useState("");
   const [editEventEnd, setEditEventEnd] = useState("");
@@ -168,7 +168,7 @@ export default function ScheduleManager({
 
   const isTask = (ev) => ev.kind === "task";
 
-  // 그날의 설치/회수 액션 + 장비 배치(설치~회수) 기간 여부 (행사 외 업무는 제외)
+  // 그날의 납품/회수 액션 + 장비 배치(납품~회수) 기간 여부 (행사 외 업무는 제외)
   const dayInfo = (ds) => ({
     installs: schedules.filter((ev) => !isTask(ev) && ev.start_date === ds),
     pickups: schedules.filter((ev) => !isTask(ev) && (ev.end_date || ev.start_date) === ds),
@@ -178,7 +178,7 @@ export default function ScheduleManager({
     ),
   });
 
-  // 오늘/내일 요약용 (설치/회수 발생 목록)
+  // 오늘/내일 요약용 (납품/회수 발생 목록)
   const tmr = new Date();
   tmr.setDate(tmr.getDate() + 1);
   const tomorrow = dstr(tmr.getFullYear(), tmr.getMonth(), tmr.getDate());
@@ -191,7 +191,7 @@ export default function ScheduleManager({
         return;
       }
       if (ev.start_date === ds)
-        list.push({ type: "설치", ev, time: hm(ev.start_time) });
+        list.push({ type: "납품", ev, time: hm(ev.start_time) });
       if ((ev.end_date || ev.start_date) === ds)
         list.push({ type: "회수", ev, time: hm(ev.end_time) });
     });
@@ -225,7 +225,7 @@ export default function ScheduleManager({
         </p>
         {list.length === 0 ? (
           <p className="px-4 py-5 text-center text-xs text-ink/35">
-            설치/회수 일정이 없습니다.
+            납품/회수 일정이 없습니다.
           </p>
         ) : (
           <ul className="divide-y divide-ink/5">
@@ -237,7 +237,7 @@ export default function ScheduleManager({
               >
                 <span
                   className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                    o.type === "설치"
+                    o.type === "납품"
                       ? "bg-blue-100 text-blue-700"
                       : o.type === "회수"
                       ? "bg-amber-100 text-amber-700"
@@ -249,7 +249,7 @@ export default function ScheduleManager({
                 {o.time && (
                   <span
                     className={`shrink-0 text-xs font-bold ${
-                      o.type === "설치"
+                      o.type === "납품"
                         ? "text-blue-700"
                         : o.type === "회수"
                         ? "text-amber-700"
@@ -341,7 +341,7 @@ export default function ScheduleManager({
           ))}
         </div>
 
-        {/* 액션 중심: 각 날짜에 그날의 설치/회수만 표시 */}
+        {/* 액션 중심: 각 날짜에 그날의 납품/회수만 표시 */}
         <div className="grid grid-cols-7">
           {cells.map((d, i) => {
             if (d === null)
@@ -381,11 +381,11 @@ export default function ScheduleManager({
                 <div
                   key={`${kind}-${ev.id}`}
                   onClick={() => focusEvent(ev)}
-                  title={`${kind === "install" ? "설치" : "회수"} · ${ev.title}${t ? ` ${t}` : ""}`}
+                  title={`${kind === "install" ? "납품" : "회수"} · ${ev.title}${t ? ` ${t}` : ""}`}
                   className={`flex cursor-pointer items-center gap-1 truncate rounded px-1 py-0.5 text-[10px] leading-tight ${cls}`}
                 >
                   <span className="shrink-0 font-bold">
-                    {kind === "install" ? "▶설치" : "◀회수"}
+                    {kind === "install" ? "▶납품" : "◀회수"}
                   </span>
                   {t && <span className="shrink-0 font-semibold">{t}</span>}
                   <span className="truncate">{ev.title}</span>
@@ -430,8 +430,8 @@ export default function ScheduleManager({
         {/* 범례 */}
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-ink/5 pt-3 text-[11px] text-ink/50">
           <span className="flex items-center gap-1.5">
-            <span className="rounded bg-blue-100 px-1 py-0.5 font-bold text-blue-800">▶설치</span>{" "}
-            설치 나가는 날
+            <span className="rounded bg-blue-100 px-1 py-0.5 font-bold text-blue-800">▶납품</span>{" "}
+            납품 나가는 날
           </span>
           <span className="flex items-center gap-1.5">
             <span className="rounded bg-amber-100 px-1 py-0.5 font-bold text-amber-800">◀회수</span>{" "}
@@ -683,7 +683,7 @@ export default function ScheduleManager({
                         </span>
                       )}
                       <span className="mt-0.5 block">
-                        <b className={past ? "text-ink/35" : "text-blue-700"}>설치</b>{" "}
+                        <b className={past ? "text-ink/35" : "text-blue-700"}>납품</b>{" "}
                         {ev.start_date}
                         {ev.start_time ? ` ${hm(ev.start_time)}` : ""}
                       </span>
@@ -898,7 +898,7 @@ export default function ScheduleManager({
                    </div>
                   </div>
 
-                  {/* 설치/회수 일시 인라인 편집 */}
+                  {/* 납품/회수 일시 인라인 편집 */}
                   {timeEditId === ev.id && (
                     <div className="space-y-2.5 border-t border-ink/5 bg-ink/[0.015] px-4 py-3">
                       <div className="flex flex-wrap items-center gap-2">
@@ -916,7 +916,7 @@ export default function ScheduleManager({
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="w-10 shrink-0 text-xs font-bold text-blue-700">설치</span>
+                        <span className="w-10 shrink-0 text-xs font-bold text-blue-700">납품</span>
                         <div className="w-36">
                           <DatePicker value={editStartDate} onChange={setEditStartDate} />
                         </div>

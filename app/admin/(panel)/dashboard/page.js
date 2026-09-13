@@ -8,13 +8,13 @@ const pad = (n) => String(n).padStart(2, "0");
 const ds = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const hm = (t) => (t ? String(t).slice(0, 5) : null);
 
-// 일정 → 설치/회수 발생일로 분리
-// 설치 = 시작일(시작 시간), 회수 = 종료일(종료 시간)
+// 일정 → 납품/회수 발생일로 분리
+// 납품 = 시작일(시작 시간), 회수 = 종료일(종료 시간)
 function toOccurrences(schedules) {
   const occ = [];
   schedules.forEach((ev) => {
     const end = ev.end_date || ev.start_date;
-    occ.push({ type: "설치", date: ev.start_date, time: hm(ev.start_time), ev });
+    occ.push({ type: "납품", date: ev.start_date, time: hm(ev.start_time), ev });
     occ.push({ type: "회수", date: end, time: hm(ev.end_time), ev });
   });
   occ.sort(
@@ -27,13 +27,13 @@ function toOccurrences(schedules) {
 
 function OccurrenceItem({ o, showDate }) {
   const badge =
-    o.type === "설치"
+    o.type === "납품"
       ? "bg-blue-100 text-blue-700"
       : o.type === "회수"
       ? "bg-amber-100 text-amber-700"
       : "bg-slate-200 text-slate-700";
   const timeColor =
-    o.type === "설치"
+    o.type === "납품"
       ? "text-blue-700"
       : o.type === "회수"
       ? "text-amber-700"
@@ -99,7 +99,7 @@ export default async function DashboardPage() {
   const schedules = schRes.data ?? [];
   const isTask = (ev) => ev.kind === "task";
 
-  // 행사(설치/회수 발생) + 업무를 하나로 합쳐 날짜별 · 시간순
+  // 행사(납품/회수 발생) + 업무를 하나로 합쳐 날짜별 · 시간순
   const eventOcc = toOccurrences(schedules.filter((ev) => !isTask(ev)));
   const taskOcc = schedules
     .filter((ev) => isTask(ev))

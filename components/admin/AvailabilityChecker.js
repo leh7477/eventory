@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { availableFor, matchCategory } from "@/lib/inventory";
 
 // 견적 전달 전 재고 확인 (읽기 전용) — 확정된 일정 예약분과 대조
-// 점유 기준은 설치~회수지만, 견적 단계에선 행사 날짜로 미리 가늠
+// 점유 기준은 납품~회수지만, 견적 단계에선 행사 날짜로 미리 가늠
 export default function AvailabilityChecker({
   totals = {},
   categories = [],

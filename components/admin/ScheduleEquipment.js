@@ -8,7 +8,7 @@ import {
   removeScheduleItem,
 } from "@/app/admin/(panel)/schedule/actions";
 
-// 한 일정(설치~회수)에 대한 기기 배정 패널
+// 한 일정(납품~회수)에 대한 기기 배정 패널
 export default function ScheduleEquipment({
   schedule,
   totals = {},

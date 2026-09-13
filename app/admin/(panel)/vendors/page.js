@@ -19,7 +19,7 @@ export default async function AdminVendorsPage() {
     devCount[it.schedule_id] = (devCount[it.schedule_id] || 0) + (Number(it.quantity) || 0);
 
   // 거래처별 발주 상세 (출력물 발주 단계≥1) — { month, date, title, count }
-  // 발주 월 = 출력물 발주 체크시각(stage_dates["1"]) 기준, 없으면 설치일 기준
+  // 발주 월 = 출력물 발주 체크시각(stage_dates["1"]) 기준, 없으면 납품일 기준
   const ordersByVendor = {};
   for (const s of scheds ?? []) {
     if (!s.vendor || (s.stage || 0) < 1) continue;

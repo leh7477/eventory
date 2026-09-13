@@ -180,7 +180,7 @@ export default function EquipmentBoard({ equipment = [], schedules = [], schedul
       )}
 
       <p className="mt-2 text-xs text-ink/40">
-        색 막대 = 배정된 행사(설치~회수). 빗금 = 정비일(회수 다음날, 재고 불가). 빈 칸 = 가용.
+        색 막대 = 배정된 행사(납품~회수). 빗금 = 정비일(회수 다음날, 재고 불가). 빈 칸 = 가용.
       </p>
     </div>
   );
