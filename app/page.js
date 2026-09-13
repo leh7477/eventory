@@ -6,6 +6,7 @@ import ShortsRow from "@/components/ShortsRow";
 import CaseGallery from "@/components/CaseGallery";
 import CategoryShowcase from "@/components/CategoryShowcase";
 import CategoryGrid from "@/components/CategoryGrid";
+import HomeFeature from "@/components/HomeFeature";
 import Reveal from "@/components/Reveal";
 import { normalizeCases } from "@/lib/samples";
 import { SITE } from "@/lib/constants";
@@ -80,6 +81,22 @@ export default async function Home() {
             subtitle: settings.hero_subtitle,
             sublist: settings.hero_sublist,
           }}
+        />
+
+        {/* 대표 장비 큰 카드 2개 (히어로 바로 아래) */}
+        <HomeFeature
+          items={[
+            {
+              name: "가챠머신",
+              tagline: "포토·경품 이벤트의 필수 장비",
+              bg: "bg-gradient-to-br from-[#FF7A59] to-[#FF4D8D]",
+            },
+            {
+              name: "스톱워치",
+              tagline: "참여자가 몰리는 타이밍 게임",
+              bg: "bg-gradient-to-br from-[#E8345A] to-[#9B3B6E]",
+            },
+          ]}
         />
 
         {/* 인트로 (히어로 다음, 스크롤하면 처음 만나는 소개 블록) */}
