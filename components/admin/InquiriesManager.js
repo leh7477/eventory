@@ -180,7 +180,7 @@ export default function InquiriesManager({
     setSchStart("");
     setSchEnd("");
     setSchCategory(matchCategory(q.product, equipmentCategories));
-    setSchQty("1");
+    setSchQty(String(parseQty(q.product) || 1)); // 문의 수량 자동 (예: 2대)
     setScheduleFor(q);
   };
 
