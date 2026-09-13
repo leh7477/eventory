@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import StatsYearList from "@/components/admin/StatsYearList";
 import SettlementManager from "@/components/admin/SettlementManager";
+import SalesTabs from "@/components/admin/SalesTabs";
 import { kstParts } from "@/lib/date";
 
 export const revalidate = 0;
@@ -83,8 +84,15 @@ export default async function AdminStatsPage({ searchParams }) {
         계약 금액(수주 기준) 통계와, 계산서 발행·입금(실입금·미수금) 정산을 함께 관리합니다.
       </p>
 
+      <div className="mt-5">
+      <SalesTabs tabs={["정산", "통계"]}>
+        {/* 정산 (먼저) */}
+        <SettlementManager deals={deals} />
+
+        {/* 통계 */}
+        <div>
       {/* 실입금 / 미수금 누계 */}
-      <div className="mt-5 grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <div className="rounded-2xl border border-ink/10 bg-white p-4">
           <p className="text-xs text-ink/50">계약 누계</p>
           <p className="mt-1 text-lg font-extrabold text-ink">₩ {won(totalContract)}</p>
@@ -196,10 +204,8 @@ export default async function AdminStatsPage({ searchParams }) {
           />
         </div>
       )}
-
-      {/* 정산 목록 */}
-      <div className="mt-6">
-        <SettlementManager deals={deals} />
+        </div>
+      </SalesTabs>
       </div>
     </div>
   );

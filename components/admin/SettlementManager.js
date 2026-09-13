@@ -28,10 +28,18 @@ function todayStr() {
   const p = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
+function shiftMonth(ym, delta) {
+  const [y, m] = ym.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+const monthOf = (d) => (d.event_start || d.created_at || "").slice(0, 7);
 
 export default function SettlementManager({ deals }) {
   const router = useRouter();
   const [filter, setFilter] = useState("all");
+  const [month, setMonth] = useState(todayStr().slice(0, 7));
+  const [allMonths, setAllMonths] = useState(false);
   const [pending, startTransition] = useTransition();
   const [openInvoice, setOpenInvoice] = useState(null);
   const [openPay, setOpenPay] = useState(null);
@@ -62,23 +70,75 @@ export default function SettlementManager({ deals }) {
       }
     });
 
+  const monthDeals = useMemo(
+    () => (allMonths ? deals : deals.filter((d) => monthOf(d) === month)),
+    [deals, allMonths, month]
+  );
   const filtered = useMemo(
-    () => (filter === "all" ? deals : deals.filter((d) => statusOf(d) === filter)),
-    [deals, filter]
+    () => (filter === "all" ? monthDeals : monthDeals.filter((d) => statusOf(d) === filter)),
+    [monthDeals, filter]
   );
   const counts = useMemo(() => {
-    const c = { all: deals.length, no_invoice: 0, unpaid: 0, done: 0 };
-    for (const d of deals) c[statusOf(d)]++;
+    const c = { all: monthDeals.length, no_invoice: 0, unpaid: 0, done: 0 };
+    for (const d of monthDeals) c[statusOf(d)]++;
     return c;
-  }, [deals]);
+  }, [monthDeals]);
+  const sum = useMemo(() => {
+    let contract = 0, paid = 0, vat = 0;
+    for (const d of monthDeals) {
+      contract += Number(d.contract_amount) || 0;
+      paid += Number(d.paid_amount) || 0;
+      vat += vatTotalOf(d);
+    }
+    return { contract, paid, vat, unpaid: vat - paid };
+  }, [monthDeals]);
 
   const label = (d) =>
     [d.company_name || d.contact_name || d.name || "고객", d.product].filter(Boolean).join(" · ");
 
   return (
     <div className="rounded-2xl border border-ink/10 bg-white p-5">
+      {/* 월 네비 */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <p className="mr-1 text-sm font-bold text-ink">정산 목록</p>
+        <button
+          type="button"
+          disabled={allMonths}
+          onClick={() => setMonth((m) => shiftMonth(m, -1))}
+          className="flex h-7 w-7 items-center justify-center rounded-md text-ink/60 hover:bg-ink/5 disabled:opacity-30"
+        >
+          ‹
+        </button>
+        <span className={`text-sm font-bold ${allMonths ? "text-ink/30" : "text-ink"}`}>
+          {month.replace("-", ". ")}
+        </span>
+        <button
+          type="button"
+          disabled={allMonths}
+          onClick={() => setMonth((m) => shiftMonth(m, 1))}
+          className="flex h-7 w-7 items-center justify-center rounded-md text-ink/60 hover:bg-ink/5 disabled:opacity-30"
+        >
+          ›
+        </button>
+        <button
+          type="button"
+          onClick={() => setAllMonths((v) => !v)}
+          className={`rounded-md px-2.5 py-1 text-xs font-bold ${
+            allMonths ? "bg-ink text-white" : "border border-ink/15 text-ink/60 hover:bg-ink/5"
+          }`}
+        >
+          전체
+        </button>
+        {/* 이 범위 합계 */}
+        <span className="ml-auto text-xs text-ink/50">
+          계약 <b className="text-ink">₩{won(sum.contract)}</b> · 실입금{" "}
+          <b className="text-green-700">₩{won(sum.paid)}</b> · 미수{" "}
+          <b className={sum.unpaid > 0 ? "text-red-600" : "text-ink/50"}>₩{won(sum.unpaid)}</b>
+        </span>
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-bold text-ink">정산 목록</p>
+        <span className="text-xs text-ink/40">{allMonths ? "전체 기간" : `${month.replace("-", ". ")} 기준`}</span>
         <div className="flex gap-1">
           {FILTERS.map((f) => (
             <button
