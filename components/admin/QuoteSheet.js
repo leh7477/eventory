@@ -80,7 +80,8 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   };
   const initRegion = guessRegion();
   const initS = shippingRates.find((x) => x.region === initRegion);
-  const initMethod = initS && initS.direct_fee != null ? "direct" : "quick";
+  // 기본은 '직접' (해당 지역에 직접가가 없을 때만 퀵)
+  const initMethod = initS && initS.direct_fee == null ? "quick" : "direct";
   const initFee = initS ? (initMethod === "quick" ? initS.quick_fee : initS.direct_fee) : null;
 
   const [shipping, setShipping] = useState(initFee != null ? String(initFee) : ""); // 배송비
