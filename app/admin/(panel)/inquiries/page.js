@@ -34,7 +34,7 @@ export default async function AdminInquiriesPage() {
   return (
     <div className="max-w-3xl">
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold text-ink">견적 문의</h1>
+        <h1 className="text-2xl font-bold text-ink">견적 관리</h1>
         {unread > 0 && (
           <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-bold text-white">
             미확인 {unread}
