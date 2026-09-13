@@ -61,6 +61,7 @@ export default function SettlementManager({ deals }) {
   const [pending, startTransition] = useTransition();
   const [openInvoice, setOpenInvoice] = useState(null);
   const [openPay, setOpenPay] = useState(null);
+  const [openMemo, setOpenMemo] = useState(null);
   const [rows, setRows] = useState(() =>
     Object.fromEntries(
       deals.map((d) => [
@@ -69,6 +70,7 @@ export default function SettlementManager({ deals }) {
           invoice_date: d.invoice_date || "",
           paid_date: d.paid_date || "",
           paid_amount: d.paid_amount != null ? String(d.paid_amount) : "",
+          settle_memo: d.settle_memo || "",
         },
       ])
     )
@@ -89,6 +91,7 @@ export default function SettlementManager({ deals }) {
         if ("invoice_date" in fields) cur.invoice_date = fields.invoice_date || "";
         if ("paid_date" in fields) cur.paid_date = fields.paid_date || "";
         if ("paid_amount" in fields) cur.paid_amount = fields.paid_amount ? String(fields.paid_amount) : "";
+        if ("settle_memo" in fields) cur.settle_memo = fields.settle_memo || "";
         return { ...r, [d.id]: cur };
       });
       after?.();
@@ -130,7 +133,7 @@ export default function SettlementManager({ deals }) {
   const exportCSV = () => {
     const head = [
       "업체명", "담당자", "연락처", "행사일", "견적(공급가)", "청구(VAT포함)",
-      "실입금", "미수금", "계산서발행일", "계산서처리", "입금일", "입금액", "입금처리", "상태",
+      "실입금", "미수금", "계산서발행일", "계산서처리", "입금일", "입금액", "입금처리", "상태", "비고",
     ];
     const body = filtered.map((d) => {
       const vat = vatTotalOf(d);
@@ -143,6 +146,7 @@ export default function SettlementManager({ deals }) {
         d.paid_date || "", paid,
         [d.paid_by, d.paid_at ? fmtStamp(d.paid_at) : ""].filter(Boolean).join(" "),
         ST[statusOf(d)]?.label || "",
+        d.settle_memo || "",
       ];
     });
     const esc = (v) => {
@@ -350,6 +354,46 @@ export default function SettlementManager({ deals }) {
                     {d.paid_date ? "입금 수정" : "입금 확인"}
                   </button>
                 </div>
+
+                {/* 비고 */}
+                {openMemo === d.id ? (
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <input
+                      value={r.settle_memo}
+                      onChange={(e) => setField(d.id, "settle_memo", e.target.value)}
+                      placeholder="정산 비고 (예: 세금계산서 이메일 발송, 카드결제 등)"
+                      className="flex-1 rounded-md border border-ink/15 px-2 py-1 text-xs outline-none focus:border-primary"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => commit(d, { settle_memo: r.settle_memo }, () => setOpenMemo(null))}
+                      className="rounded-md bg-ink px-2.5 py-1 text-xs font-bold text-white"
+                    >
+                      저장
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOpenMemo(null)}
+                      className="rounded-md border border-ink/15 px-2 py-1 text-xs text-ink/50"
+                    >
+                      취소
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setField(d.id, "settle_memo", d.settle_memo || "");
+                      setOpenMemo(d.id);
+                    }}
+                    className="mt-2 block w-full rounded-md bg-ink/[0.03] px-2 py-1 text-left text-xs text-ink/70 hover:bg-ink/[0.06]"
+                  >
+                    <span className="font-bold text-ink/50">비고</span>{" "}
+                    {d.settle_memo || <span className="text-ink/35">(클릭해 입력)</span>}
+                  </button>
+                )}
 
                 {/* 계산서 발행 팝오버 */}
                 {openInvoice === d.id && (

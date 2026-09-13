@@ -28,6 +28,9 @@ export async function updateSettlement(id, fields = {}) {
     const digits = String(fields.paid_amount ?? "").replace(/\D/g, "");
     update.paid_amount = digits === "" ? null : parseInt(digits, 10);
   }
+  if ("settle_memo" in fields) {
+    update.settle_memo = (fields.settle_memo ?? "").trim() || null;
+  }
   if ("paid_date" in fields) {
     update.paid_date = fields.paid_date || null;
     if (fields.paid_date) {

@@ -307,3 +307,6 @@ alter table inquiries add column if not exists invoice_by text;
 alter table inquiries add column if not exists invoice_at timestamptz;
 alter table inquiries add column if not exists paid_by text;
 alter table inquiries add column if not exists paid_at timestamptz;
+
+-- 정산 비고
+alter table inquiries add column if not exists settle_memo text;
