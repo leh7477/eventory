@@ -82,13 +82,13 @@ export default function HomeFeature({ items = [] }) {
                 <div className="mt-6 flex flex-wrap items-center gap-3">
                   <Link
                     href="/contact"
-                    className="min-w-[150px] rounded-full bg-white/95 px-8 py-3.5 text-center text-sm font-bold text-ink shadow transition hover:bg-white active:scale-[0.98]"
+                    className="min-w-[150px] rounded-full bg-[#3457dc] px-8 py-3.5 text-center text-sm font-bold text-white shadow transition hover:bg-[#2b48c0] active:scale-[0.98]"
                   >
                     견적문의
                   </Link>
                   <a
                     href={`tel:${SITE.phone}`}
-                    className="min-w-[150px] rounded-full border border-white/70 bg-white/10 px-8 py-3.5 text-center text-sm font-bold text-white backdrop-blur transition hover:bg-white/20 active:scale-[0.98]"
+                    className="min-w-[150px] rounded-full bg-white px-8 py-3.5 text-center text-sm font-bold text-ink shadow transition hover:bg-white/90 active:scale-[0.98]"
                   >
                     전화문의
                   </a>
