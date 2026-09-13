@@ -183,7 +183,7 @@ export default function QuoteSheet({ inquiry }) {
           </div>
 
           <div className="rounded-lg border border-ink/10 p-4">
-            <p className="font-logo text-lg font-extrabold text-ink">EVENT LAND</p>
+            <p className="font-tesla text-base font-semibold tracking-[0.28em] text-ink">EVENT LAND</p>
             <table className="mt-2 w-full">
               <tbody>
                 <tr>
@@ -363,7 +363,7 @@ export default function QuoteSheet({ inquiry }) {
         <p className="mt-10 text-center text-sm text-ink/60">
           위와 같이 견적합니다.
         </p>
-        <p className="mt-2 text-center font-logo text-xl font-extrabold text-ink">
+        <p className="mt-2 text-center font-tesla text-lg font-semibold tracking-[0.3em] text-ink">
           EVENT LAND
         </p>
       </div>
