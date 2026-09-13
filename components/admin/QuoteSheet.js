@@ -262,7 +262,7 @@ export default function QuoteSheet({ inquiry }) {
                   )}
                 </td>
                 <td className="py-2 text-right font-medium text-ink">
-                  {r.service ? <span className="text-primary">서비스</span> : won(amounts[i])}
+                  {r.service ? <span className="text-ink">서비스</span> : won(amounts[i])}
                 </td>
                 <td className="print-hide py-2 text-center">
                   <div className="flex items-center justify-center gap-1.5">
