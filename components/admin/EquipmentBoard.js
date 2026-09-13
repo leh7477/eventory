@@ -84,7 +84,7 @@ export default function EquipmentBoard({ equipment = [], schedules = [], schedul
     return out;
   }, [cats, scheduleItems, schedById]);
 
-  // 이 달의 날짜들
+  // 이 달의 날짜들 (+ 다음 달로 넘어가는 예약/정비만큼 앞부분 칸 추가)
   const days = useMemo(() => {
     const last = new Date(view.y, view.m + 1, 0).getDate();
     const arr = [];
@@ -92,8 +92,29 @@ export default function EquipmentBoard({ equipment = [], schedules = [], schedul
       const date = new Date(view.y, view.m, d);
       arr.push({ d, dow: date.getDay(), key: ymd(view.y, view.m, d) });
     }
+    // 이 달에 걸치는 예약 중, 회수+정비일이 다음 달로 넘어가면 그만큼 칸 이어붙임
+    const monthFirst = ymd(view.y, view.m, 1);
+    const monthLast = ymd(view.y, view.m, last);
+    let maxEnd = "";
+    for (const it of scheduleItems) {
+      const s = schedById[it.schedule_id];
+      if (!s) continue;
+      const start = s.start_date;
+      const bufEnd = addDays(s.end_date || s.start_date, MAINT_BUFFER_DAYS); // 정비일 포함
+      if (start && start <= monthLast && bufEnd >= monthFirst && bufEnd > maxEnd) maxEnd = bufEnd;
+    }
+    if (maxEnd > monthLast) {
+      let cur = addDays(monthLast, 1);
+      let guard = 0;
+      while (cur <= maxEnd && guard < 15) {
+        const [yy, mm, dd] = cur.split("-").map(Number);
+        arr.push({ d: dd, dow: new Date(yy, mm - 1, dd).getDay(), key: cur, spill: true, m: mm });
+        cur = addDays(cur, 1);
+        guard++;
+      }
+    }
     return arr;
-  }, [view]);
+  }, [view, scheduleItems, schedById]);
 
   const totalUnits = equipment.filter((e) => e.active).length;
 
@@ -150,14 +171,20 @@ export default function EquipmentBoard({ equipment = [], schedules = [], schedul
                 <th className="sticky left-0 z-10 min-w-[92px] border-b border-r border-ink/10 bg-ink/[0.03] px-2 py-1.5 text-left font-bold text-ink/70">
                   기기 / 날짜
                 </th>
-                {days.map((dy) => (
+                {days.map((dy, di) => (
                   <th
                     key={dy.key}
-                    className={`min-w-[26px] border-b border-ink/10 px-0 py-1 text-center font-medium ${
+                    className={`min-w-[26px] border-b px-0 py-1 text-center font-medium ${
+                      dy.spill ? "bg-ink/[0.04] border-ink/10" : "border-ink/10"
+                    } ${
+                      dy.spill && (di === 0 || !days[di - 1]?.spill) ? "border-l-2 border-l-ink/25" : ""
+                    } ${
                       dy.dow === 0 ? "text-red-500" : dy.dow === 6 ? "text-blue-500" : "text-ink/50"
                     }`}
                   >
-                    <div>{dy.d}</div>
+                    <div>
+                      {dy.spill && dy.d === 1 ? `${dy.m}/1` : dy.d}
+                    </div>
                     <div className="text-[9px] text-ink/35">{WEEK[dy.dow]}</div>
                   </th>
                 ))}
@@ -221,7 +248,9 @@ function FragmentRows({ cat, units, rows, days, bookingOn }) {
                     ? "정비 (회수 다음날 · 재고 불가)"
                     : ""
                 }
-                className="relative border-b border-ink/5 p-0"
+                className={`relative border-b border-ink/5 p-0 ${
+                  dy.spill && (di === 0 || !days[di - 1]?.spill) ? "border-l-2 border-l-ink/25" : ""
+                }`}
                 style={{
                   background: b
                     ? colorFor(b.id)
