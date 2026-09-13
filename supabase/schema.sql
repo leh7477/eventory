@@ -296,3 +296,8 @@ alter table schedules add column if not exists pickup_seq int;    -- 회수일 �
 
 -- 배차 비고 (현장/운행 비고, 특이사항과 별개)
 alter table schedules add column if not exists remark text;
+
+-- 정산: 계산서 발행일 / 입금일 / 실입금액
+alter table inquiries add column if not exists invoice_date date;   -- 계산서 발행일
+alter table inquiries add column if not exists paid_date date;      -- 입금일
+alter table inquiries add column if not exists paid_amount bigint;  -- 실제 입금액

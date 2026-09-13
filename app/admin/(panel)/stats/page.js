@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import StatsYearList from "@/components/admin/StatsYearList";
+import SettlementManager from "@/components/admin/SettlementManager";
 import { kstParts } from "@/lib/date";
 
 export const revalidate = 0;
@@ -13,12 +14,20 @@ export default async function AdminStatsPage({ searchParams }) {
   const admin = createAdminClient();
   const { data } = await admin
     .from("inquiries")
-    .select("status, contract_amount, event_start, created_at")
-    .in("status", ["confirmed", "done"]);
+    .select(
+      "id, status, company_name, contact_name, name, product, contract_amount, quoted_amount, invoice_date, paid_date, paid_amount, event_start, created_at"
+    )
+    .in("status", ["confirmed", "done"])
+    .order("event_start", { ascending: false });
 
   const deals = (data ?? []).filter(
     (d) => d.contract_amount && d.contract_amount > 0
   );
+
+  // 실입금 / 미수금 누계
+  const totalContract = deals.reduce((s, d) => s + (Number(d.contract_amount) || 0), 0);
+  const totalPaid = deals.reduce((s, d) => s + (Number(d.paid_amount) || 0), 0);
+  const totalUnpaid = totalContract - totalPaid;
 
   const byYear = {};
   const countByYear = {};
@@ -69,10 +78,28 @@ export default async function AdminStatsPage({ searchParams }) {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold text-ink">매출 통계</h1>
+      <h1 className="text-2xl font-bold text-ink">매출 관리</h1>
       <p className="mt-1 text-sm text-ink/50">
-        확정 문의에 입력된 계약 금액(공급가액·부가세 별도)을 행사 연도 기준으로 집계합니다.
+        계약 금액(수주 기준) 통계와, 계산서 발행·입금(실입금·미수금) 정산을 함께 관리합니다.
       </p>
+
+      {/* 실입금 / 미수금 누계 */}
+      <div className="mt-5 grid grid-cols-3 gap-3">
+        <div className="rounded-2xl border border-ink/10 bg-white p-4">
+          <p className="text-xs text-ink/50">계약 누계</p>
+          <p className="mt-1 text-lg font-extrabold text-ink">₩ {won(totalContract)}</p>
+        </div>
+        <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
+          <p className="text-xs text-green-700/70">실입금 누계</p>
+          <p className="mt-1 text-lg font-extrabold text-green-700">₩ {won(totalPaid)}</p>
+        </div>
+        <div className={`rounded-2xl border p-4 ${totalUnpaid > 0 ? "border-red-200 bg-red-50" : "border-ink/10 bg-white"}`}>
+          <p className={`text-xs ${totalUnpaid > 0 ? "text-red-600/70" : "text-ink/50"}`}>미수금</p>
+          <p className={`mt-1 text-lg font-extrabold ${totalUnpaid > 0 ? "text-red-600" : "text-ink"}`}>
+            ₩ {won(totalUnpaid)}
+          </p>
+        </div>
+      </div>
 
       {/* 요약 카드 */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -169,6 +196,11 @@ export default async function AdminStatsPage({ searchParams }) {
           />
         </div>
       )}
+
+      {/* 정산 목록 */}
+      <div className="mt-6">
+        <SettlementManager deals={deals} />
+      </div>
     </div>
   );
 }
