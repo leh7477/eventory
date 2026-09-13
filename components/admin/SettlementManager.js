@@ -59,7 +59,7 @@ export default function SettlementManager({ deals }) {
   const [month, setMonth] = useState(todayStr().slice(0, 7));
   const [allMonths, setAllMonths] = useState(false);
   const [query, setQuery] = useState("");
-  const [visible, setVisible] = useState(PAGE_SIZE);
+  const [page, setPage] = useState(1);
   const [pending, startTransition] = useTransition();
   const [openInvoice, setOpenInvoice] = useState(null);
   const [openPay, setOpenPay] = useState(null);
@@ -129,10 +129,17 @@ export default function SettlementManager({ deals }) {
     return { contract, paid, vat, unpaid: vat - paid };
   }, [monthDeals]);
 
-  // 필터/월/검색 바뀌면 표시 개수 초기화
+  // 필터/월/검색 바뀌면 첫 페이지로
   useEffect(() => {
-    setVisible(PAGE_SIZE);
+    setPage(1);
   }, [month, allMonths, filter, q]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const curPage = Math.min(page, totalPages);
+  const paged = filtered.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+  const pageNums = [];
+  for (let i = Math.max(1, curPage - 2); i <= Math.min(totalPages, curPage + 2); i++)
+    pageNums.push(i);
 
   const label = (d) =>
     [d.company_name || d.contact_name || d.name || "고객", d.product].filter(Boolean).join(" · ");
@@ -256,7 +263,7 @@ export default function SettlementManager({ deals }) {
         <p className="py-8 text-center text-sm text-ink/40">해당 건이 없습니다.</p>
       ) : (
         <ul className="mt-4 space-y-3">
-          {filtered.slice(0, visible).map((d) => {
+          {paged.map((d) => {
             const r = rows[d.id];
             const vat = vatTotalOf(d);
             const paidSaved = Number(d.paid_amount) || 0;
@@ -497,14 +504,39 @@ export default function SettlementManager({ deals }) {
         </ul>
       )}
 
-      {filtered.length > visible && (
-        <button
-          type="button"
-          onClick={() => setVisible((v) => v + PAGE_SIZE)}
-          className="mt-3 w-full rounded-lg border border-dashed border-ink/20 py-2.5 text-sm font-medium text-ink/60 hover:bg-ink/[0.02]"
-        >
-          더 보기 ({visible} / {filtered.length}건)
-        </button>
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-center gap-1.5">
+          <button
+            type="button"
+            disabled={curPage === 1}
+            onClick={() => setPage(curPage - 1)}
+            className="flex h-8 min-w-8 items-center justify-center rounded-md border border-ink/15 text-sm text-ink/70 hover:bg-ink/5 disabled:opacity-30"
+          >
+            ‹
+          </button>
+          {pageNums.map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setPage(n)}
+              className={`flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-sm ${
+                n === curPage
+                  ? "bg-ink font-bold text-white"
+                  : "border border-ink/15 text-ink/70 hover:bg-ink/5"
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+          <button
+            type="button"
+            disabled={curPage === totalPages}
+            onClick={() => setPage(curPage + 1)}
+            className="flex h-8 min-w-8 items-center justify-center rounded-md border border-ink/15 text-sm text-ink/70 hover:bg-ink/5 disabled:opacity-30"
+          >
+            ›
+          </button>
+        </div>
       )}
     </div>
   );
