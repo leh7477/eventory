@@ -50,7 +50,7 @@ export default function SettlementManager({ deals }) {
         {
           invoice_date: d.invoice_date || "",
           paid_date: d.paid_date || "",
-          paid_amount: d.paid_amount != null ? String(d.paid_amount) : String(vatTotalOf(d)),
+          paid_amount: d.paid_amount != null ? String(d.paid_amount) : "",
         },
       ])
     )
@@ -58,16 +58,23 @@ export default function SettlementManager({ deals }) {
 
   const setField = (id, k, v) => setRows((r) => ({ ...r, [id]: { ...r[id], [k]: v } }));
 
-  const save = (d, after, override) =>
+  // 전달된 항목만 저장 (계산서 / 입금 각각 독립)
+  const commit = (d, fields, after) =>
     startTransition(async () => {
-      const payload = { ...rows[d.id], ...(override || {}) };
-      const res = await updateSettlement(d.id, payload);
-      if (res?.error) alert(res.error);
-      else {
-        if (override) setRows((r) => ({ ...r, [d.id]: { ...r[d.id], ...override } }));
-        after?.();
-        router.refresh();
+      const res = await updateSettlement(d.id, fields);
+      if (res?.error) {
+        alert(res.error);
+        return;
       }
+      setRows((r) => {
+        const cur = { ...r[d.id] };
+        if ("invoice_date" in fields) cur.invoice_date = fields.invoice_date || "";
+        if ("paid_date" in fields) cur.paid_date = fields.paid_date || "";
+        if ("paid_amount" in fields) cur.paid_amount = fields.paid_amount ? String(fields.paid_amount) : "";
+        return { ...r, [d.id]: cur };
+      });
+      after?.();
+      router.refresh();
     });
 
   const monthDeals = useMemo(
@@ -269,7 +276,7 @@ export default function SettlementManager({ deals }) {
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => save(d, () => setOpenInvoice(null))}
+                        onClick={() => commit(d, { invoice_date: r.invoice_date }, () => setOpenInvoice(null))}
                         className="rounded-md bg-ink px-3 py-1.5 text-xs font-bold text-white hover:bg-black"
                       >
                         저장
@@ -278,7 +285,7 @@ export default function SettlementManager({ deals }) {
                         <button
                           type="button"
                           disabled={pending}
-                          onClick={() => save(d, () => setOpenInvoice(null), { invoice_date: "" })}
+                          onClick={() => commit(d, { invoice_date: null }, () => setOpenInvoice(null))}
                           className="rounded-md border border-ink/15 px-2.5 py-1.5 text-xs text-ink/50 hover:bg-ink/5"
                         >
                           발행 취소
@@ -326,7 +333,7 @@ export default function SettlementManager({ deals }) {
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => save(d, () => setOpenPay(null))}
+                        onClick={() => commit(d, { paid_date: r.paid_date, paid_amount: r.paid_amount }, () => setOpenPay(null))}
                         className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700"
                       >
                         확인
@@ -335,7 +342,7 @@ export default function SettlementManager({ deals }) {
                         <button
                           type="button"
                           disabled={pending}
-                          onClick={() => save(d, () => setOpenPay(null), { paid_date: "", paid_amount: "" })}
+                          onClick={() => commit(d, { paid_date: null, paid_amount: null }, () => setOpenPay(null))}
                           className="rounded-md border border-ink/15 px-2.5 py-1.5 text-xs text-ink/50 hover:bg-ink/5"
                         >
                           입금 취소
