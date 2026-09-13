@@ -36,9 +36,9 @@ export default async function RatesPage() {
         </p>
       ) : (
         <div className="mt-5">
-          <SalesTabs tabs={["배송료", "대여 단가"]} initial={0}>
-            <ShippingRateManager rows={shipping} />
+          <SalesTabs tabs={["대여 단가", "배송료"]} initial={0}>
             <RentalRateManager rows={rental} categories={categories} />
+            <ShippingRateManager rows={shipping} />
           </SalesTabs>
         </div>
       )}
