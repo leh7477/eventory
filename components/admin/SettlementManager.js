@@ -294,6 +294,46 @@ export default function SettlementManager({ deals }) {
                   </div>
                 </div>
 
+                {/* 비고 */}
+                {openMemo === d.id ? (
+                  <div className="mb-2 flex items-center gap-1.5">
+                    <input
+                      value={r.settle_memo}
+                      onChange={(e) => setField(d.id, "settle_memo", e.target.value)}
+                      placeholder="정산 비고 (예: 세금계산서 이메일 발송, 카드결제 등)"
+                      className="flex-1 rounded-md border border-ink/15 px-2 py-1 text-xs outline-none focus:border-primary"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => commit(d, { settle_memo: r.settle_memo }, () => setOpenMemo(null))}
+                      className="rounded-md bg-ink px-2.5 py-1 text-xs font-bold text-white"
+                    >
+                      저장
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOpenMemo(null)}
+                      className="rounded-md border border-ink/15 px-2 py-1 text-xs text-ink/50"
+                    >
+                      취소
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setField(d.id, "settle_memo", d.settle_memo || "");
+                      setOpenMemo(d.id);
+                    }}
+                    className="mb-2 block w-full rounded-md bg-ink/[0.03] px-2 py-1 text-left text-xs text-ink/70 hover:bg-ink/[0.06]"
+                  >
+                    <span className="font-bold text-ink/50">비고</span>{" "}
+                    {d.settle_memo || <span className="text-ink/35">(클릭해 입력)</span>}
+                  </button>
+                )}
+
                 {/* 계산서 발행 */}
                 <div className="flex flex-wrap items-center gap-2">
                   {d.invoice_date ? (
@@ -354,46 +394,6 @@ export default function SettlementManager({ deals }) {
                     {d.paid_date ? "입금 수정" : "입금 확인"}
                   </button>
                 </div>
-
-                {/* 비고 */}
-                {openMemo === d.id ? (
-                  <div className="mt-2 flex items-center gap-1.5">
-                    <input
-                      value={r.settle_memo}
-                      onChange={(e) => setField(d.id, "settle_memo", e.target.value)}
-                      placeholder="정산 비고 (예: 세금계산서 이메일 발송, 카드결제 등)"
-                      className="flex-1 rounded-md border border-ink/15 px-2 py-1 text-xs outline-none focus:border-primary"
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      disabled={pending}
-                      onClick={() => commit(d, { settle_memo: r.settle_memo }, () => setOpenMemo(null))}
-                      className="rounded-md bg-ink px-2.5 py-1 text-xs font-bold text-white"
-                    >
-                      저장
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setOpenMemo(null)}
-                      className="rounded-md border border-ink/15 px-2 py-1 text-xs text-ink/50"
-                    >
-                      취소
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setField(d.id, "settle_memo", d.settle_memo || "");
-                      setOpenMemo(d.id);
-                    }}
-                    className="mt-2 block w-full rounded-md bg-ink/[0.03] px-2 py-1 text-left text-xs text-ink/70 hover:bg-ink/[0.06]"
-                  >
-                    <span className="font-bold text-ink/50">비고</span>{" "}
-                    {d.settle_memo || <span className="text-ink/35">(클릭해 입력)</span>}
-                  </button>
-                )}
 
                 {/* 계산서 발행 팝오버 */}
                 {openInvoice === d.id && (
