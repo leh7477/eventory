@@ -10,12 +10,19 @@ const hm = (t) => (t ? String(t).slice(0, 5) : null);
 
 // 일정 → 납품/회수 발생일로 분리
 // 납품 = 시작일(시작 시간), 회수 = 종료일(종료 시간)
+// 제작은 회수 없는 '납품만' 일정 (memo의 '용도: 제작')
+const isDeliveryOnly = (ev) =>
+  String(ev?.memo || "")
+    .split("\n")
+    .some((l) => l.trim() === "용도: 제작");
+
 function toOccurrences(schedules) {
   const occ = [];
   schedules.forEach((ev) => {
     const end = ev.end_date || ev.start_date;
     occ.push({ type: "납품", date: ev.start_date, time: hm(ev.start_time), ev });
-    occ.push({ type: "회수", date: end, time: hm(ev.end_time), ev });
+    if (!isDeliveryOnly(ev))
+      occ.push({ type: "회수", date: end, time: hm(ev.end_time), ev });
   });
   occ.sort(
     (a, b) =>

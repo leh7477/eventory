@@ -145,8 +145,10 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
     .join(" · ");
   const location = [q.address, q.address_detail].filter(Boolean).join(" ") || null;
 
+  // 제작은 회수가 없는 '납품 일정만' — 종료일·회수시간 없음, 기기 배정 없음
+  const isMade = q.usage === "제작";
   const start_date = opts?.start_date || q.event_start;
-  const end_date = opts?.end_date || q.event_end || q.event_start;
+  const end_date = isMade ? start_date : opts?.end_date || q.event_end || q.event_start;
 
   const { data: newSched, error } = await admin
     .from("schedules")
@@ -157,7 +159,7 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
       start_date,
       end_date,
       start_time: opts?.start_time || null,
-      end_time: opts?.end_time || null,
+      end_time: isMade ? null : opts?.end_time || null,
       location,
       client_manager: q.contact_name || q.name || null,
       client_phone: q.phone || null,
@@ -168,8 +170,8 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
     .single();
   if (error) return { error: error.message };
 
-  // 기기 배정(선택) — 일정 생성과 함께 재고 배정 + 가용 검증
-  const eq = opts?.equipment;
+  // 기기 배정(선택) — 일정 생성과 함께 재고 배정 + 가용 검증 (제작은 재고 무관 → 배정 안 함)
+  const eq = isMade ? null : opts?.equipment;
   if (eq?.category && Number(eq.quantity) > 0 && newSched?.id) {
     const r = await setScheduleItem(newSched.id, eq.category, eq.quantity);
     if (r?.error) {

@@ -171,7 +171,12 @@ export default function ScheduleManager({
   // 그날의 납품/회수 액션 + 장비 배치(납품~회수) 기간 여부 (행사 외 업무는 제외)
   const dayInfo = (ds) => ({
     installs: schedules.filter((ev) => !isTask(ev) && ev.start_date === ds),
-    pickups: schedules.filter((ev) => !isTask(ev) && (ev.end_date || ev.start_date) === ds),
+    pickups: schedules.filter(
+      (ev) =>
+        !isTask(ev) &&
+        usageOf(ev) !== "제작" &&
+        (ev.end_date || ev.start_date) === ds
+    ),
     tasks: schedules.filter((ev) => isTask(ev) && ev.start_date === ds),
     deployed: schedules.some(
       (ev) => !isTask(ev) && ev.start_date <= ds && ds <= (ev.end_date || ev.start_date)
@@ -192,7 +197,7 @@ export default function ScheduleManager({
       }
       if (ev.start_date === ds)
         list.push({ type: "납품", ev, time: hm(ev.start_time) });
-      if ((ev.end_date || ev.start_date) === ds)
+      if (usageOf(ev) !== "제작" && (ev.end_date || ev.start_date) === ds)
         list.push({ type: "회수", ev, time: hm(ev.end_time) });
     });
     return list.sort((a, b) => (a.time ?? "99").localeCompare(b.time ?? "99"));

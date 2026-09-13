@@ -1039,6 +1039,12 @@ export default function InquiriesManager({
                   <TimeSelect value={schStart} onChange={setSchStart} />
                 </div>
               </div>
+              {scheduleFor.usage === "제작" ? (
+                <div className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-xs text-violet-700">
+                  🛠 제작 건은 <b>납품 일정만</b> 등록됩니다 (회수·기기 배정 없음).
+                </div>
+              ) : (
+                <>
               <div>
                 <label className="mb-1 block text-xs font-bold text-amber-700">회수 일시</label>
                 <div className="space-y-1.5">
@@ -1095,6 +1101,8 @@ export default function InquiriesManager({
                   </p>
                 )}
               </div>
+                </>
+              )}
             </div>
             <p className="mt-2 text-[11px] text-ink/40">
               전날 납품라면 납품 날짜를 바꿔주세요. 기기 배정은 선택이며 등록 후

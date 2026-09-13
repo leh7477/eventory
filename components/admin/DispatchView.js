@@ -12,6 +12,12 @@ const hm = (t) => (t ? String(t).slice(0, 5) : "");
 const pad = (n) => String(n).padStart(2, "0");
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
 
+// 제작은 회수가 없는 '납품만' 일정 (memo의 '용도: 제작')
+const isDeliveryOnly = (ev) =>
+  String(ev?.memo || "")
+    .split("\n")
+    .some((l) => l.trim() === "용도: 제작");
+
 function todayKST() {
   try {
     return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" });
@@ -64,7 +70,8 @@ export default function DispatchView({ schedules = [], scheduleItems = [] }) {
     for (const ev of schedules) {
       if (ev.kind === "task") continue;
       push(ev, "install", ev.start_date, ev.start_time, ev.install_seq);
-      push(ev, "pickup", ev.end_date || ev.start_date, ev.end_time, ev.pickup_seq);
+      if (!isDeliveryOnly(ev))
+        push(ev, "pickup", ev.end_date || ev.start_date, ev.end_time, ev.pickup_seq);
     }
     const dayKeys = Object.keys(map).sort();
     for (const d of dayKeys)
