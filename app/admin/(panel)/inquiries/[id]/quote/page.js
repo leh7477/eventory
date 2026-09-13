@@ -15,6 +15,13 @@ export default async function QuotePage({ params }) {
 
   if (!inquiry) notFound();
 
+  // 단가표 (없으면 빈 배열)
+  const [shipRes, rentRes] = await Promise.all([
+    admin.from("shipping_rates").select("region, quick_fee, direct_fee, sort").order("sort", { ascending: true }),
+    admin.from("rental_rates").select("product, size, prices, sort").order("sort", { ascending: true }),
+  ]);
+  const rates = { shipping: shipRes.data ?? [], rental: rentRes.data ?? [] };
+
   return (
     <div className="max-w-3xl">
       <div className="print-hide">
@@ -32,7 +39,7 @@ export default async function QuotePage({ params }) {
       </div>
 
       <div className="mt-6">
-        <QuoteSheet inquiry={inquiry} />
+        <QuoteSheet inquiry={inquiry} rates={rates} />
       </div>
     </div>
   );

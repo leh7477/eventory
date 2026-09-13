@@ -310,3 +310,22 @@ alter table inquiries add column if not exists paid_at timestamptz;
 
 -- 정산 비고
 alter table inquiries add column if not exists settle_memo text;
+
+-- ===== 단가 관리 (배송료 / 대여 단가) =====
+create table if not exists shipping_rates (
+  id uuid primary key default gen_random_uuid(),
+  region text not null unique,
+  quick_fee integer,
+  direct_fee integer,
+  sort integer default 0,
+  created_at timestamptz default now()
+);
+
+create table if not exists rental_rates (
+  id uuid primary key default gen_random_uuid(),
+  product text not null unique,
+  size text,
+  prices jsonb default '[]'::jsonb,  -- [1일..14일] 풀 금액(원), 미설정은 null
+  sort integer default 0,
+  created_at timestamptz default now()
+);

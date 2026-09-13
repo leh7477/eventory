@@ -23,7 +23,7 @@ function todayStr() {
 
 const won = (n) => (isNaN(n) ? 0 : n).toLocaleString("ko-KR");
 
-export default function QuoteSheet({ inquiry }) {
+export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: [] } }) {
   const days = daysBetween(inquiry.event_start, inquiry.event_end);
   const period =
     inquiry.event_start || inquiry.event_end
@@ -33,17 +33,87 @@ export default function QuoteSheet({ inquiry }) {
     .filter(Boolean)
     .join(" ");
 
-  // 품목: 문의 제품으로 1행 프리필, 금액은 수동
+  // 단가표
+  const rentalRates = rates?.rental ?? [];
+  const shippingRates = rates?.shipping ?? [];
+  // 행사 일수 → 단가표 열 인덱스(1~14일), 일수 미상이면 1일 기준
+  const dayIdx = days ? Math.min(Math.max(days, 1), 14) - 1 : 0;
+
+  const norm = (s) => String(s || "").replace(/[\s_\-()]/g, "").toLowerCase();
+  const matchRental = (name) => {
+    const n = norm(name);
+    if (!n) return null;
+    return (
+      rentalRates.find((r) => {
+        const p = norm(r.product);
+        return p && (n.includes(p) || p.includes(n));
+      }) || null
+    );
+  };
+  const priceOf = (r) => {
+    const v = r?.prices?.[dayIdx];
+    return v == null ? "" : String(v);
+  };
+
+  // 품목: 문의 제품으로 1행 프리필, 단가표에 있으면 금액도 자동
+  const firstMatch = inquiry.product ? matchRental(inquiry.product) : null;
   const [items, setItems] = useState([
     {
       name: inquiry.product
         ? `${inquiry.product} 렌탈${days ? ` (${days}일)` : ""}`
         : "",
       qty: 1,
-      price: "",
+      price: firstMatch ? priceOf(firstMatch) : "",
     },
   ]);
-  const [shipping, setShipping] = useState(""); // 배송비 (수량 없이 금액만)
+  // 배송료 지역/방식 선택 (주소로 초기 지역 추정 → 배송비 자동 대입)
+  const guessRegion = () => {
+    const addr = location;
+    if (!addr) return "";
+    let best = "";
+    for (const s of shippingRates) {
+      const tail = s.region.split(" ").pop();
+      if ((addr.includes(s.region) || (tail && addr.includes(tail))) && s.region.length > best.length)
+        best = s.region;
+    }
+    return best;
+  };
+  const initRegion = guessRegion();
+  const initS = shippingRates.find((x) => x.region === initRegion);
+  const initMethod = initS && initS.direct_fee != null ? "direct" : "quick";
+  const initFee = initS ? (initMethod === "quick" ? initS.quick_fee : initS.direct_fee) : null;
+
+  const [shipping, setShipping] = useState(initFee != null ? String(initFee) : ""); // 배송비
+  const [shipRegion, setShipRegion] = useState(initRegion);
+  const [shipMethod, setShipMethod] = useState(initMethod);
+
+  const applyShipping = (region, method) => {
+    setShipRegion(region);
+    setShipMethod(method);
+    const s = shippingRates.find((x) => x.region === region);
+    if (!s) return;
+    const fee = method === "quick" ? s.quick_fee : s.direct_fee;
+    if (fee != null) setShipping(String(fee));
+  };
+
+  const onRegionChange = (region) => {
+    const s = shippingRates.find((x) => x.region === region);
+    const method = s && s.direct_fee != null ? "direct" : "quick";
+    applyShipping(region, s ? method : shipMethod);
+  };
+
+  const addRentalItem = (product) => {
+    const r = rentalRates.find((x) => x.product === product);
+    if (!r) return;
+    setItems((rows) => [
+      ...rows,
+      {
+        name: `${r.product} 렌탈${days ? ` (${days}일)` : ""}`,
+        qty: 1,
+        price: priceOf(r),
+      },
+    ]);
+  };
   const [vatIncluded, setVatIncluded] = useState(true);
   const [note, setNote] = useState(
     "· 본 견적은 견적일로부터 30일간 유효합니다.\n· 예약은 계약금 입금 시 확정됩니다.\n· 행사 일정 변경·취소는 사전 협의 부탁드립니다.\n· '서비스' 표기 품목은 무상 증정이 아닌, 해당 장비와 함께 대여되는 구성품입니다."
@@ -302,7 +372,34 @@ export default function QuoteSheet({ inquiry }) {
                   className={`${inputCls} w-28 text-right font-medium`}
                 />
               </td>
-              <td className="print-hide" />
+              <td className="print-hide py-2 pl-2">
+                {shippingRates.length > 0 && (
+                  <div className="flex items-center gap-1">
+                    <select
+                      value={shipRegion}
+                      onChange={(e) => onRegionChange(e.target.value)}
+                      className="max-w-[120px] rounded border border-ink/15 px-1.5 py-1 text-xs outline-none focus:border-primary"
+                      title="배송 지역"
+                    >
+                      <option value="">지역 선택</option>
+                      {shippingRates.map((s) => (
+                        <option key={s.region} value={s.region}>
+                          {s.region}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={shipMethod}
+                      onChange={(e) => applyShipping(shipRegion, e.target.value)}
+                      className="rounded border border-ink/15 px-1.5 py-1 text-xs outline-none focus:border-primary"
+                      title="배송 방식"
+                    >
+                      <option value="direct">직접</option>
+                      <option value="quick">퀵</option>
+                    </select>
+                  </div>
+                )}
+              </td>
             </tr>
             <tr className="text-ink">
               <td colSpan={3} className="py-2 text-right text-ink/60">
@@ -332,7 +429,7 @@ export default function QuoteSheet({ inquiry }) {
           </tfoot>
         </table>
 
-        <div className="print-hide mt-3 flex gap-2">
+        <div className="print-hide mt-3 flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={addItem}
@@ -347,6 +444,25 @@ export default function QuoteSheet({ inquiry }) {
           >
             + 서비스 품목
           </button>
+          {rentalRates.length > 0 && (
+            <select
+              value=""
+              onChange={(e) => {
+                if (e.target.value) addRentalItem(e.target.value);
+                e.target.value = "";
+              }}
+              className="rounded-md border border-dashed border-ink/25 px-2 py-1.5 text-xs font-medium text-ink/70 outline-none focus:border-primary"
+              title={days ? `${days}일 기준 단가 자동 입력` : "1일 기준 단가 자동 입력"}
+            >
+              <option value="">＋ 단가표에서 추가{days ? ` (${days}일)` : ""}</option>
+              {rentalRates.map((r) => (
+                <option key={r.product} value={r.product}>
+                  {r.product}
+                  {priceOf(r) ? ` · ${won(Number(priceOf(r)))}원` : " · 미설정"}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         {/* 비고 */}
