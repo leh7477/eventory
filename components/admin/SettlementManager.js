@@ -251,7 +251,7 @@ export default function SettlementManager({ deals }) {
                 <div className="flex flex-wrap items-center gap-2">
                   {d.invoice_date ? (
                     <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700">
-                      🧾 계산서 {d.invoice_date}
+                      계산서 {d.invoice_date}
                       {(d.invoice_by || d.invoice_at) && (
                         <span className="text-indigo-400">
                           · {d.invoice_by}
@@ -260,7 +260,7 @@ export default function SettlementManager({ deals }) {
                       )}
                     </span>
                   ) : (
-                    <span className="text-xs text-ink/40">🧾 계산서 미발행</span>
+                    <span className="text-xs text-ink/40">계산서 미발행</span>
                   )}
                   <button
                     type="button"
@@ -280,7 +280,7 @@ export default function SettlementManager({ deals }) {
                   {/* 입금 확인 */}
                   {d.paid_date ? (
                     <span className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
-                      💰 입금 {d.paid_date} · ₩ {won(d.paid_amount)}
+                      입금 {d.paid_date} · ₩ {won(d.paid_amount)}
                       {(d.paid_by || d.paid_at) && (
                         <span className="text-green-500">
                           · {d.paid_by}
@@ -289,7 +289,7 @@ export default function SettlementManager({ deals }) {
                       )}
                     </span>
                   ) : (
-                    <span className="text-xs text-ink/40">💰 미입금</span>
+                    <span className="text-xs text-ink/40">미입금</span>
                   )}
                   <button
                     type="button"
