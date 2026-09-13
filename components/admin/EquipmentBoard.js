@@ -230,12 +230,21 @@ function FragmentRows({ cat, units, rows, days, bookingOn }) {
                     : undefined,
                 }}
               >
-                {isStart && (
-                  <span className="pointer-events-none absolute left-1 top-1/2 z-10 -translate-y-1/2 whitespace-nowrap text-[10px] font-bold text-ink/80">
-                    {contFromPrev ? "‹ " : ""}
-                    {String(b.title).split(" · ")[0]}
-                  </span>
-                )}
+                {isStart &&
+                  (() => {
+                    // 월 끝자락(남은 칸 적음)에서 시작하면 오른쪽 기준으로 왼쪽으로 펼쳐 안 잘리게
+                    const nearEnd = days.length - di <= 6 && !contFromPrev;
+                    return (
+                      <span
+                        className={`pointer-events-none absolute top-1/2 z-10 -translate-y-1/2 whitespace-nowrap text-[10px] font-bold text-ink/80 ${
+                          nearEnd ? "right-1 text-right" : "left-1"
+                        }`}
+                      >
+                        {contFromPrev ? "‹ " : ""}
+                        {String(b.title).split(" · ")[0]}
+                      </span>
+                    );
+                  })()}
                 {contToNext && (
                   <span className="pointer-events-none absolute right-0.5 top-1/2 z-10 -translate-y-1/2 text-[10px] font-bold text-ink/50">
                     ›
