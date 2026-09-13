@@ -19,16 +19,25 @@ const vatTotalOf = (d) => Math.round((Number(d.contract_amount) || 0) * 1.1);
 
 function statusOf(d) {
   const paid = Number(d.paid_amount) || 0;
-  if (d.paid_date && paid > 0) return "done";
+  if (d.paid_date && paid > 0) return paid >= vatTotalOf(d) ? "done" : "partial";
   if (!d.invoice_date) return "no_invoice";
   return "unpaid";
 }
+
+// 상태별 라벨/색
+const ST = {
+  no_invoice: { label: "미발행", cls: "bg-ink/10 text-ink/50" },
+  unpaid: { label: "미입금", cls: "bg-amber-100 text-amber-700" },
+  partial: { label: "부분입금", cls: "bg-orange-100 text-orange-700" },
+  done: { label: "완납", cls: "bg-green-100 text-green-700" },
+};
 
 const FILTERS = [
   { v: "all", label: "전체" },
   { v: "no_invoice", label: "미발행" },
   { v: "unpaid", label: "미입금" },
-  { v: "done", label: "완료" },
+  { v: "partial", label: "부분입금" },
+  { v: "done", label: "완납" },
 ];
 
 function todayStr() {
@@ -101,7 +110,7 @@ export default function SettlementManager({ deals }) {
     [monthDeals, filter]
   );
   const counts = useMemo(() => {
-    const c = { all: monthDeals.length, no_invoice: 0, unpaid: 0, done: 0 };
+    const c = { all: monthDeals.length, no_invoice: 0, unpaid: 0, partial: 0, done: 0 };
     for (const d of monthDeals) c[statusOf(d)]++;
     return c;
   }, [monthDeals]);
@@ -117,6 +126,40 @@ export default function SettlementManager({ deals }) {
 
   const label = (d) =>
     [d.company_name || d.contact_name || d.name || "고객", d.product].filter(Boolean).join(" · ");
+
+  const exportCSV = () => {
+    const head = [
+      "업체명", "담당자", "연락처", "행사일", "견적(공급가)", "청구(VAT포함)",
+      "실입금", "미수금", "계산서발행일", "계산서처리", "입금일", "입금액", "입금처리", "상태",
+    ];
+    const body = filtered.map((d) => {
+      const vat = vatTotalOf(d);
+      const paid = Number(d.paid_amount) || 0;
+      return [
+        d.company_name || "", d.contact_name || d.name || "", d.phone || "",
+        d.event_start || "", Number(d.quoted_amount) || 0, vat, paid, vat - paid,
+        d.invoice_date || "",
+        [d.invoice_by, d.invoice_at ? fmtStamp(d.invoice_at) : ""].filter(Boolean).join(" "),
+        d.paid_date || "", paid,
+        [d.paid_by, d.paid_at ? fmtStamp(d.paid_at) : ""].filter(Boolean).join(" "),
+        ST[statusOf(d)]?.label || "",
+      ];
+    });
+    const esc = (v) => {
+      const s = String(v ?? "");
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const csv = "﻿" + [head, ...body].map((r) => r.map(esc).join(",")).join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `정산_${q ? query.trim() : allMonths ? "전체" : month}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="rounded-2xl border border-ink/10 bg-white p-5">
@@ -150,6 +193,14 @@ export default function SettlementManager({ deals }) {
           }`}
         >
           전체
+        </button>
+        <button
+          type="button"
+          onClick={exportCSV}
+          disabled={filtered.length === 0}
+          className="rounded-md border border-ink/15 px-2.5 py-1 text-xs font-bold text-ink/60 hover:bg-ink/5 disabled:opacity-40"
+        >
+          CSV 내보내기
         </button>
         {/* 이 범위 합계 */}
         <span className="ml-auto text-xs text-ink/50">
@@ -205,16 +256,8 @@ export default function SettlementManager({ deals }) {
                 <div className="mb-1 flex items-center gap-2">
                   <span className="text-sm font-semibold text-ink">{label(d)}</span>
                   {d.event_start && <span className="text-xs text-ink/40">{d.event_start}</span>}
-                  <span
-                    className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                      st === "done"
-                        ? "bg-green-100 text-green-700"
-                        : st === "no_invoice"
-                        ? "bg-ink/10 text-ink/50"
-                        : "bg-amber-100 text-amber-700"
-                    }`}
-                  >
-                    {st === "done" ? "입금완료" : st === "no_invoice" ? "미발행" : "미입금"}
+                  <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold ${ST[st].cls}`}>
+                    {ST[st].label}
                   </span>
                 </div>
                 {(d.contact_name || d.phone) && (
