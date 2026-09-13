@@ -63,7 +63,7 @@ export async function saveRentalRate(row) {
   // prices: 길이 14 배열, 각 칸 정수 또는 null
   const prices = Array.from({ length: 14 }, (_, i) => toInt(row.prices?.[i]));
 
-  const payload = { product, size: String(row.size ?? "").trim() || null, prices };
+  const payload = { product, prices };
 
   let error;
   if (row.id) {

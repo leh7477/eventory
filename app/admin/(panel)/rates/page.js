@@ -8,9 +8,10 @@ export const revalidate = 0;
 export default async function RatesPage() {
   const admin = createAdminClient();
 
-  const [shipRes, rentRes] = await Promise.all([
+  const [shipRes, rentRes, catRes] = await Promise.all([
     admin.from("shipping_rates").select("*").order("sort", { ascending: true }),
     admin.from("rental_rates").select("*").order("sort", { ascending: true }),
+    admin.from("categories").select("name").order("order_num", { ascending: true }),
   ]);
 
   const tableMissing =
@@ -19,6 +20,7 @@ export default async function RatesPage() {
 
   const shipping = shipRes.data ?? [];
   const rental = rentRes.data ?? [];
+  const categories = (catRes.data ?? []).map((c) => c.name);
 
   return (
     <div className="max-w-4xl">
@@ -36,7 +38,7 @@ export default async function RatesPage() {
         <div className="mt-5">
           <SalesTabs tabs={["배송료", "대여 단가"]} initial={0}>
             <ShippingRateManager rows={shipping} />
-            <RentalRateManager rows={rental} />
+            <RentalRateManager rows={rental} categories={categories} />
           </SalesTabs>
         </div>
       )}
