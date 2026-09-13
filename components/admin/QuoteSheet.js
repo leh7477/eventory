@@ -71,11 +71,15 @@ export default function QuoteSheet({ inquiry }) {
     setItems((rows) => rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
   const addItem = () =>
     setItems((rows) => [...rows, { name: "", qty: 1, price: "" }]);
+  const addServiceItem = () =>
+    setItems((rows) => [...rows, { name: "", qty: 1, price: "", service: true }]);
   const removeItem = (i) =>
     setItems((rows) => rows.filter((_, idx) => idx !== i));
 
-  const amounts = items.map(
-    (r) => (parseInt(r.qty, 10) || 0) * (parseInt(String(r.price).replace(/\D/g, ""), 10) || 0)
+  const amounts = items.map((r) =>
+    r.service
+      ? 0
+      : (parseInt(r.qty, 10) || 0) * (parseInt(String(r.price).replace(/\D/g, ""), 10) || 0)
   );
   const itemsTotal = amounts.reduce((a, b) => a + b, 0);
   const shippingFee = parseInt(String(shipping).replace(/\D/g, ""), 10) || 0;
@@ -216,7 +220,7 @@ export default function QuoteSheet({ inquiry }) {
               <th className="w-16 py-2 text-center font-medium">수량</th>
               <th className="w-32 py-2 text-right font-medium">단가</th>
               <th className="w-32 py-2 text-right font-medium">금액</th>
-              <th className="print-hide w-10" />
+              <th className="print-hide w-24" />
             </tr>
           </thead>
           <tbody>
@@ -240,31 +244,47 @@ export default function QuoteSheet({ inquiry }) {
                   />
                 </td>
                 <td className="py-2 text-right">
-                  <input
-                    value={
-                      r.price === ""
-                        ? ""
-                        : won(parseInt(String(r.price).replace(/\D/g, ""), 10) || 0)
-                    }
-                    onChange={(e) =>
-                      setItem(i, "price", e.target.value.replace(/\D/g, ""))
-                    }
-                    placeholder="0"
-                    className={`${inputCls} text-right`}
-                  />
+                  {r.service ? (
+                    <span className="text-ink/45">서비스</span>
+                  ) : (
+                    <input
+                      value={
+                        r.price === ""
+                          ? ""
+                          : won(parseInt(String(r.price).replace(/\D/g, ""), 10) || 0)
+                      }
+                      onChange={(e) =>
+                        setItem(i, "price", e.target.value.replace(/\D/g, ""))
+                      }
+                      placeholder="0"
+                      className={`${inputCls} text-right`}
+                    />
+                  )}
                 </td>
                 <td className="py-2 text-right font-medium text-ink">
-                  {won(amounts[i])}
+                  {r.service ? <span className="text-primary">서비스</span> : won(amounts[i])}
                 </td>
                 <td className="print-hide py-2 text-center">
-                  <button
-                    type="button"
-                    onClick={() => removeItem(i)}
-                    className="text-xs text-ink/30 hover:text-primary"
-                    aria-label="행 삭제"
-                  >
-                    ✕
-                  </button>
+                  <div className="flex items-center justify-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setItem(i, "service", !r.service)}
+                      title="서비스(무료) 표기 전환"
+                      className={`whitespace-nowrap rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                        r.service ? "bg-primary/10 text-primary" : "text-ink/30 hover:text-ink/60"
+                      }`}
+                    >
+                      서비스
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeItem(i)}
+                      className="text-xs text-ink/30 hover:text-primary"
+                      aria-label="행 삭제"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -312,13 +332,22 @@ export default function QuoteSheet({ inquiry }) {
           </tfoot>
         </table>
 
-        <button
-          type="button"
-          onClick={addItem}
-          className="print-hide mt-3 rounded-md border border-dashed border-ink/20 px-3 py-1.5 text-xs font-medium text-ink/60 hover:bg-ink/5"
-        >
-          + 품목 추가
-        </button>
+        <div className="print-hide mt-3 flex gap-2">
+          <button
+            type="button"
+            onClick={addItem}
+            className="rounded-md border border-dashed border-ink/20 px-3 py-1.5 text-xs font-medium text-ink/60 hover:bg-ink/5"
+          >
+            + 품목 추가
+          </button>
+          <button
+            type="button"
+            onClick={addServiceItem}
+            className="rounded-md border border-dashed border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/5"
+          >
+            + 서비스 품목
+          </button>
+        </div>
 
         {/* 비고 */}
         <div className="mt-8">
