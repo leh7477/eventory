@@ -4,6 +4,15 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { SITE } from "@/lib/constants";
 import { saveQuotedAmount } from "@/app/admin/(panel)/inquiries/actions";
+import { matchCategory, parseQty } from "@/lib/inventory";
+
+// 품목명에서 수량·단위 제거 (예: '스탑워치 2대' → '스탑워치')
+function stripQty(s) {
+  return String(s || "")
+    .replace(/\d+\s*(?:대|개|세트|셋트|ea|pcs|set)/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 // 행사 기간 일수 (시작~종료 포함)
 function daysBetween(start, end) {
@@ -41,30 +50,27 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   // 행사 일수 → 단가표 열 인덱스(1~14일), 일수 미상이면 1일 기준
   const dayIdx = days ? Math.min(Math.max(days, 1), 14) - 1 : 0;
 
-  const norm = (s) => String(s || "").replace(/[\s_\-()]/g, "").toLowerCase();
+  // 문의 제품 → 대여 단가표 항목 (스탑/스톱 오타·수량 표기 무관하게 매칭)
+  const rentalNames = rentalRates.map((r) => r.product);
   const matchRental = (name) => {
-    const n = norm(name);
-    if (!n) return null;
-    return (
-      rentalRates.find((r) => {
-        const p = norm(r.product);
-        return p && (n.includes(p) || p.includes(n));
-      }) || null
-    );
+    const hit = matchCategory(name, rentalNames);
+    return hit ? rentalRates.find((r) => r.product === hit) || null : null;
   };
   const priceOf = (r) => {
     const v = r?.prices?.[dayIdx];
     return v == null ? "" : String(v);
   };
 
-  // 품목: 문의 제품으로 1행 프리필, 단가표에 있으면 금액도 자동
+  // 품목: 문의 제품으로 1행 프리필. 이름은 수량 제외, 수량은 별도 칸, 단가는 단가표에서 자동
   const firstMatch = inquiry.product ? matchRental(inquiry.product) : null;
+  const firstQty = parseQty(inquiry.product) || 1;
+  const firstName = stripQty(inquiry.product);
   const [items, setItems] = useState([
     {
-      name: inquiry.product
-        ? `${inquiry.product} ${isMade ? "제작" : `렌탈${days ? ` (${days}일)` : ""}`}`
+      name: firstName
+        ? `${firstName} ${isMade ? "제작" : `렌탈${days ? ` (${days}일)` : ""}`}`
         : "",
-      qty: 1,
+      qty: firstQty,
       price: firstMatch ? priceOf(firstMatch) : "",
     },
   ]);
