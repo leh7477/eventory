@@ -329,3 +329,6 @@ create table if not exists rental_rates (
   sort integer default 0,
   created_at timestamptz default now()
 );
+
+-- 제작 단가 (카테고리별 1칸)
+alter table rental_rates add column if not exists made_price integer;

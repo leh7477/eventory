@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import SalesTabs from "@/components/admin/SalesTabs";
 import ShippingRateManager from "@/components/admin/ShippingRateManager";
 import RentalRateManager from "@/components/admin/RentalRateManager";
+import MadeRateManager from "@/components/admin/MadeRateManager";
 
 export const revalidate = 0;
 
@@ -36,8 +37,9 @@ export default async function RatesPage() {
         </p>
       ) : (
         <div className="mt-5">
-          <SalesTabs tabs={["대여 단가", "배송료"]} initial={0}>
+          <SalesTabs tabs={["대여 단가", "제작 단가", "배송료"]} initial={0}>
             <RentalRateManager rows={rental} categories={categories} />
+            <MadeRateManager rows={rental} categories={categories} />
             <ShippingRateManager rows={shipping} />
           </SalesTabs>
         </div>

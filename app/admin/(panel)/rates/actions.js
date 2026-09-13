@@ -90,3 +90,24 @@ export async function deleteRentalRate(id) {
   revalidatePath("/admin/rates");
   return { ok: true };
 }
+
+// ---- 제작 단가 (rental_rates.made_price, 카테고리별 1칸) ----
+export async function saveMadeRate(product, price) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const p = String(product ?? "").trim();
+  if (!p) return { error: "제품명을 입력하세요." };
+
+  const { error } = await admin
+    .from("rental_rates")
+    .upsert({ product: p, made_price: toInt(price) }, { onConflict: "product" });
+  if (error) {
+    if (/made_price|column/i.test(error.message))
+      return { error: "제작 단가 컬럼이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
+    if (missingTable(error.message))
+      return { error: "단가 테이블이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
+    return { error: error.message };
+  }
+  revalidatePath("/admin/rates");
+  return { ok: true };
+}
