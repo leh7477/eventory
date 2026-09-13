@@ -301,3 +301,9 @@ alter table schedules add column if not exists remark text;
 alter table inquiries add column if not exists invoice_date date;   -- 계산서 발행일
 alter table inquiries add column if not exists paid_date date;      -- 입금일
 alter table inquiries add column if not exists paid_amount bigint;  -- 실제 입금액
+
+-- 정산 처리 이력: 계산서 발행/입금 처리한 직원·시각
+alter table inquiries add column if not exists invoice_by text;
+alter table inquiries add column if not exists invoice_at timestamptz;
+alter table inquiries add column if not exists paid_by text;
+alter table inquiries add column if not exists paid_at timestamptz;

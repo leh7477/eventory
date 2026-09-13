@@ -7,6 +7,14 @@ import { updateSettlement } from "@/app/admin/(panel)/stats/actions";
 
 const won = (n) => (Number(n) || 0).toLocaleString("ko-KR");
 const digits = (s) => String(s ?? "").replace(/\D/g, "");
+// ISO → "MM/DD HH:mm" (브라우저=KST)
+const fmtStamp = (iso) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  const p = (n) => String(n).padStart(2, "0");
+  return `${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+};
 const vatTotalOf = (d) => Math.round((Number(d.contract_amount) || 0) * 1.1);
 
 function statusOf(d) {
@@ -244,6 +252,12 @@ export default function SettlementManager({ deals }) {
                   {d.invoice_date ? (
                     <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700">
                       🧾 계산서 {d.invoice_date}
+                      {(d.invoice_by || d.invoice_at) && (
+                        <span className="text-indigo-400">
+                          · {d.invoice_by}
+                          {d.invoice_at ? ` ${fmtStamp(d.invoice_at)}` : ""}
+                        </span>
+                      )}
                     </span>
                   ) : (
                     <span className="text-xs text-ink/40">🧾 계산서 미발행</span>
@@ -267,6 +281,12 @@ export default function SettlementManager({ deals }) {
                   {d.paid_date ? (
                     <span className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
                       💰 입금 {d.paid_date} · ₩ {won(d.paid_amount)}
+                      {(d.paid_by || d.paid_at) && (
+                        <span className="text-green-500">
+                          · {d.paid_by}
+                          {d.paid_at ? ` ${fmtStamp(d.paid_at)}` : ""}
+                        </span>
+                      )}
                     </span>
                   ) : (
                     <span className="text-xs text-ink/40">💰 미입금</span>

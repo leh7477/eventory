@@ -16,7 +16,7 @@ export default async function AdminStatsPage({ searchParams }) {
   const { data } = await admin
     .from("inquiries")
     .select(
-      "id, status, company_name, contact_name, name, phone, product, contract_amount, quoted_amount, invoice_date, paid_date, paid_amount, event_start, created_at"
+      "id, status, company_name, contact_name, name, phone, product, contract_amount, quoted_amount, invoice_date, invoice_by, invoice_at, paid_date, paid_by, paid_at, paid_amount, event_start, created_at"
     )
     .in("status", ["confirmed", "done"])
     .order("event_start", { ascending: false });
