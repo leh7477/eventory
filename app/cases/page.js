@@ -55,7 +55,7 @@ export default async function CasesPage({ searchParams }) {
           </p>
           <h1 className="mt-1 text-3xl font-bold text-ink sm:text-4xl">Stories</h1>
           <p className="mt-3 text-sm text-ink/60">
-            다양한 행사와 이벤트에서 함께한 Event Land의 현장입니다. 사진을 클릭하면
+            다양한 행사와 이벤트에서 함께한 이벤트랜드의 현장입니다. 사진을 클릭하면
             자세히 볼 수 있어요.
           </p>
         </header>

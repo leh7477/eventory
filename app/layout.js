@@ -51,7 +51,7 @@ export const metadata = {
     template: "%s",
   },
   description:
-    "가챠머신, 룰렛, 사격게임 등 이벤트·행사 장비 렌탈 전문 Event Land. 견적 문의 환영합니다.",
+    "가챠머신, 룰렛, 사격게임 등 이벤트·행사 장비 렌탈 전문 이벤트랜드. 견적 문의 환영합니다.",
   openGraph: {
     siteName: "EVENT LAND",
     type: "website",

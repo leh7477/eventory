@@ -43,7 +43,7 @@ export default function AboutPage() {
             만들어드립니다.
           </p>
           <p className="mt-3 leading-relaxed text-ink/70">
-            성공적인 이벤트를 위한 경험과 솔루션, 그것이 EVENT LAND가 추구하는
+            성공적인 이벤트를 위한 경험과 솔루션, 그것이 이벤트랜드가 추구하는
             가치입니다.
           </p>
         </header>
