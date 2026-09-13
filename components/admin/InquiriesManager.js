@@ -408,6 +408,8 @@ export default function InquiriesManager({
             q.quoted_amount != null ||
             ["quoted", "confirmed"].includes(st) ||
             eff === "done";
+          // 제작 요청 건은 재고와 무관 (임대만 재고 확인)
+          const isMade = q.usage === "제작";
           // 재고 확인(요청 품목·행사일 기준) — 스케줄 불가 시 견적서 작성 클릭 경고
           const reqCat = matchCategory(q.product || "", equipmentCategories);
           const reqAvail =
@@ -424,7 +426,9 @@ export default function InquiriesManager({
               : null;
           const reqQty = parseQty(q.product) || 1;
           const scheduleBlocked =
-            !!reqAvail && (reqAvail.total === 0 || reqAvail.available < reqQty);
+            !isMade &&
+            !!reqAvail &&
+            (reqAvail.total === 0 || reqAvail.available < reqQty);
           const blockMsg = !reqAvail
             ? ""
             : reqAvail.total === 0
@@ -685,17 +689,30 @@ export default function InquiriesManager({
                         </div>
                       </div>
 
-                      {/* ① 재고 확인 (견적 전달 전) */}
-                      <AvailabilityChecker
-                        totals={equipmentTotals}
-                        categories={equipmentCategories}
-                        items={scheduleItems}
-                        schedById={schedById}
-                        defaultCategory={q.product || ""}
-                        defaultQty={reqQty}
-                        defaultStart={q.event_start || ""}
-                        defaultEnd={q.event_end || q.event_start || ""}
-                      />
+                      {/* ① 재고 확인 (견적 전달 전) — 제작 건은 재고 무관 */}
+                      {isMade ? (
+                        <div className="rounded-lg border border-violet-300 bg-violet-50 px-4 py-3">
+                          <p className="text-sm font-bold text-violet-700">
+                            🛠 제작 요청 건 — 재고 확인 불필요
+                          </p>
+                          <p className="mt-0.5 text-xs text-violet-700/70">
+                            대여가 아닌 <b>제작</b> 문의입니다. 재고와 무관하며, 견적서에도
+                            대여 단가표가 자동 입력되지 않습니다(배송비는 자동). 제작 견적으로
+                            진행하세요.
+                          </p>
+                        </div>
+                      ) : (
+                        <AvailabilityChecker
+                          totals={equipmentTotals}
+                          categories={equipmentCategories}
+                          items={scheduleItems}
+                          schedById={schedById}
+                          defaultCategory={q.product || ""}
+                          defaultQty={reqQty}
+                          defaultStart={q.event_start || ""}
+                          defaultEnd={q.event_end || q.event_start || ""}
+                        />
+                      )}
 
                       {/* ② 견적서 작성 */}
                       <StepBox
@@ -721,6 +738,11 @@ export default function InquiriesManager({
                           >
                             견적서 작성 →
                           </a>
+                          {isMade && (
+                            <span className="rounded bg-violet-100 px-1.5 py-0.5 text-xs font-bold text-violet-700">
+                              🛠 제작 요청 건
+                            </span>
+                          )}
                           {scheduleBlocked && (
                             <span className="text-xs font-bold text-primary">
                               ⚠ 스케줄 불가

@@ -33,8 +33,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
     .filter(Boolean)
     .join(" ");
 
+  // 제작 요청 건은 대여 단가표를 읽지 않음 (배송비는 그대로 자동)
+  const isMade = inquiry.usage === "제작";
   // 단가표
-  const rentalRates = rates?.rental ?? [];
+  const rentalRates = isMade ? [] : rates?.rental ?? [];
   const shippingRates = rates?.shipping ?? [];
   // 행사 일수 → 단가표 열 인덱스(1~14일), 일수 미상이면 1일 기준
   const dayIdx = days ? Math.min(Math.max(days, 1), 14) - 1 : 0;
@@ -60,7 +62,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const [items, setItems] = useState([
     {
       name: inquiry.product
-        ? `${inquiry.product} 렌탈${days ? ` (${days}일)` : ""}`
+        ? `${inquiry.product} ${isMade ? "제작" : `렌탈${days ? ` (${days}일)` : ""}`}`
         : "",
       qty: 1,
       price: firstMatch ? priceOf(firstMatch) : "",
@@ -163,6 +165,17 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
 
   return (
     <div>
+      {/* 제작 요청 알림 (인쇄 시 숨김) */}
+      {isMade && (
+        <div className="print-hide mb-3 rounded-xl border border-violet-300 bg-violet-50 px-4 py-3">
+          <p className="text-sm font-bold text-violet-700">🛠 제작 요청 건입니다</p>
+          <p className="mt-0.5 text-xs text-violet-700/80">
+            대여가 아닌 제작 문의라 <b>대여 단가표는 자동 입력되지 않습니다</b>. 제작 단가를
+            직접 입력해 주세요. (배송비는 자동으로 채워집니다)
+          </p>
+        </div>
+      )}
+
       {/* 도구 바 (인쇄 시 숨김) */}
       <div className="print-hide mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-ink/10 bg-white p-3">
         <button
