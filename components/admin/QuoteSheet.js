@@ -42,37 +42,48 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
     .filter(Boolean)
     .join(" ");
 
-  // 제작 요청 건은 대여 단가표를 읽지 않음 (배송비는 그대로 자동)
   const isMade = inquiry.usage === "제작";
-  // 단가표
-  const rentalRates = isMade ? [] : rates?.rental ?? [];
+  const allRental = rates?.rental ?? [];
+  // 임대: 대여 단가표(일수별) 사용 / 제작: 대여 단가표는 안 쓰고 제작 단가만 사용
+  const rentalRates = isMade ? [] : allRental;
   const shippingRates = rates?.shipping ?? [];
   // 행사 일수 → 단가표 열 인덱스(1~14일), 일수 미상이면 1일 기준
   const dayIdx = days ? Math.min(Math.max(days, 1), 14) - 1 : 0;
 
-  // 문의 제품 → 대여 단가표 항목 (스탑/스톱 오타·수량 표기 무관하게 매칭)
-  const rentalNames = rentalRates.map((r) => r.product);
-  const matchRental = (name) => {
-    const hit = matchCategory(name, rentalNames);
-    return hit ? rentalRates.find((r) => r.product === hit) || null : null;
+  // 문의 제품 → 단가표 항목 (스탑/스톱 오타·수량 표기 무관하게 매칭)
+  const matchIn = (name, list) => {
+    const hit = matchCategory(name, list.map((r) => r.product));
+    return hit ? list.find((r) => r.product === hit) || null : null;
   };
+  const matchRental = (name) => matchIn(name, rentalRates);
   const priceOf = (r) => {
     const v = r?.prices?.[dayIdx];
     return v == null ? "" : String(v);
   };
 
-  // 품목: 문의 제품으로 1행 프리필. 이름은 수량 제외, 수량은 별도 칸, 단가는 단가표에서 자동
+  // 제작 단가 (rental_rates.made_price)
+  const madeRates = allRental.filter((r) => r.made_price != null);
+  const madeMatch = isMade && inquiry.product ? matchIn(inquiry.product, allRental) : null;
+
+  // 품목: 문의 제품으로 1행 프리필. 이름은 수량 제외·카테고리명, 수량은 별도 칸,
+  // 단가는 임대=대여 단가표(일수), 제작=제작 단가에서 자동
   const firstMatch = inquiry.product ? matchRental(inquiry.product) : null;
   const firstQty = parseQty(inquiry.product) || 1;
-  // 단가표에 매칭되면 우리 카테고리명으로, 아니면 고객 입력(수량 제외)
-  const firstName = firstMatch ? firstMatch.product : stripQty(inquiry.product);
+  const firstName = (firstMatch || madeMatch)?.product || stripQty(inquiry.product);
+  const firstPrice = isMade
+    ? madeMatch?.made_price != null
+      ? String(madeMatch.made_price)
+      : ""
+    : firstMatch
+    ? priceOf(firstMatch)
+    : "";
   const [items, setItems] = useState([
     {
       name: firstName
         ? `${firstName} ${isMade ? "제작" : `렌탈${days ? ` (${days}일)` : ""}`}`
         : "",
       qty: firstQty,
-      price: firstMatch ? priceOf(firstMatch) : "",
+      price: firstPrice,
     },
   ]);
   // 배송료 지역/방식 선택 (주소로 초기 지역 추정 → 배송비 자동 대입)
@@ -121,6 +132,18 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
         name: `${r.product} 렌탈${days ? ` (${days}일)` : ""}`,
         qty: 1,
         price: priceOf(r),
+      },
+    ]);
+  };
+  const addMadeItem = (product) => {
+    const r = allRental.find((x) => x.product === product);
+    if (!r) return;
+    setItems((rows) => [
+      ...rows,
+      {
+        name: `${r.product} 제작`,
+        qty: 1,
+        price: r.made_price != null ? String(r.made_price) : "",
       },
     ]);
   };
@@ -177,8 +200,8 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
         <div className="print-hide mb-3 rounded-xl border border-violet-300 bg-violet-50 px-4 py-3">
           <p className="text-sm font-bold text-violet-700">🛠 제작 요청 건입니다</p>
           <p className="mt-0.5 text-xs text-violet-700/80">
-            대여가 아닌 제작 문의라 <b>대여 단가표는 자동 입력되지 않습니다</b>. 제작 단가를
-            직접 입력해 주세요. (배송비는 자동으로 채워집니다)
+            대여가 아닌 제작 문의라 <b>제작 단가</b>가 적용됩니다(설정된 경우 자동 입력, 없으면
+            직접 입력). 대여 단가표는 사용하지 않으며, 배송비는 자동으로 채워집니다.
           </p>
         </div>
       )}
@@ -480,6 +503,24 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                 <option key={r.product} value={r.product}>
                   {r.product}
                   {priceOf(r) ? ` · ${won(Number(priceOf(r)))}원` : " · 미설정"}
+                </option>
+              ))}
+            </select>
+          )}
+          {isMade && madeRates.length > 0 && (
+            <select
+              value=""
+              onChange={(e) => {
+                if (e.target.value) addMadeItem(e.target.value);
+                e.target.value = "";
+              }}
+              className="rounded-md border border-dashed border-violet-300 px-2 py-1.5 text-xs font-medium text-violet-700 outline-none focus:border-violet-500"
+              title="제작 단가 자동 입력"
+            >
+              <option value="">＋ 제작 단가표에서 추가</option>
+              {madeRates.map((r) => (
+                <option key={r.product} value={r.product}>
+                  {r.product} · {won(Number(r.made_price))}원
                 </option>
               ))}
             </select>
