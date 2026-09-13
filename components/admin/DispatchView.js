@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   reorderStops,
   setScheduleSupplies,
+  setScheduleRemark,
 } from "@/app/admin/(panel)/schedule/actions";
 
 const hm = (t) => (t ? String(t).slice(0, 5) : "");
@@ -31,6 +32,8 @@ export default function DispatchView({ schedules = [], scheduleItems = [] }) {
   const [pending, startTransition] = useTransition();
   const [editSupId, setEditSupId] = useState(null);
   const [supText, setSupText] = useState("");
+  const [editRemarkId, setEditRemarkId] = useState(null);
+  const [remarkText, setRemarkText] = useState("");
   const [scrollTo, setScrollTo] = useState(null);
   const rowsRef = useRef(null);
 
@@ -301,6 +304,52 @@ export default function DispatchView({ schedules = [], scheduleItems = [] }) {
                               >
                                 <span className="font-bold text-emerald-700">물품</span>{" "}
                                 {ev.supplies || <span className="text-ink/35">(클릭해 입력)</span>}
+                              </button>
+                            )}
+
+                            {/* 비고 */}
+                            {editRemarkId === ev.id ? (
+                              <div className="mt-1.5 flex items-center gap-1.5">
+                                <input
+                                  value={remarkText}
+                                  onChange={(e) => setRemarkText(e.target.value)}
+                                  placeholder="예: 일찍 도착해도 됨 / 주차 지하 B2"
+                                  className="flex-1 rounded-md border border-ink/15 px-2 py-1 text-xs outline-none focus:border-primary"
+                                  autoFocus
+                                />
+                                <button
+                                  type="button"
+                                  disabled={pending}
+                                  onClick={() =>
+                                    run(async () => {
+                                      const r = await setScheduleRemark(ev.id, remarkText);
+                                      if (!r?.error) setEditRemarkId(null);
+                                      return r;
+                                    })
+                                  }
+                                  className="rounded-md bg-ink px-2.5 py-1 text-xs font-bold text-white"
+                                >
+                                  저장
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditRemarkId(null)}
+                                  className="rounded-md border border-ink/15 px-2 py-1 text-xs text-ink/50"
+                                >
+                                  취소
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditRemarkId(ev.id);
+                                  setRemarkText(ev.remark || "");
+                                }}
+                                className="mt-1.5 block w-full rounded-md bg-amber-50 px-2 py-1 text-left text-xs text-ink/70 hover:bg-amber-100"
+                              >
+                                <span className="font-bold text-amber-700">비고</span>{" "}
+                                {ev.remark || <span className="text-ink/35">(클릭해 입력)</span>}
                               </button>
                             )}
                           </div>

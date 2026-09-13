@@ -293,3 +293,6 @@ alter table vendors add column if not exists phone text;     -- 연락처
 alter table schedules add column if not exists supplies text;     -- 배송 물품(선·리모컨 등)
 alter table schedules add column if not exists install_seq int;   -- 설치일 배차 순번
 alter table schedules add column if not exists pickup_seq int;    -- 회수일 배차 순번
+
+-- 배차 비고 (현장/운행 비고, 특이사항과 별개)
+alter table schedules add column if not exists remark text;

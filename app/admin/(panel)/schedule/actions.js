@@ -301,6 +301,19 @@ export async function setScheduleSupplies(id, supplies) {
   return { ok: true };
 }
 
+// 배차 비고 저장
+export async function setScheduleRemark(id, remark) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("schedules")
+    .update({ remark: (remark ?? "").trim() || null })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  rv();
+  return { ok: true };
+}
+
 // 배차 순번 재정렬 — stops: [{ id, type: 'install'|'pickup' }] 순서대로
 export async function reorderStops(stops = []) {
   await requireAdmin();
