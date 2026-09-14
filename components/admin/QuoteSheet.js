@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { Fragment, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { SITE } from "@/lib/constants";
 import { saveQuotedAmount } from "@/app/admin/(panel)/inquiries/actions";
@@ -497,8 +497,11 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
             </tr>
           </thead>
           <tbody>
-            {items.map((r, i) => (
-              <tr key={i} className="border-b border-ink/10">
+            {items.map((r, i) => {
+              const isCapsule = /캡슐/.test(r.name || "");
+              return (
+              <Fragment key={i}>
+              <tr className={isCapsule ? "" : "border-b border-ink/10"}>
                 <td className="py-2 pr-2">
                   <input
                     value={r.name}
@@ -506,12 +509,6 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                     placeholder="품목명"
                     className={inputCls}
                   />
-                  {/캡슐/.test(r.name || "") && (
-                    <div className="mt-0.5 pl-3 text-[11px] leading-snug text-ink/55">
-                      <div>흰 · 검 · 빨 · 주 · 노 · 초 · 파 · 보 · 전체투명</div>
-                      <div>(단일 색상 또는 최대 3가지 색상까지 혼합 구성 가능)</div>
-                    </div>
-                  )}
                 </td>
                 <td className="py-2 text-center">
                   <input
@@ -578,7 +575,20 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                   </div>
                 </td>
               </tr>
-            ))}
+              {isCapsule && (
+                <tr className="border-b border-ink/10">
+                  <td colSpan={6} className="pb-2 pl-3 align-top">
+                    <div className="text-[11px] leading-snug text-ink/55">
+                      <div>흰 · 검 · 빨 · 주 · 노 · 초 · 파 · 보 · 전체투명</div>
+                      <div>(단일 색상 또는 최대 3가지 색상까지 혼합 구성 가능)</div>
+                    </div>
+                  </td>
+                  <td className="print-hide" />
+                </tr>
+              )}
+              </Fragment>
+              );
+            })}
           </tbody>
           <tfoot>
             <tr className="border-b border-ink/10 text-ink">
