@@ -9,7 +9,7 @@ import { matchCategory, parseQty } from "@/lib/inventory";
 // 머신별 서비스 소모품 (측면 랩핑 다음에 자동 추가, 회수/폐기용 · 무상)
 // 수량은 기본값이며 견적서에서 수정 가능
 const CONSUMABLES = {
-  가챠머신: { name: "6cm 캡슐 (색상 혼합 구성 가능)", qty: 200, unit: "개", note: "서비스 (회수용)" },
+  가챠머신: { name: "6cm 캡슐", qty: 200, unit: "개", note: "서비스 (회수용)" },
   사격게임: { name: "너프건 3개 / 총알 30개", qty: 3, unit: "개", note: "서비스 (회수용)" },
   에어볼추첨기: { name: "4cm 우드락볼 (흰색)", qty: 80, unit: "개", note: "서비스 (사용 후 폐기)" },
 };
@@ -257,7 +257,6 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const supply = itemsTotal + shippingFee - serviceDiscount;
   const vat = vatIncluded ? Math.round(supply * 0.1) : 0;
   const total = supply + vat;
-  const hasCapsule = items.some((r) => /캡슐/.test(r.name || ""));
 
   const inputCls =
     "w-full rounded border border-ink/15 px-2 py-1 text-sm outline-none focus:border-primary print:border-0 print:p-0";
@@ -507,6 +506,12 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                     placeholder="품목명"
                     className={inputCls}
                   />
+                  {/캡슐/.test(r.name || "") && (
+                    <div className="mt-0.5 pl-3 text-[11px] leading-snug text-ink/55">
+                      <div>흰 · 검 · 빨 · 주 · 노 · 초 · 파 · 보 · 전체투명</div>
+                      <div>(단일 색상 또는 최대 3가지 색상까지 혼합 구성 가능)</div>
+                    </div>
+                  )}
                 </td>
                 <td className="py-2 text-center">
                   <input
@@ -639,14 +644,6 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
           <p className="mt-3 text-xs leading-relaxed text-ink/60">
             ※ 이벤트랜드에서 출장 설치·현장 테스트 및 행사 종료 후 회수를 진행합니다.
           </p>
-        )}
-
-        {/* 캡슐 구성 안내 (캡슐 품목이 있을 때만) */}
-        {hasCapsule && (
-          <div className="mt-3 text-xs leading-relaxed text-ink/60">
-            <p>※ 캡슐 색상 : 흰 · 검 · 빨 · 주 · 노 · 초 · 파 · 보 · 전체투명</p>
-            <p className="pl-6">(단일 색상 또는 최대 3가지 색상까지 혼합 구성 가능)</p>
-          </div>
         )}
 
         {/* 입금 계좌 (강조) */}
