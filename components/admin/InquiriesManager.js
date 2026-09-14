@@ -445,23 +445,23 @@ export default function InquiriesManager({
                 onClick={() => onOpen(q)}
                 className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-ink/[0.02] sm:gap-4"
               >
-                {/* 1. 상태 */}
-                <span className="w-16 shrink-0 sm:w-20">
+                {/* 1. 상태 (+ 확정인데 일정 미등록이면 경고) */}
+                <span className="flex w-16 shrink-0 flex-col items-start gap-1 sm:w-20">
                   <span
                     className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${statusMeta(effectiveStatus(q)).badge}`}
                   >
                     {statusMeta(effectiveStatus(q)).label}
                   </span>
+                  {effectiveStatus(q) === "confirmed" &&
+                    !scheduledInquiryIds.includes(q.id) && (
+                      <span
+                        className="whitespace-nowrap rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700"
+                        title="일정 미등록 — 일정 등록이 필요합니다"
+                      >
+                        ⚠ 미등록
+                      </span>
+                    )}
                 </span>
-                {/* 일정 등록됨 표시 */}
-                {scheduledInquiryIds.includes(q.id) && (
-                  <span
-                    className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700"
-                    title="일정 등록됨"
-                  >
-                    🗓 일정
-                  </span>
-                )}
                 {/* 2. 날짜 (데스크탑) */}
                 <span className="hidden w-32 shrink-0 text-xs text-ink/50 sm:block">
                   {fmtDate(q.created_at)}
