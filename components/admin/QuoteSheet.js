@@ -83,7 +83,9 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
         ? `${firstName} ${isMade ? "제작" : `렌탈${days ? ` (${days}일)` : ""}`}`
         : "",
       qty: firstQty,
+      unit: "대",
       price: firstPrice,
+      note: "",
     },
   ]);
   // 배송료 지역/방식 선택 (주소로 초기 지역 추정 → 배송비 자동 대입)
@@ -148,7 +150,9 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
       {
         name: `${r.product} 렌탈${days ? ` (${days}일)` : ""}`,
         qty: 1,
+        unit: "대",
         price: priceOf(r),
+        note: "",
       },
     ]);
   };
@@ -160,13 +164,15 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
       {
         name: `${r.product} 제작`,
         qty: 1,
+        unit: "대",
         price: r.made_price != null ? String(r.made_price) : "",
+        note: "",
       },
     ]);
   };
   const [vatIncluded, setVatIncluded] = useState(true);
   const [note, setNote] = useState(
-    "· 본 견적은 견적일로부터 30일간 유효합니다.\n· 예약은 계약금 입금 시 확정됩니다.\n· 행사 일정 변경·취소는 사전 협의 부탁드립니다.\n· '서비스' 표기 품목은 무상 증정이 아닌, 해당 장비와 함께 대여되는 구성품입니다."
+    "· 본 견적은 견적일로부터 30일간 유효합니다.\n· 예약은 계약금 입금 시 확정됩니다.\n· 행사 일정 변경·취소는 사전 협의 부탁드립니다.\n· 대금 지급 일정은 귀사의 내부 결제 규정(지정 결제일)에 맞춰 상호 협의하에 조정 가능합니다."
   );
   const [quoteDate, setQuoteDate] = useState(todayStr());
   const router = useRouter();
@@ -190,9 +196,12 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const setItem = (i, k, v) =>
     setItems((rows) => rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
   const addItem = () =>
-    setItems((rows) => [...rows, { name: "", qty: 1, price: "" }]);
+    setItems((rows) => [...rows, { name: "", qty: 1, unit: "대", price: "", note: "" }]);
   const addServiceItem = () =>
-    setItems((rows) => [...rows, { name: "", qty: 1, price: "", service: true }]);
+    setItems((rows) => [
+      ...rows,
+      { name: "", qty: 1, unit: "대", price: "", note: "", service: true },
+    ]);
   const removeItem = (i) =>
     setItems((rows) => rows.filter((_, idx) => idx !== i));
 
@@ -348,9 +357,11 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
           <thead>
             <tr className="border-b-2 border-ink/60 text-left text-ink/60">
               <th className="py-2 font-medium">품목</th>
-              <th className="w-16 py-2 text-center font-medium">수량</th>
-              <th className="w-32 py-2 text-right font-medium">단가</th>
-              <th className="w-32 py-2 text-right font-medium">금액</th>
+              <th className="w-14 py-2 text-center font-medium">수량</th>
+              <th className="w-12 py-2 text-center font-medium">단위</th>
+              <th className="w-28 py-2 text-right font-medium">단가</th>
+              <th className="w-28 py-2 text-right font-medium">금액</th>
+              <th className="w-40 py-2 text-left font-medium">비고</th>
               <th className="print-hide w-24" />
             </tr>
           </thead>
@@ -374,6 +385,14 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                     className={`${inputCls} text-center`}
                   />
                 </td>
+                <td className="py-2 text-center">
+                  <input
+                    value={r.unit ?? ""}
+                    onChange={(e) => setItem(i, "unit", e.target.value)}
+                    placeholder="대"
+                    className={`${inputCls} text-center`}
+                  />
+                </td>
                 <td className="py-2 text-right">
                   {r.service ? (
                     <span className="text-ink/45">서비스</span>
@@ -394,6 +413,14 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                 </td>
                 <td className="py-2 text-right font-medium text-ink">
                   {r.service ? <span className="text-ink">서비스</span> : won(amounts[i])}
+                </td>
+                <td className="py-2 pl-2">
+                  <input
+                    value={r.note ?? ""}
+                    onChange={(e) => setItem(i, "note", e.target.value)}
+                    placeholder="비고"
+                    className={`${inputCls} text-xs`}
+                  />
                 </td>
                 <td className="print-hide py-2 text-center">
                   <div className="flex items-center justify-center gap-1.5">
@@ -422,7 +449,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
           </tbody>
           <tfoot>
             <tr className="border-b border-ink/10 text-ink">
-              <td colSpan={3} className="py-2 text-right text-ink/60">
+              <td colSpan={4} className="py-2 text-right text-ink/60">
                 배송비
               </td>
               <td className="py-2 text-right">
@@ -433,6 +460,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                   className={`${inputCls} w-28 text-right font-medium`}
                 />
               </td>
+              <td />
               <td className="print-hide py-2 pl-2">
                 {shippingRates.length > 0 && (
                   <div className="flex items-center gap-1">
@@ -463,28 +491,31 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               </td>
             </tr>
             <tr className="text-ink">
-              <td colSpan={3} className="py-2 text-right text-ink/60">
+              <td colSpan={4} className="py-2 text-right text-ink/60">
                 공급가액
               </td>
               <td className="py-2 text-right font-medium">{won(supply)}</td>
+              <td />
               <td className="print-hide" />
             </tr>
             {vatIncluded && (
               <tr className="text-ink">
-                <td colSpan={3} className="py-1 text-right text-ink/60">
+                <td colSpan={4} className="py-1 text-right text-ink/60">
                   부가세 (10%)
                 </td>
                 <td className="py-1 text-right font-medium">{won(vat)}</td>
+                <td />
                 <td className="print-hide" />
               </tr>
             )}
             <tr className="border-t-2 border-ink/60 text-ink">
-              <td colSpan={3} className="py-2.5 text-right font-bold">
+              <td colSpan={4} className="py-2.5 text-right font-bold">
                 총 합계
               </td>
               <td className="py-2.5 text-right text-base font-extrabold">
                 ₩ {won(total)}
               </td>
+              <td />
               <td className="print-hide" />
             </tr>
           </tfoot>
