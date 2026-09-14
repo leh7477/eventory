@@ -342,6 +342,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                   <td className="py-1 text-ink/50">이메일</td>
                   <td className="text-ink">{SITE.email}</td>
                 </tr>
+                <tr>
+                  <td className="py-1 align-top text-ink/50">계좌번호</td>
+                  <td className="text-ink">{SITE.account}</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -360,8 +364,8 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               <th className="w-12 py-2 text-center font-medium">수량</th>
               <th className="w-10 py-2 text-center font-medium">단위</th>
               <th className="w-28 py-2 text-right font-medium">단가</th>
-              <th className="w-32 py-2 text-right font-medium">금액</th>
-              <th className="w-24 py-2 text-left font-medium">비고</th>
+              <th className="w-32 py-2 pr-4 text-right font-medium">금액</th>
+              <th className="w-24 py-2 pl-4 text-left font-medium">비고</th>
               <th className="print-hide w-16" />
             </tr>
           </thead>
@@ -411,10 +415,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                     />
                   )}
                 </td>
-                <td className="py-2 text-right font-medium text-ink">
+                <td className="py-2 pr-4 text-right font-medium text-ink">
                   {r.service ? <span className="text-ink">서비스</span> : won(amounts[i])}
                 </td>
-                <td className="py-2 pl-2">
+                <td className="py-2 pl-4">
                   <input
                     value={r.note ?? ""}
                     onChange={(e) => setItem(i, "note", e.target.value)}
@@ -452,7 +456,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               <td colSpan={4} className="py-2 text-right text-ink/60">
                 배송비
               </td>
-              <td className="py-2 text-right">
+              <td className="py-2 pr-4 text-right">
                 <input
                   value={shipping === "" ? "" : won(shippingFee)}
                   onChange={(e) => setShipping(e.target.value.replace(/\D/g, ""))}
@@ -467,7 +471,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               <td colSpan={4} className="py-2 text-right text-ink/60">
                 공급가액
               </td>
-              <td className="py-2 text-right font-medium">{won(supply)}</td>
+              <td className="py-2 pr-4 text-right font-medium">{won(supply)}</td>
               <td />
               <td className="print-hide" />
             </tr>
@@ -476,7 +480,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                 <td colSpan={4} className="py-1 text-right text-ink/60">
                   부가세 (10%)
                 </td>
-                <td className="py-1 text-right font-medium">{won(vat)}</td>
+                <td className="py-1 pr-4 text-right font-medium">{won(vat)}</td>
                 <td />
                 <td className="print-hide" />
               </tr>
@@ -485,7 +489,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               <td colSpan={4} className="py-2.5 text-right font-bold">
                 총 합계
               </td>
-              <td className="whitespace-nowrap py-2.5 text-right text-base font-extrabold">
+              <td className="whitespace-nowrap py-2.5 pr-4 text-right text-base font-extrabold">
                 ₩ {won(total)}
               </td>
               <td />
