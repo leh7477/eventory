@@ -549,7 +549,9 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                     value={r.note ?? ""}
                     onChange={(e) => setItem(i, "note", e.target.value)}
                     placeholder="비고"
-                    className={`${inputCls} text-xs`}
+                    className={`${inputCls} text-xs ${
+                      r.service ? "font-medium text-primary" : ""
+                    }`}
                   />
                 </td>
                 <td className="print-hide py-2 text-center">
