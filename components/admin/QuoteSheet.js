@@ -77,17 +77,31 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
     : firstMatch
     ? priceOf(firstMatch)
     : "";
-  const [items, setItems] = useState([
-    {
-      name: firstName
-        ? `${firstName} ${isMade ? "제작" : `렌탈${days ? ` (${days}일)` : ""}`}`
-        : "",
-      qty: firstQty,
-      unit: "대",
-      price: firstPrice,
-      note: "",
-    },
-  ]);
+  // 측면(좌,우) 랩핑 — 10만원 상당이나 서비스 제공
+  const sideWrapItem = () => ({
+    name: "측면(좌,우) 랩핑 추가",
+    qty: 1,
+    unit: "대",
+    price: "100000",
+    note: "서비스",
+    service: true,
+  });
+  const isRental = !!firstMatch && !isMade; // 대여 매칭 건(전면 랩핑 기본 포함)
+  const [items, setItems] = useState(() => {
+    const rows = [
+      {
+        name: firstName
+          ? `${firstName} ${isMade ? "제작" : `렌탈${days ? ` (${days}일)` : ""}`}`
+          : "",
+        qty: firstQty,
+        unit: "대",
+        price: firstPrice,
+        note: isRental ? "전면 랩핑 포함" : "",
+      },
+    ];
+    if (isRental) rows.push(sideWrapItem());
+    return rows;
+  });
   // 배송료 지역/방식 선택 (주소로 초기 지역 추정 → 배송비 자동 대입)
   // 지역명 접미사(특별시/광역시/도/시/군/구)를 떼고도 매칭 (예: "서울특별시" ↔ 주소 "서울 용산구")
   const stripSuffix = (x) =>
@@ -152,8 +166,9 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
         qty: 1,
         unit: "대",
         price: priceOf(r),
-        note: "",
+        note: "전면 랩핑 포함",
       },
+      sideWrapItem(),
     ]);
   };
   const addMadeItem = (product) => {
@@ -265,6 +280,89 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
           <span className="text-xs text-ink/40">
             인쇄 시 공급가액이 견적 금액으로 문의에 기록됩니다.
           </span>
+        )}
+      </div>
+
+      {/* 편집 도구 (인쇄 시 숨김) — 견적서 본문과 분리 */}
+      <div className="print-hide mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-dashed border-ink/20 bg-ink/[0.02] p-3">
+        {shippingRates.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-ink/50">배송 지역</span>
+            <select
+              value={shipRegion}
+              onChange={(e) => onRegionChange(e.target.value)}
+              className="rounded border border-ink/15 px-2 py-1 text-xs outline-none focus:border-primary"
+              title="배송 지역"
+            >
+              <option value="">지역 선택</option>
+              {shippingRates.map((s) => (
+                <option key={s.region} value={s.region}>
+                  {s.region}
+                </option>
+              ))}
+            </select>
+            <select
+              value={shipMethod}
+              onChange={(e) => applyShipping(shipRegion, e.target.value)}
+              className="rounded border border-ink/15 px-2 py-1 text-xs outline-none focus:border-primary"
+              title="배송 방식"
+            >
+              <option value="direct">직접</option>
+              <option value="quick">퀵</option>
+            </select>
+          </div>
+        )}
+        <span className="mx-1 hidden h-4 w-px bg-ink/10 sm:block" />
+        <button
+          type="button"
+          onClick={addItem}
+          className="rounded-md border border-dashed border-ink/20 px-3 py-1.5 text-xs font-medium text-ink/60 hover:bg-ink/5"
+        >
+          + 품목 추가
+        </button>
+        <button
+          type="button"
+          onClick={addServiceItem}
+          className="rounded-md border border-dashed border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/5"
+        >
+          + 서비스 품목
+        </button>
+        {rentalRates.length > 0 && (
+          <select
+            value=""
+            onChange={(e) => {
+              if (e.target.value) addRentalItem(e.target.value);
+              e.target.value = "";
+            }}
+            className="rounded-md border border-dashed border-ink/25 px-2 py-1.5 text-xs font-medium text-ink/70 outline-none focus:border-primary"
+            title={days ? `${days}일 기준 단가 자동 입력` : "1일 기준 단가 자동 입력"}
+          >
+            <option value="">＋ 단가표에서 추가{days ? ` (${days}일)` : ""}</option>
+            {rentalRates.map((r) => (
+              <option key={r.product} value={r.product}>
+                {r.product}
+                {priceOf(r) ? ` · ${won(Number(priceOf(r)))}원` : " · 미설정"}
+              </option>
+            ))}
+          </select>
+        )}
+        {isMade && madeRates.length > 0 && (
+          <select
+            value=""
+            onChange={(e) => {
+              if (e.target.value) addMadeItem(e.target.value);
+              e.target.value = "";
+            }}
+            className="rounded-md border border-dashed border-violet-300 px-2 py-1.5 text-xs font-medium text-violet-700 outline-none focus:border-violet-500"
+            title="제작 단가 자동 입력"
+          >
+            <option value="">＋ 제작 단가표에서 추가</option>
+            {madeRates.map((r) => (
+              <option key={r.product} value={r.product}>
+                {r.product} · {won(Number(r.made_price))}원
+              </option>
+            ))}
+          </select>
         )}
       </div>
 
@@ -398,22 +496,18 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                   />
                 </td>
                 <td className="py-2 text-right">
-                  {r.service ? (
-                    <span className="text-ink/45">서비스</span>
-                  ) : (
-                    <input
-                      value={
-                        r.price === ""
-                          ? ""
-                          : won(parseInt(String(r.price).replace(/\D/g, ""), 10) || 0)
-                      }
-                      onChange={(e) =>
-                        setItem(i, "price", e.target.value.replace(/\D/g, ""))
-                      }
-                      placeholder="0"
-                      className={`${inputCls} text-right`}
-                    />
-                  )}
+                  <input
+                    value={
+                      r.price === ""
+                        ? ""
+                        : won(parseInt(String(r.price).replace(/\D/g, ""), 10) || 0)
+                    }
+                    onChange={(e) =>
+                      setItem(i, "price", e.target.value.replace(/\D/g, ""))
+                    }
+                    placeholder="0"
+                    className={`${inputCls} text-right`}
+                  />
                 </td>
                 <td className="py-2 pr-4 text-right font-medium text-ink">
                   {r.service ? <span className="text-ink">서비스</span> : won(amounts[i])}
@@ -497,90 +591,6 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
             </tr>
           </tfoot>
         </table>
-
-        {/* 배송 지역/방식 (인쇄 시 숨김 — 배송비 자동 대입용) */}
-        {shippingRates.length > 0 && (
-          <div className="print-hide mt-2 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-ink/50">배송 지역</span>
-            <select
-              value={shipRegion}
-              onChange={(e) => onRegionChange(e.target.value)}
-              className="rounded border border-ink/15 px-2 py-1 text-xs outline-none focus:border-primary"
-              title="배송 지역"
-            >
-              <option value="">지역 선택</option>
-              {shippingRates.map((s) => (
-                <option key={s.region} value={s.region}>
-                  {s.region}
-                </option>
-              ))}
-            </select>
-            <select
-              value={shipMethod}
-              onChange={(e) => applyShipping(shipRegion, e.target.value)}
-              className="rounded border border-ink/15 px-2 py-1 text-xs outline-none focus:border-primary"
-              title="배송 방식"
-            >
-              <option value="direct">직접</option>
-              <option value="quick">퀵</option>
-            </select>
-            <span className="text-[11px] text-ink/40">→ 배송비 자동 입력</span>
-          </div>
-        )}
-
-        <div className="print-hide mt-3 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={addItem}
-            className="rounded-md border border-dashed border-ink/20 px-3 py-1.5 text-xs font-medium text-ink/60 hover:bg-ink/5"
-          >
-            + 품목 추가
-          </button>
-          <button
-            type="button"
-            onClick={addServiceItem}
-            className="rounded-md border border-dashed border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/5"
-          >
-            + 서비스 품목
-          </button>
-          {rentalRates.length > 0 && (
-            <select
-              value=""
-              onChange={(e) => {
-                if (e.target.value) addRentalItem(e.target.value);
-                e.target.value = "";
-              }}
-              className="rounded-md border border-dashed border-ink/25 px-2 py-1.5 text-xs font-medium text-ink/70 outline-none focus:border-primary"
-              title={days ? `${days}일 기준 단가 자동 입력` : "1일 기준 단가 자동 입력"}
-            >
-              <option value="">＋ 단가표에서 추가{days ? ` (${days}일)` : ""}</option>
-              {rentalRates.map((r) => (
-                <option key={r.product} value={r.product}>
-                  {r.product}
-                  {priceOf(r) ? ` · ${won(Number(priceOf(r)))}원` : " · 미설정"}
-                </option>
-              ))}
-            </select>
-          )}
-          {isMade && madeRates.length > 0 && (
-            <select
-              value=""
-              onChange={(e) => {
-                if (e.target.value) addMadeItem(e.target.value);
-                e.target.value = "";
-              }}
-              className="rounded-md border border-dashed border-violet-300 px-2 py-1.5 text-xs font-medium text-violet-700 outline-none focus:border-violet-500"
-              title="제작 단가 자동 입력"
-            >
-              <option value="">＋ 제작 단가표에서 추가</option>
-              {madeRates.map((r) => (
-                <option key={r.product} value={r.product}>
-                  {r.product} · {won(Number(r.made_price))}원
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
 
         {/* 입금 계좌 (강조) */}
         <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-md border border-ink/20 bg-ink/[0.03] px-4 py-3">
