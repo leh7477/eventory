@@ -634,6 +634,13 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
           </tfoot>
         </table>
 
+        {/* 운송(출장 설치·회수) 안내 — 대여 건 */}
+        {!isMade && (
+          <p className="mt-3 text-xs leading-relaxed text-ink/60">
+            ※ 이벤트랜드에서 출장 설치·현장 테스트 및 행사 종료 후 회수를 진행합니다.
+          </p>
+        )}
+
         {/* 캡슐 구성 안내 (캡슐 품목이 있을 때만) */}
         {hasCapsule && (
           <p className="mt-3 text-xs leading-relaxed text-ink/60">
