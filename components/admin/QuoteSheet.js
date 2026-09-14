@@ -577,7 +577,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
           <tfoot>
             <tr className="border-b border-ink/10 text-ink">
               <td colSpan={4} className="py-2 text-right text-ink/60">
-                배송비
+                운송비(왕복)
               </td>
               <td className="py-2 pr-4 text-right">
                 <input

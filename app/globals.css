@@ -20,6 +20,43 @@ html {
   }
 }
 
+/* 견적서 PDF: 1장에 맞게 폰트·여백·간격 압축 */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+  #quote-sheet {
+    padding: 0 !important;
+  }
+  /* 본문·입력칸 폰트 통일 축소 (입력칸만 커지는 문제 방지) */
+  #quote-sheet,
+  #quote-sheet input:not([type="checkbox"]):not([type="radio"]),
+  #quote-sheet select,
+  #quote-sheet textarea {
+    font-size: 12.5px !important;
+    line-height: 1.3 !important;
+  }
+  #quote-sheet h2 {
+    font-size: 1.4rem !important;
+    letter-spacing: 0.3em !important;
+  }
+  #quote-sheet .text-lg { font-size: 1rem !important; }
+  /* 큰 상하 여백 축소 */
+  #quote-sheet .mt-10 { margin-top: 0.5rem !important; }
+  #quote-sheet .mt-8 { margin-top: 0.55rem !important; }
+  #quote-sheet .mt-6 { margin-top: 0.45rem !important; }
+  #quote-sheet .mt-5,
+  #quote-sheet .mt-4 { margin-top: 0.35rem !important; }
+  #quote-sheet .mt-2 { margin-top: 0.2rem !important; }
+  #quote-sheet .gap-6 { gap: 0.5rem !important; }
+  /* 합계 강조줄·표 행 높이 축소 */
+  #quote-sheet .py-3 { padding-top: 0.3rem !important; padding-bottom: 0.3rem !important; }
+  #quote-sheet .p-4 { padding: 0.45rem !important; }
+  #quote-sheet table td,
+  #quote-sheet table th { padding-top: 0.15rem !important; padding-bottom: 0.15rem !important; }
+}
+
 /* 견적서: 입력칸도 본문과 동일한 14px로 (단가·금액 등 글씨 크기 통일).
    모바일 iOS 확대 방지용 16px 규칙이 견적서엔 적용되지 않도록 덮어씀. */
 .quote-sheet input:not([type="checkbox"]):not([type="radio"]),
