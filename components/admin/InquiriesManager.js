@@ -453,6 +453,15 @@ export default function InquiriesManager({
                     {statusMeta(effectiveStatus(q)).label}
                   </span>
                 </span>
+                {/* 일정 등록됨 표시 */}
+                {scheduledInquiryIds.includes(q.id) && (
+                  <span
+                    className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700"
+                    title="일정 등록됨"
+                  >
+                    🗓 일정
+                  </span>
+                )}
                 {/* 2. 날짜 (데스크탑) */}
                 <span className="hidden w-32 shrink-0 text-xs text-ink/50 sm:block">
                   {fmtDate(q.created_at)}

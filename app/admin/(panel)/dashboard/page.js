@@ -110,18 +110,22 @@ export default async function DashboardPage() {
   const todayS = todayKST();
   const tomorrowS = kstPlusDays(1);
 
-  const [inqRes, schRes] = await Promise.all([
+  const [inqRes, schRes, schedInqRes] = await Promise.all([
     admin
       .from("inquiries")
-      .select("status, is_read, created_at, event_start, event_end"),
+      .select("id, status, is_read, created_at, event_start, event_end"),
     admin
       .from("schedules")
       .select("*")
       .lte("start_date", tomorrowS) // 오늘·내일 일정만 필요
       .order("start_date", { ascending: true }),
+    admin.from("schedules").select("inquiry_id"), // 일정 등록된 문의 id (진행중 제외용)
   ]);
 
   const schedules = schRes.data ?? [];
+  const scheduledSet = new Set(
+    (schedInqRes.data ?? []).map((s) => s.inquiry_id).filter(Boolean)
+  );
   const isTask = (ev) => ev.kind === "task";
 
   // 행사(납품/회수 발생) + 업무를 하나로 합쳐 날짜별 · 시간순
@@ -146,12 +150,14 @@ export default async function DashboardPage() {
   ).length;
 
   // 진행중 = 신규/견적발송/확정 중 완료·만료·취소가 아닌 활성 건
+  // (확정 + 일정 등록까지 끝난 건은 일정 관리로 넘어갔으므로 제외)
   const isActive = (q) => {
     const s = q.status || "new";
     if (!["new", "quoted", "confirmed"].includes(s)) return false;
     if ((s === "new" || s === "quoted") && q.event_start && q.event_start < todayS)
       return false; // 만료
     if (s === "confirmed" && q.event_end && q.event_end < todayS) return false; // 완료
+    if (s === "confirmed" && scheduledSet.has(q.id)) return false; // 일정 등록됨
     return true;
   };
   const activeCount = inquiries.filter(isActive).length;
