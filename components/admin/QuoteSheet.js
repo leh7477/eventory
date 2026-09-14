@@ -643,10 +643,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
 
         {/* 캡슐 구성 안내 (캡슐 품목이 있을 때만) */}
         {hasCapsule && (
-          <p className="mt-3 text-xs leading-relaxed text-ink/60">
-            ※ 캡슐 색상: 흰 · 검 · 빨 · 주 · 노 · 초 · 파 · 보 · 전체투명 — 단일 색상
-            또는 최대 3가지 색상까지 혼합 구성 가능합니다.
-          </p>
+          <div className="mt-3 text-xs leading-relaxed text-ink/60">
+            <p>※ 캡슐 색상 : 흰 · 검 · 빨 · 주 · 노 · 초 · 파 · 보 · 전체투명</p>
+            <p className="pl-6">(단일 색상 또는 최대 3가지 색상까지 혼합 구성 가능)</p>
+          </div>
         )}
 
         {/* 입금 계좌 (강조) */}
