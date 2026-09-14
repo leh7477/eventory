@@ -842,6 +842,29 @@ export default function ScheduleManager({
                        >
                          + 거래처
                        </button>
+                       {(() => {
+                         const its = itemsBySchedule(ev.id).filter(
+                           (x) => Number(x.quantity) > 0
+                         );
+                         const total = its.reduce(
+                           (a, b) => a + Number(b.quantity),
+                           0
+                         );
+                         return (
+                           <span className="text-xs text-ink/55">
+                             · 발주 수량{" "}
+                             {its.length ? (
+                               <b className="text-ink/80">
+                                 {its
+                                   .map((x) => `${x.category} ${x.quantity}대`)
+                                   .join(" · ")}
+                               </b>
+                             ) : (
+                               <span className="text-ink/40">기기 배정 없음</span>
+                             )}
+                           </span>
+                         );
+                       })()}
                      </div>
                    )}
 
