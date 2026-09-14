@@ -343,8 +343,8 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                   <td className="text-ink">{SITE.email}</td>
                 </tr>
                 <tr>
-                  <td className="py-1 align-top text-ink/50">계좌번호</td>
-                  <td className="text-ink">{SITE.account}</td>
+                  <td className="py-1 text-ink/50">홈페이지</td>
+                  <td className="text-ink">{SITE.homepage}</td>
                 </tr>
               </tbody>
             </table>
@@ -582,8 +582,14 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
           )}
         </div>
 
+        {/* 입금 계좌 (강조) */}
+        <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-md border border-ink/20 bg-ink/[0.03] px-4 py-3">
+          <span className="text-sm font-bold text-ink">※ 입금 계좌</span>
+          <span className="text-sm font-semibold text-ink/90">{SITE.account}</span>
+        </div>
+
         {/* 비고 */}
-        <div className="mt-8">
+        <div className="mt-6">
           <p className="text-sm font-bold text-ink">비고</p>
           <textarea
             value={note}
