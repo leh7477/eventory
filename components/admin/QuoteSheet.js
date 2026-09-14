@@ -9,7 +9,7 @@ import { matchCategory, parseQty } from "@/lib/inventory";
 // 머신별 서비스 소모품 (측면 랩핑 다음에 자동 추가, 회수/폐기용 · 무상)
 // 수량은 기본값이며 견적서에서 수정 가능
 const CONSUMABLES = {
-  가챠머신: { name: "6cm 캡슐 (색상 혼합 구성 가능)", qty: 350, unit: "개", note: "서비스 (회수용)" },
+  가챠머신: { name: "6cm 캡슐 (색상 혼합 구성 가능)", qty: 200, unit: "개", note: "서비스 (회수용)" },
   사격게임: { name: "너프건 3개 / 총알 30개", qty: 3, unit: "개", note: "서비스 (회수용)" },
   에어볼추첨기: { name: "4cm 우드락볼 (흰색)", qty: 80, unit: "개", note: "서비스 (사용 후 폐기)" },
 };
