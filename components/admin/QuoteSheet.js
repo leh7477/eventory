@@ -579,8 +579,8 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                 <tr className="border-b border-ink/10">
                   <td colSpan={6} className="pb-2 pl-3 align-top">
                     <div className="text-[13px] leading-snug text-ink/75">
-                      <div>흰 · 검 · 빨 · 주 · 노 · 초 · 파 · 보 · 전체투명</div>
-                      <div>(단일 색상 또는 최대 3가지 색상까지 혼합 구성 가능)</div>
+                      흰 · 검 · 빨 · 주 · 노 · 초 · 파 · 보 · 전체투명 (단일 색상 또는 최대
+                      3가지 색상까지 혼합 구성 가능)
                     </div>
                   </td>
                   <td className="print-hide" />
