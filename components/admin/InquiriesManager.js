@@ -134,6 +134,7 @@ export default function InquiriesManager({
   scheduleItems = [],
   schedById = {},
   scheduledInquiryIds = [],
+  actorNames = {},
 }) {
   const router = useRouter();
   const [openId, setOpenId] = useState(null);
@@ -915,7 +916,7 @@ export default function InquiriesManager({
                             key={i}
                             className="rounded-md bg-ink/[0.04] px-3 py-1.5 text-xs text-ink/55"
                           >
-                            {l.action} — {l.by || "관리자"}
+                            {l.action} — {actorNames[l.by] || l.by || "관리자"}
                             {l.at ? ` · ${fmtDate(l.at)}` : ""}
                           </p>
                         ))}

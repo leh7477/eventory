@@ -332,3 +332,6 @@ create table if not exists rental_rates (
 
 -- 제작 단가 (카테고리별 1칸)
 alter table rental_rates add column if not exists made_price integer;
+
+-- 단계 처리자 (출력물 발주/랩핑 등 단계별)
+alter table schedules add column if not exists stage_by jsonb default '{}'::jsonb;

@@ -16,6 +16,19 @@ export default async function AdminInquiriesPage() {
   const list = data ?? [];
   const unread = list.filter((x) => !x.is_read).length;
 
+  // 활동 로그의 예전 아이디 → 이름 매핑 (히스토리 이름 표기)
+  const actorNames = {};
+  try {
+    const { data: users } = await admin.auth.admin.listUsers();
+    for (const u of users?.users ?? []) {
+      const idp = (u.email || "").replace(/@.*/, "");
+      const nm = u.user_metadata?.name;
+      if (idp && nm) actorNames[idp] = nm;
+    }
+  } catch {
+    // 사용자 목록 조회 실패 시 아이디 그대로 표시
+  }
+
   // 재고 확인용 데이터
   const totals = {};
   for (const e of equipment ?? []) {
@@ -55,6 +68,7 @@ export default async function AdminInquiriesPage() {
           scheduleItems={items ?? []}
           schedById={schedById}
           scheduledInquiryIds={scheduledInquiryIds}
+          actorNames={actorNames}
         />
       </div>
     </div>

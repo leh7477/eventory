@@ -796,10 +796,12 @@ export default function ScheduleManager({
                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-ink/45">
                        {STAGES.slice(0, ev.stage || 0).map((s, i) => {
                          const ts = ev.stage_dates?.[String(i + 1)];
+                         const by = ev.stage_by?.[String(i + 1)];
                          return (
                            <span key={s}>
                              <b className="font-semibold text-ink/55">{s}</b>{" "}
                              {ts ? fmtStamp(ts) : "-"}
+                             {by ? ` · ${by}` : ""}
                            </span>
                          );
                        })}
