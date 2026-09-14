@@ -220,7 +220,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
     "w-full rounded border border-ink/15 px-2 py-1 text-sm outline-none focus:border-primary print:border-0 print:p-0";
 
   return (
-    <div>
+    <div className="quote-sheet">
       {/* 제작 요청 알림 (인쇄 시 숨김) */}
       {isMade && (
         <div className="print-hide mb-3 rounded-xl border border-violet-300 bg-violet-50 px-4 py-3">

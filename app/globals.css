@@ -20,6 +20,14 @@ html {
   }
 }
 
+/* 견적서: 입력칸도 본문과 동일한 14px로 (단가·금액 등 글씨 크기 통일).
+   모바일 iOS 확대 방지용 16px 규칙이 견적서엔 적용되지 않도록 덮어씀. */
+.quote-sheet input:not([type="checkbox"]):not([type="radio"]),
+.quote-sheet select,
+.quote-sheet textarea {
+  font-size: 0.875rem !important;
+}
+
 body {
   color: var(--ink);
   background: #ffffff;
