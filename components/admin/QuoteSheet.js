@@ -501,7 +501,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               const isCapsule = /캡슐/.test(r.name || "");
               return (
               <Fragment key={i}>
-              <tr className={isCapsule ? "" : "border-b border-ink/10"}>
+              <tr className="border-b border-ink/10">
                 <td className="py-2 pr-2">
                   <input
                     value={r.name}
@@ -606,6 +606,16 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               <td />
               <td className="print-hide" />
             </tr>
+            {!isMade && (
+              <tr className="border-b border-ink/10">
+                <td colSpan={6} className="pb-2 pl-3 align-top">
+                  <div className="text-[11px] leading-snug text-ink/55">
+                    이벤트랜드에서 출장 설치·현장 테스트 및 행사 종료 후 회수를 진행합니다.
+                  </div>
+                </td>
+                <td className="print-hide" />
+              </tr>
+            )}
             {serviceDiscount > 0 && (
               <tr className="text-ink">
                 <td colSpan={4} className="py-1 text-right text-ink/60">
@@ -648,13 +658,6 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
             </tr>
           </tfoot>
         </table>
-
-        {/* 운송(출장 설치·회수) 안내 — 대여 건 */}
-        {!isMade && (
-          <p className="mt-3 text-xs leading-relaxed text-ink/60">
-            ※ 이벤트랜드에서 출장 설치·현장 테스트 및 행사 종료 후 회수를 진행합니다.
-          </p>
-        )}
 
         {/* 입금 계좌 (강조) */}
         <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-md border border-ink/20 bg-ink/[0.03] px-4 py-3">
