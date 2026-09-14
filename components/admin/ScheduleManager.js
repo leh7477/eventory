@@ -859,8 +859,12 @@ export default function ScheduleManager({
                                    .map((x) => `${x.category} ${x.quantity}대`)
                                    .join(" · ")}
                                </b>
+                             ) : usageOf(ev) === "제작" ? (
+                               <span className="text-ink/40">제작 건 (배정 불필요)</span>
                              ) : (
-                               <span className="text-ink/40">기기 배정 없음</span>
+                               <b className="text-amber-600">
+                                 ⚠ 기기 배정 없음 — 아래 ‘기기’에서 배정하세요
+                               </b>
                              )}
                            </span>
                          );
@@ -870,24 +874,36 @@ export default function ScheduleManager({
 
                    {/* 액션 버튼 (아래 줄, 우측 정렬) */}
                    <div className="mt-2.5 flex flex-wrap justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setEquipEditId((v) => (v === ev.id ? null : ev.id))
-                      }
-                      className={`relative shrink-0 rounded-md border px-3 py-1.5 text-xs font-medium ${
-                        equipEditId === ev.id
-                          ? "border-blue-600 bg-blue-600 text-white"
-                          : "border-ink/15 text-ink/70 hover:bg-ink/5"
-                      }`}
-                    >
-                      기기
-                      {itemsBySchedule(ev.id).length > 0 && (
-                        <span className="ml-1 rounded-full bg-blue-100 px-1.5 text-[10px] font-bold text-blue-700">
-                          {itemsBySchedule(ev.id).length}
-                        </span>
-                      )}
-                    </button>
+                    {(() => {
+                      const nEquip = itemsBySchedule(ev.id).length;
+                      // 임대인데 기기 배정이 없으면 경고(제작·업무는 제외)
+                      const needEquip =
+                        !isTask(ev) && usageOf(ev) !== "제작" && nEquip === 0;
+                      const selected = equipEditId === ev.id;
+                      return (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setEquipEditId((v) => (v === ev.id ? null : ev.id))
+                          }
+                          title={needEquip ? "기기 배정이 없습니다 — 배정하세요" : "기기 배정"}
+                          className={`relative shrink-0 rounded-md border px-3 py-1.5 text-xs font-medium ${
+                            selected
+                              ? "border-blue-600 bg-blue-600 text-white"
+                              : needEquip
+                              ? "border-amber-400 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                              : "border-ink/15 text-ink/70 hover:bg-ink/5"
+                          }`}
+                        >
+                          {needEquip ? "⚠ 기기 미배정" : "기기"}
+                          {nEquip > 0 && (
+                            <span className="ml-1 rounded-full bg-blue-100 px-1.5 text-[10px] font-bold text-blue-700">
+                              {nEquip}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })()}
                     <button
                       type="button"
                       onClick={() => setInfoEditId((v) => (v === ev.id ? null : ev.id))}
