@@ -220,14 +220,19 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const removeItem = (i) =>
     setItems((rows) => rows.filter((_, idx) => idx !== i));
 
-  const amounts = items.map((r) =>
-    r.service
-      ? 0
-      : (parseInt(r.qty, 10) || 0) * (parseInt(String(r.price).replace(/\D/g, ""), 10) || 0)
+  const amounts = items.map(
+    (r) =>
+      (parseInt(r.qty, 10) || 0) *
+      (parseInt(String(r.price).replace(/\D/g, ""), 10) || 0)
   );
   const itemsTotal = amounts.reduce((a, b) => a + b, 0);
+  // 서비스 항목은 금액을 보여주되 하단에서 '할인'으로 차감
+  const serviceDiscount = items.reduce(
+    (s, r, i) => s + (r.service ? amounts[i] : 0),
+    0
+  );
   const shippingFee = parseInt(String(shipping).replace(/\D/g, ""), 10) || 0;
-  const supply = itemsTotal + shippingFee;
+  const supply = itemsTotal + shippingFee - serviceDiscount;
   const vat = vatIncluded ? Math.round(supply * 0.1) : 0;
   const total = supply + vat;
 
@@ -512,7 +517,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                   />
                 </td>
                 <td className="py-2 pr-4 text-right font-medium text-ink">
-                  {r.service ? <span className="text-ink">서비스</span> : won(amounts[i])}
+                  {won(amounts[i])}
                 </td>
                 <td className="py-2 pl-4">
                   <input
@@ -563,6 +568,18 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               <td />
               <td className="print-hide" />
             </tr>
+            {serviceDiscount > 0 && (
+              <tr className="text-ink">
+                <td colSpan={4} className="py-1 text-right text-ink/60">
+                  할인 (서비스)
+                </td>
+                <td className="py-1 pr-4 text-right font-medium text-primary">
+                  - {won(serviceDiscount)}
+                </td>
+                <td />
+                <td className="print-hide" />
+              </tr>
+            )}
             <tr className="text-ink">
               <td colSpan={4} className="py-2 text-right text-ink/60">
                 공급가액
