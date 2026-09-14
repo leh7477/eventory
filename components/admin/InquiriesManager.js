@@ -20,6 +20,7 @@ const STATUS_META = {
   new: { label: "신규", badge: "bg-primary/10 text-primary" },
   quoted: { label: "견적", badge: "bg-indigo-100 text-indigo-700" },
   confirmed: { label: "확정", badge: "bg-green-100 text-green-700" },
+  scheduled: { label: "일정", badge: "bg-blue-100 text-blue-700" },
   done: { label: "완료", badge: "bg-ink/10 text-ink/50" },
   cancelled: { label: "취소", badge: "bg-ink/[0.04] text-ink/40" },
   expired: { label: "만료", badge: "bg-ink/[0.06] text-ink/45" },
@@ -53,6 +54,7 @@ const STEPS = [
   { v: "new", label: "신규" },
   { v: "quoted", label: "견적" },
   { v: "confirmed", label: "확정" },
+  { v: "scheduled", label: "일정" },
   { v: "done", label: "완료" },
 ];
 
@@ -121,6 +123,7 @@ const FILTER_TABS = [
   { v: "new", label: "신규" },
   { v: "quoted", label: "견적" },
   { v: "confirmed", label: "확정" },
+  { v: "scheduled", label: "일정" },
   { v: "done", label: "완료" },
   { v: "expired", label: "만료" },
   { v: "cancelled", label: "취소" },
@@ -294,17 +297,25 @@ export default function InquiriesManager({
     cutoff.setDate(cutoff.getDate() - Number(period));
     return new Date(q.created_at) >= cutoff;
   };
+  // 표시용 상태 — 확정 + 일정 등록되면 '일정' 단계로 표기
+  const displayStatus = (q) => {
+    const eff = effectiveStatus(q);
+    return eff === "confirmed" && scheduledInquiryIds.includes(q.id)
+      ? "scheduled"
+      : eff;
+  };
+
   // 상태 탭 개수 (검색·기간 반영, 상태필터 제외)
   const base = inquiries.filter((q) => matchesSearch(q) && matchesPeriod(q));
   const counts = { all: base.length };
-  ["new", "quoted", "confirmed", "done", "expired", "cancelled"].forEach(
-    (k) => (counts[k] = base.filter((q) => effectiveStatus(q) === k).length)
+  ["new", "quoted", "confirmed", "scheduled", "done", "expired", "cancelled"].forEach(
+    (k) => (counts[k] = base.filter((q) => displayStatus(q) === k).length)
   );
 
   const isClosed = (q) =>
     ["done", "expired", "cancelled"].includes(effectiveStatus(q));
   const filtered = base
-    .filter((q) => filter === "all" || effectiveStatus(q) === filter)
+    .filter((q) => filter === "all" || displayStatus(q) === filter)
     .sort(
       (a, b) =>
         (isClosed(a) ? 1 : 0) - (isClosed(b) ? 1 : 0) ||
@@ -400,10 +411,11 @@ export default function InquiriesManager({
               : q.event_date || "";
           const st = statusOf(q);
           const eff = effectiveStatus(q);
+          const disp = displayStatus(q);
+          const stepKey =
+            eff === "done" ? "done" : disp === "scheduled" ? "scheduled" : st;
           const curIdx =
-            st === "cancelled"
-              ? -1
-              : STEPS.findIndex((s) => s.v === (eff === "done" ? "done" : st));
+            st === "cancelled" ? -1 : STEPS.findIndex((s) => s.v === stepKey);
           // 견적서 작성·인쇄(견적 금액 기록) 완료 여부 → 확정 가능 조건
           const quoteDone =
             q.quoted_amount != null ||
@@ -445,22 +457,13 @@ export default function InquiriesManager({
                 onClick={() => onOpen(q)}
                 className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-ink/[0.02] sm:gap-4"
               >
-                {/* 1. 상태 (+ 확정인데 일정 미등록이면 경고) */}
-                <span className="flex w-16 shrink-0 flex-col items-start gap-1 sm:w-20">
+                {/* 1. 상태 */}
+                <span className="w-16 shrink-0 sm:w-20">
                   <span
-                    className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${statusMeta(effectiveStatus(q)).badge}`}
+                    className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${statusMeta(displayStatus(q)).badge}`}
                   >
-                    {statusMeta(effectiveStatus(q)).label}
+                    {statusMeta(displayStatus(q)).label}
                   </span>
-                  {effectiveStatus(q) === "confirmed" &&
-                    !scheduledInquiryIds.includes(q.id) && (
-                      <span
-                        className="whitespace-nowrap rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700"
-                        title="일정 미등록 — 일정 등록이 필요합니다"
-                      >
-                        ⚠ 미등록
-                      </span>
-                    )}
                 </span>
                 {/* 2. 날짜 (데스크탑) */}
                 <span className="hidden w-32 shrink-0 text-xs text-ink/50 sm:block">
