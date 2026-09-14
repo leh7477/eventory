@@ -578,7 +578,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               {isCapsule && (
                 <tr className="border-b border-ink/10">
                   <td colSpan={6} className="pb-2 pl-3 align-top">
-                    <div className="text-[11px] leading-snug text-ink/55">
+                    <div className="text-[13px] leading-snug text-ink/75">
                       <div>흰 · 검 · 빨 · 주 · 노 · 초 · 파 · 보 · 전체투명</div>
                       <div>(단일 색상 또는 최대 3가지 색상까지 혼합 구성 가능)</div>
                     </div>
@@ -609,7 +609,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
             {!isMade && (
               <tr className="border-b border-ink/10">
                 <td colSpan={6} className="pb-2 pl-3 align-top">
-                  <div className="text-[11px] leading-snug text-ink/55">
+                  <div className="text-[13px] leading-snug text-ink/75">
                     이벤트랜드에서 출장 설치·현장 테스트 및 행사 종료 후 회수를 진행합니다.
                   </div>
                 </td>
