@@ -579,7 +579,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                 <tr className="border-b border-ink/10">
                   <td colSpan={6} className="pb-2 pl-3 align-top">
                     <div className="text-[13px] leading-snug text-ink/75">
-                      흰 · 검 · 빨 · 주 · 노 · 초 · 파 · 보 · 전체투명 (단일 색상 또는 최대
+                      ※ 흰 · 검 · 빨 · 주 · 노 · 초 · 파 · 보 · 전체투명 (단일 색상 또는 최대
                       3가지 색상까지 혼합 구성 가능)
                     </div>
                   </td>
@@ -591,9 +591,9 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
             })}
           </tbody>
           <tfoot>
-            <tr className="border-b border-ink/10 text-ink">
+            <tr className="text-ink">
               <td colSpan={4} className="py-2 text-right text-ink/60">
-                운송비(왕복)
+                운송비 (왕복)
               </td>
               <td className="py-2 pr-4 text-right">
                 <input
@@ -610,7 +610,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               <tr className="border-b border-ink/10">
                 <td colSpan={6} className="pb-2 pl-3 align-top">
                   <div className="text-[13px] leading-snug text-ink/75">
-                    이벤트랜드에서 출장 설치·현장 테스트 및 행사 종료 후 회수를 진행합니다.
+                    ※ 이벤트랜드에서 출장 설치·현장 테스트 및 행사 종료 후 회수를 진행합니다.
                   </div>
                 </td>
                 <td className="print-hide" />
