@@ -87,14 +87,31 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
     },
   ]);
   // 배송료 지역/방식 선택 (주소로 초기 지역 추정 → 배송비 자동 대입)
+  // 지역명 접미사(특별시/광역시/도/시/군/구)를 떼고도 매칭 (예: "서울특별시" ↔ 주소 "서울 용산구")
+  const stripSuffix = (x) =>
+    x.replace(/(특별자치시|특별자치도|특별시|광역시|특별자치|도|시|군|구)$/, "");
+  const regionKeys = (r) => {
+    const tail = r.split(" ").pop();
+    return [...new Set([r, tail, stripSuffix(r), stripSuffix(tail)])].filter(
+      (k) => k && k.length >= 2
+    );
+  };
   const guessRegion = () => {
     const addr = location;
     if (!addr) return "";
     let best = "";
+    let bestScore = 0;
     for (const s of shippingRates) {
-      const tail = s.region.split(" ").pop();
-      if ((addr.includes(s.region) || (tail && addr.includes(tail))) && s.region.length > best.length)
-        best = s.region;
+      for (const key of regionKeys(s.region)) {
+        if (addr.includes(key)) {
+          // 매칭 문자열이 길수록(구체적) 우선, 동점이면 지역명 긴 쪽
+          const score = key.length * 100 + s.region.length;
+          if (score > bestScore) {
+            bestScore = score;
+            best = s.region;
+          }
+        }
+      }
     }
     return best;
   };
