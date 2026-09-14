@@ -6,6 +6,14 @@ import { SITE } from "@/lib/constants";
 import { saveQuotedAmount } from "@/app/admin/(panel)/inquiries/actions";
 import { matchCategory, parseQty } from "@/lib/inventory";
 
+// 머신별 서비스 소모품 (측면 랩핑 다음에 자동 추가, 회수/폐기용 · 무상)
+// 수량은 기본값이며 견적서에서 수정 가능
+const CONSUMABLES = {
+  가챠머신: { name: "6cm 캡슐 (색상 혼합 구성 가능)", qty: 350, unit: "개", note: "서비스 (회수용)" },
+  사격게임: { name: "너프건 3개 / 총알 30개", qty: 3, unit: "개", note: "서비스 (회수용)" },
+  에어볼추첨기: { name: "4cm 우드락볼 (흰색)", qty: 80, unit: "개", note: "서비스 (사용 후 폐기)" },
+};
+
 // 품목명에서 수량·단위 제거 (예: '스탑워치 2대' → '스탑워치')
 function stripQty(s) {
   return String(s || "")
@@ -86,6 +94,13 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
     note: "서비스",
     service: true,
   });
+  // 머신별 소모품 서비스(있으면) — 캡슐/너프건·총알/우드락볼 등
+  const consumableItem = (category) => {
+    const c = CONSUMABLES[category];
+    return c
+      ? { name: c.name, qty: c.qty, unit: c.unit, price: "", note: c.note, service: true }
+      : null;
+  };
   const isRental = !!firstMatch && !isMade; // 대여 매칭 건(전면 랩핑 기본 포함)
   const [items, setItems] = useState(() => {
     const rows = [
@@ -99,7 +114,11 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
         note: isRental ? "전면 랩핑 포함" : "",
       },
     ];
-    if (isRental) rows.push(sideWrapItem());
+    if (isRental) {
+      rows.push(sideWrapItem());
+      const c = consumableItem(firstMatch.product);
+      if (c) rows.push(c);
+    }
     return rows;
   });
   // 배송료 지역/방식 선택 (주소로 초기 지역 추정 → 배송비 자동 대입)
@@ -159,6 +178,9 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const addRentalItem = (product) => {
     const r = rentalRates.find((x) => x.product === product);
     if (!r) return;
+    const extra = [sideWrapItem()];
+    const c = consumableItem(r.product);
+    if (c) extra.push(c);
     setItems((rows) => [
       ...rows,
       {
@@ -168,7 +190,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
         price: priceOf(r),
         note: "전면 랩핑 포함",
       },
-      sideWrapItem(),
+      ...extra,
     ]);
   };
   const addMadeItem = (product) => {
@@ -517,7 +539,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                   />
                 </td>
                 <td className="py-2 pr-4 text-right font-medium text-ink">
-                  {won(amounts[i])}
+                  {amounts[i] ? won(amounts[i]) : ""}
                 </td>
                 <td className="py-2 pl-4">
                   <input
