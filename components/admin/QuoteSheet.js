@@ -172,7 +172,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   };
   const [vatIncluded, setVatIncluded] = useState(true);
   const [note, setNote] = useState(
-    "· 본 견적은 견적일로부터 30일간 유효합니다.\n· 행사 일정 변경·취소는 사전 협의 부탁드립니다.\n· 대금 지급 일정은 귀사의 내부 결제 규정(지정 결제일)에 맞춰 상호 협의하에 조정 가능합니다.\n· 고객 과실로 인한 제품 파손·분실 시 변상 책임이 부과됩니다."
+    "· 본 견적은 견적일로부터 30일간 유효합니다.\n· 행사 일정 변경·취소는 사전 협의 부탁드립니다.\n· 대금 지급 일정은 귀사의 내부 결제 규정(지정 결제일)에 맞춰 상호 협의하에 조정 가능합니다.\n· 과실로 인한 제품 파손·분실 시 변상 책임이 부과됩니다."
   );
   const [quoteDate, setQuoteDate] = useState(todayStr());
   const router = useRouter();
