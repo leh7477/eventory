@@ -257,6 +257,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const supply = itemsTotal + shippingFee - serviceDiscount;
   const vat = vatIncluded ? Math.round(supply * 0.1) : 0;
   const total = supply + vat;
+  const hasCapsule = items.some((r) => /캡슐/.test(r.name || ""));
 
   const inputCls =
     "w-full rounded border border-ink/15 px-2 py-1 text-sm outline-none focus:border-primary print:border-0 print:p-0";
@@ -632,6 +633,14 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
             </tr>
           </tfoot>
         </table>
+
+        {/* 캡슐 구성 안내 (캡슐 품목이 있을 때만) */}
+        {hasCapsule && (
+          <p className="mt-3 text-xs leading-relaxed text-ink/60">
+            ※ 캡슐 색상: 흰 · 검 · 빨 · 주 · 노 · 초 · 파 · 보 · 전체투명 — 단일 색상
+            또는 최대 3가지 색상까지 혼합 구성 가능합니다.
+          </p>
+        )}
 
         {/* 입금 계좌 (강조) */}
         <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-md border border-ink/20 bg-ink/[0.03] px-4 py-3">
