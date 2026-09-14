@@ -237,7 +237,7 @@ export async function setScheduleStage(id, stage) {
   // 기존 체크 시각·처리자 유지 + 새로 도달한 단계 기록, n 초과 단계는 제거
   const { data: cur } = await admin
     .from("schedules")
-    .select("stage_dates, stage_by")
+    .select("stage_dates, stage_by, vendor")
     .eq("id", id)
     .maybeSingle();
   const prev = cur && typeof cur.stage_dates === "object" && cur.stage_dates ? cur.stage_dates : {};
@@ -271,6 +271,24 @@ export async function setScheduleStage(id, stage) {
     }
     return { error: error.message };
   }
+
+  // 출력물 발주(1단계) 도달 & 발주처 미지정 → 최근 쓴 발주처 자동 지정 (변경 가능)
+  if (n >= 1 && !cur?.vendor) {
+    const { data: recent } = await admin
+      .from("schedules")
+      .select("vendor")
+      .neq("id", id)
+      .not("vendor", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    const lastVendor = (recent ?? [])
+      .map((r) => (r.vendor || "").trim())
+      .find((v) => v);
+    if (lastVendor) {
+      await admin.from("schedules").update({ vendor: lastVendor }).eq("id", id);
+    }
+  }
+
   rv();
   return { ok: true };
 }
