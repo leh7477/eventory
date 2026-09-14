@@ -353,16 +353,16 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
         </p>
 
         {/* 품목 표 */}
-        <table className="mt-6 w-full text-sm">
+        <table className="mt-6 w-full table-fixed text-sm">
           <thead>
             <tr className="border-b-2 border-ink/60 text-left text-ink/60">
               <th className="py-2 font-medium">품목</th>
-              <th className="w-14 py-2 text-center font-medium">수량</th>
-              <th className="w-12 py-2 text-center font-medium">단위</th>
-              <th className="w-28 py-2 text-right font-medium">단가</th>
-              <th className="w-28 py-2 text-right font-medium">금액</th>
-              <th className="w-40 py-2 text-left font-medium">비고</th>
-              <th className="print-hide w-24" />
+              <th className="w-12 py-2 text-center font-medium">수량</th>
+              <th className="w-10 py-2 text-center font-medium">단위</th>
+              <th className="w-24 py-2 text-right font-medium">단가</th>
+              <th className="w-24 py-2 text-right font-medium">금액</th>
+              <th className="w-28 py-2 text-left font-medium">비고</th>
+              <th className="print-hide w-16" />
             </tr>
           </thead>
           <tbody>
@@ -457,38 +457,11 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                   value={shipping === "" ? "" : won(shippingFee)}
                   onChange={(e) => setShipping(e.target.value.replace(/\D/g, ""))}
                   placeholder="0"
-                  className={`${inputCls} w-28 text-right font-medium`}
+                  className={`${inputCls} text-right font-medium`}
                 />
               </td>
               <td />
-              <td className="print-hide py-2 pl-2">
-                {shippingRates.length > 0 && (
-                  <div className="flex items-center gap-1">
-                    <select
-                      value={shipRegion}
-                      onChange={(e) => onRegionChange(e.target.value)}
-                      className="max-w-[120px] rounded border border-ink/15 px-1.5 py-1 text-xs outline-none focus:border-primary"
-                      title="배송 지역"
-                    >
-                      <option value="">지역 선택</option>
-                      {shippingRates.map((s) => (
-                        <option key={s.region} value={s.region}>
-                          {s.region}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={shipMethod}
-                      onChange={(e) => applyShipping(shipRegion, e.target.value)}
-                      className="rounded border border-ink/15 px-1.5 py-1 text-xs outline-none focus:border-primary"
-                      title="배송 방식"
-                    >
-                      <option value="direct">직접</option>
-                      <option value="quick">퀵</option>
-                    </select>
-                  </div>
-                )}
-              </td>
+              <td className="print-hide" />
             </tr>
             <tr className="text-ink">
               <td colSpan={4} className="py-2 text-right text-ink/60">
@@ -520,6 +493,36 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
             </tr>
           </tfoot>
         </table>
+
+        {/* 배송 지역/방식 (인쇄 시 숨김 — 배송비 자동 대입용) */}
+        {shippingRates.length > 0 && (
+          <div className="print-hide mt-2 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-ink/50">배송 지역</span>
+            <select
+              value={shipRegion}
+              onChange={(e) => onRegionChange(e.target.value)}
+              className="rounded border border-ink/15 px-2 py-1 text-xs outline-none focus:border-primary"
+              title="배송 지역"
+            >
+              <option value="">지역 선택</option>
+              {shippingRates.map((s) => (
+                <option key={s.region} value={s.region}>
+                  {s.region}
+                </option>
+              ))}
+            </select>
+            <select
+              value={shipMethod}
+              onChange={(e) => applyShipping(shipRegion, e.target.value)}
+              className="rounded border border-ink/15 px-2 py-1 text-xs outline-none focus:border-primary"
+              title="배송 방식"
+            >
+              <option value="direct">직접</option>
+              <option value="quick">퀵</option>
+            </select>
+            <span className="text-[11px] text-ink/40">→ 배송비 자동 입력</span>
+          </div>
+        )}
 
         <div className="print-hide mt-3 flex flex-wrap items-center gap-2">
           <button
