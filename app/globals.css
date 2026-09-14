@@ -12,6 +12,14 @@ html {
   scroll-behavior: smooth;
 }
 
+/* 인쇄 시 빈 입력칸의 placeholder(예: '비고')가 보이지 않게 */
+@media print {
+  ::placeholder {
+    color: transparent !important;
+    opacity: 0 !important;
+  }
+}
+
 body {
   color: var(--ink);
   background: #ffffff;

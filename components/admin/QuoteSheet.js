@@ -172,7 +172,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   };
   const [vatIncluded, setVatIncluded] = useState(true);
   const [note, setNote] = useState(
-    "· 본 견적은 견적일로부터 30일간 유효합니다.\n· 예약은 계약금 입금 시 확정됩니다.\n· 행사 일정 변경·취소는 사전 협의 부탁드립니다.\n· 대금 지급 일정은 귀사의 내부 결제 규정(지정 결제일)에 맞춰 상호 협의하에 조정 가능합니다."
+    "· 본 견적은 견적일로부터 30일간 유효합니다.\n· 행사 일정 변경·취소는 사전 협의 부탁드립니다.\n· 대금 지급 일정은 귀사의 내부 결제 규정(지정 결제일)에 맞춰 상호 협의하에 조정 가능합니다.\n· 고객 과실로 인한 제품 파손·분실 시 변상 책임이 부과됩니다."
   );
   const [quoteDate, setQuoteDate] = useState(todayStr());
   const router = useRouter();
@@ -359,9 +359,9 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               <th className="py-2 font-medium">품목</th>
               <th className="w-12 py-2 text-center font-medium">수량</th>
               <th className="w-10 py-2 text-center font-medium">단위</th>
-              <th className="w-24 py-2 text-right font-medium">단가</th>
-              <th className="w-24 py-2 text-right font-medium">금액</th>
-              <th className="w-28 py-2 text-left font-medium">비고</th>
+              <th className="w-28 py-2 text-right font-medium">단가</th>
+              <th className="w-32 py-2 text-right font-medium">금액</th>
+              <th className="w-24 py-2 text-left font-medium">비고</th>
               <th className="print-hide w-16" />
             </tr>
           </thead>
@@ -485,7 +485,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               <td colSpan={4} className="py-2.5 text-right font-bold">
                 총 합계
               </td>
-              <td className="py-2.5 text-right text-base font-extrabold">
+              <td className="whitespace-nowrap py-2.5 text-right text-base font-extrabold">
                 ₩ {won(total)}
               </td>
               <td />
