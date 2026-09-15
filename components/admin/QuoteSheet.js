@@ -629,7 +629,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               <td />
               <td className="print-hide" />
             </tr>
-            {!isMade && (
+            {!isMade && shipMethod !== "quick" && (
               <tr className="border-b border-ink/10">
                 <td colSpan={6} className="pb-2 pl-3 align-top">
                   <div className="text-[13px] leading-snug text-ink/75">
