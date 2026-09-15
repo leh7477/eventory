@@ -7,6 +7,8 @@ import {
   createTask,
   updateTask,
   deleteSchedule,
+  cancelSchedule,
+  restoreSchedule,
   updateScheduleDatetime,
   setScheduleStage,
   createVendor,
@@ -170,16 +172,21 @@ export default function ScheduleManager({
 
   // 그날의 납품/회수 액션 + 장비 배치(납품~회수) 기간 여부 (행사 외 업무는 제외)
   const dayInfo = (ds) => ({
-    installs: schedules.filter((ev) => !isTask(ev) && ev.start_date === ds),
+    installs: schedules.filter((ev) => !ev.cancelled && !isTask(ev) && ev.start_date === ds),
     pickups: schedules.filter(
       (ev) =>
+        !ev.cancelled &&
         !isTask(ev) &&
         usageOf(ev) !== "제작" &&
         (ev.end_date || ev.start_date) === ds
     ),
-    tasks: schedules.filter((ev) => isTask(ev) && ev.start_date === ds),
+    tasks: schedules.filter((ev) => !ev.cancelled && isTask(ev) && ev.start_date === ds),
     deployed: schedules.some(
-      (ev) => !isTask(ev) && ev.start_date <= ds && ds <= (ev.end_date || ev.start_date)
+      (ev) =>
+        !ev.cancelled &&
+        !isTask(ev) &&
+        ev.start_date <= ds &&
+        ds <= (ev.end_date || ev.start_date)
     ),
   });
 
@@ -190,6 +197,7 @@ export default function ScheduleManager({
   const occFor = (ds) => {
     const list = [];
     schedules.forEach((ev) => {
+      if (ev.cancelled) return;
       if (isTask(ev)) {
         if (ev.start_date === ds)
           list.push({ type: "업무", ev, time: hm(ev.start_time) });
@@ -671,7 +679,7 @@ export default function ScheduleManager({
                   id={`sch-${ev.id}`}
                   className={`transition-colors ${
                     highlightId === ev.id ? "bg-primary/10" : ""
-                  }`}
+                  } ${ev.cancelled ? "bg-ink/[0.02] opacity-60" : ""}`}
                 >
                   <div className="px-4 py-3">
                    <div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
@@ -699,8 +707,13 @@ export default function ScheduleManager({
                       </span>
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className={`truncate text-sm font-semibold ${past ? "text-ink/40" : "text-ink"}`}>
+                      <p className={`truncate text-sm font-semibold ${ev.cancelled ? "text-ink/40 line-through" : past ? "text-ink/40" : "text-ink"}`}>
                         {ev.title}
+                        {ev.cancelled && (
+                          <span className="ml-1.5 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary align-middle no-underline">
+                            취소
+                          </span>
+                        )}
                         {ev.inquiry_id && (
                           <span className="ml-1.5 rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-medium text-green-700 align-middle">
                             연동
@@ -930,17 +943,35 @@ export default function ScheduleManager({
                     >
                       일시
                     </button>
-                    <button
-                      type="button"
-                      disabled={pending}
-                      onClick={() => {
-                        if (confirm(`'${ev.title}' 일정을 삭제할까요?`))
-                          run(() => deleteSchedule(ev.id));
-                      }}
-                      className="shrink-0 rounded-md border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/5"
-                    >
-                      삭제
-                    </button>
+                    {ev.cancelled ? (
+                      <button
+                        type="button"
+                        disabled={pending}
+                        onClick={() => {
+                          if (confirm(`'${ev.title}' 일정을 복구할까요? (기기 배정은 다시 해야 합니다)`))
+                            run(() => restoreSchedule(ev.id));
+                        }}
+                        className="shrink-0 rounded-md border border-emerald-400 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
+                      >
+                        복구
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={pending}
+                        onClick={() => {
+                          if (
+                            confirm(
+                              `'${ev.title}' 일정을 취소할까요?\n기기 배정이 해제되고 상태가 '취소'로 바뀝니다. (기록은 남습니다)`
+                            )
+                          )
+                            run(() => cancelSchedule(ev.id));
+                        }}
+                        className="shrink-0 rounded-md border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/5"
+                      >
+                        취소
+                      </button>
+                    )}
                    </div>
                   </div>
 

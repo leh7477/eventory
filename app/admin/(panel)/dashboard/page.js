@@ -19,6 +19,7 @@ const isDeliveryOnly = (ev) =>
 function toOccurrences(schedules) {
   const occ = [];
   schedules.forEach((ev) => {
+    if (ev.cancelled) return;
     const end = ev.end_date || ev.start_date;
     occ.push({ type: "납품", date: ev.start_date, time: hm(ev.start_time), ev });
     if (!isDeliveryOnly(ev))
@@ -131,7 +132,7 @@ export default async function DashboardPage() {
   // 행사(납품/회수 발생) + 업무를 하나로 합쳐 날짜별 · 시간순
   const eventOcc = toOccurrences(schedules.filter((ev) => !isTask(ev)));
   const taskOcc = schedules
-    .filter((ev) => isTask(ev))
+    .filter((ev) => isTask(ev) && !ev.cancelled)
     .map((ev) => ({ type: "업무", date: ev.start_date, time: hm(ev.start_time), ev }));
   const allOcc = [...eventOcc, ...taskOcc].sort(
     (a, b) =>

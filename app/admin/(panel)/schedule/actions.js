@@ -380,6 +380,39 @@ export async function deleteSchedule(id) {
   return { ok: true };
 }
 
+// 일정 취소 — 기록은 남기고 상태만 '취소'로, 기기 배정은 해제(재고 반환)
+export async function cancelSchedule(id) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  // 배정된 기기 해제 (재고 반환) — best-effort
+  await admin.from("schedule_items").delete().eq("schedule_id", id);
+  const { error } = await admin
+    .from("schedules")
+    .update({ cancelled: true, stage: 0 })
+    .eq("id", id);
+  if (error) {
+    if (/cancelled|column/i.test(error.message)) {
+      return { error: "취소 컬럼이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
+    }
+    return { error: error.message };
+  }
+  rv();
+  return { ok: true };
+}
+
+// 취소 되돌리기 (취소 → 복구)
+export async function restoreSchedule(id) {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("schedules")
+    .update({ cancelled: false })
+    .eq("id", id);
+  if (error) return { error: error.message };
+  rv();
+  return { ok: true };
+}
+
 // ─────────────────────────────────────────────
 // 일정 기기 배정 (수량 기준) + 가용 재고 검증
 function equipFriendly(error) {

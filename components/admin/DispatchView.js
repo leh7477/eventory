@@ -68,7 +68,7 @@ export default function DispatchView({ schedules = [], scheduleItems = [] }) {
       });
     };
     for (const ev of schedules) {
-      if (ev.kind === "task") continue;
+      if (ev.kind === "task" || ev.cancelled) continue;
       push(ev, "install", ev.start_date, ev.start_time, ev.install_seq);
       if (!isDeliveryOnly(ev))
         push(ev, "pickup", ev.end_date || ev.start_date, ev.end_time, ev.pickup_seq);
