@@ -43,6 +43,7 @@ const display = localFont({
 
 import { SITE_URL } from "@/lib/constants";
 import FloatingContact from "@/components/FloatingContact";
+import PhonePopup from "@/components/PhonePopup";
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
@@ -71,6 +72,7 @@ export default function RootLayout({ children }) {
       <body className="font-sans antialiased">
         {children}
         <FloatingContact />
+        <PhonePopup />
       </body>
     </html>
   );
