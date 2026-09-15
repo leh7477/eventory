@@ -28,6 +28,14 @@ html {
   }
   #quote-sheet {
     padding: 0 !important;
+    /* A4 인쇄 영역을 꽉 채우기 — 내용은 위, 서명부는 아래로 */
+    min-height: 272mm;
+    display: flex;
+    flex-direction: column;
+  }
+  #quote-sheet .qs-close {
+    margin-top: auto; /* 서명부를 페이지 하단으로 */
+    padding-top: 1rem;
   }
   /* 본문·입력칸 폰트 통일 — 품목 수에 따라 --qs-fs로 자동 조절(적으면 여유있게) */
   #quote-sheet,

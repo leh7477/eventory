@@ -505,9 +505,9 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               <th className="py-2 font-medium">품목</th>
               <th className="w-12 py-2 text-center font-medium">수량</th>
               <th className="w-10 py-2 text-center font-medium">단위</th>
-              <th className="w-28 py-2 text-right font-medium">단가</th>
-              <th className="w-32 py-2 pr-4 text-right font-medium">금액</th>
-              <th className="w-24 py-2 pl-4 text-left font-medium">비고</th>
+              <th className="w-24 py-2 text-right font-medium">단가</th>
+              <th className="w-28 py-2 pr-4 text-right font-medium">금액</th>
+              <th className="w-32 py-2 pl-4 text-left font-medium">비고</th>
               <th className="print-hide w-16" />
             </tr>
           </thead>
@@ -693,12 +693,14 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
           />
         </div>
 
-        <p className="mt-10 text-center text-sm text-ink/60">
-          위와 같이 견적합니다.
-        </p>
-        <p className="mt-2 text-center font-tesla text-lg font-semibold tracking-[0.3em] text-ink">
-          EVENT LAND
-        </p>
+        <div className="qs-close">
+          <p className="mt-10 text-center text-sm text-ink/60">
+            위와 같이 견적합니다.
+          </p>
+          <p className="mt-2 text-center font-tesla text-lg font-semibold tracking-[0.3em] text-ink">
+            EVENT LAND
+          </p>
+        </div>
       </div>
     </div>
   );
