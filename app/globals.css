@@ -28,14 +28,6 @@ html {
   }
   #quote-sheet {
     padding: 0 !important;
-    /* A4 인쇄 영역을 꽉 채우기 — 내용은 위, 서명부는 아래로 */
-    min-height: 272mm;
-    display: flex;
-    flex-direction: column;
-  }
-  #quote-sheet .qs-close {
-    margin-top: auto; /* 서명부를 페이지 하단으로 */
-    padding-top: 1rem;
   }
   /* 본문·입력칸 폰트 통일 — 품목 수에 따라 --qs-fs로 자동 조절(적으면 여유있게) */
   #quote-sheet,
@@ -46,25 +38,25 @@ html {
     line-height: 1.3 !important;
   }
   #quote-sheet h2 {
-    font-size: 1.45rem !important;
+    font-size: var(--qs-h2, 1.5rem) !important;
     letter-spacing: 0.3em !important;
   }
-  #quote-sheet .text-lg { font-size: 1rem !important; }
+  #quote-sheet .text-lg { font-size: 1.05rem !important; }
   /* 부속품·안내 문구는 작게 고정 (품목만 커지게) */
   #quote-sheet .text-\[13px\] { font-size: 11px !important; }
-  /* 큰 상하 여백 축소 */
-  #quote-sheet .mt-10 { margin-top: 0.45rem !important; }
-  #quote-sheet .mt-8 { margin-top: 0.45rem !important; }
-  #quote-sheet .mt-6 { margin-top: 0.38rem !important; }
+  /* 상하 여백 — 품목 수에 따라 조절 */
+  #quote-sheet .mt-10 { margin-top: var(--qs-m8, 0.5rem) !important; }
+  #quote-sheet .mt-8 { margin-top: var(--qs-m8, 0.5rem) !important; }
+  #quote-sheet .mt-6 { margin-top: var(--qs-m6, 0.4rem) !important; }
   #quote-sheet .mt-5,
-  #quote-sheet .mt-4 { margin-top: 0.32rem !important; }
-  #quote-sheet .mt-2 { margin-top: 0.18rem !important; }
-  #quote-sheet .gap-6 { gap: 0.45rem !important; }
-  /* 합계 강조줄·표 행 높이 축소 */
-  #quote-sheet .py-3 { padding-top: 0.28rem !important; padding-bottom: 0.28rem !important; }
-  #quote-sheet .p-4 { padding: 0.4rem !important; }
+  #quote-sheet .mt-4 { margin-top: var(--qs-m6, 0.4rem) !important; }
+  #quote-sheet .mt-2 { margin-top: 0.2rem !important; }
+  #quote-sheet .gap-6 { gap: var(--qs-m6, 0.4rem) !important; }
+  /* 표 행 높이 — 품목 수에 따라 조절 */
+  #quote-sheet .py-3 { padding-top: var(--qs-td, 0.17rem) !important; padding-bottom: var(--qs-td, 0.17rem) !important; }
+  #quote-sheet .p-4 { padding: 0.45rem !important; }
   #quote-sheet table td,
-  #quote-sheet table th { padding-top: 0.15rem !important; padding-bottom: 0.15rem !important; }
+  #quote-sheet table th { padding-top: var(--qs-td, 0.17rem) !important; padding-bottom: var(--qs-td, 0.17rem) !important; }
 }
 
 /* 견적서: 입력칸도 본문과 동일한 14px로 (단가·금액 등 글씨 크기 통일).

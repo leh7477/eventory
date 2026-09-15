@@ -259,18 +259,24 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const total = supply + vat;
   // 인쇄 글씨 크기 — 품목이 적으면 여유있게 크게, 많으면 자동으로 줄여 1장 유지
   const itemN = items.length;
-  const printFs =
+  // 품목이 적으면 큼직하게(배치·글씨), 많으면 촘촘하게 → A4 한 장을 채우면서 넘치지 않게
+  const qsDensity =
     itemN <= 3
-      ? "13.5px"
+      ? { fs: "14px", td: ".2rem", m8: ".55rem", m6: ".45rem", h2: "1.6rem" }
       : itemN === 4
-      ? "13px"
+      ? { fs: "13px", td: ".18rem", m8: ".5rem", m6: ".42rem", h2: "1.55rem" }
       : itemN === 5
-      ? "12.5px"
-      : itemN === 6
-      ? "12px"
-      : itemN === 7
-      ? "11.5px"
-      : "11px";
+      ? { fs: "12.5px", td: ".16rem", m8: ".46rem", m6: ".4rem", h2: "1.5rem" }
+      : itemN <= 7
+      ? { fs: "12px", td: ".12rem", m8: ".38rem", m6: ".32rem", h2: "1.45rem" }
+      : { fs: "11px", td: ".09rem", m8: ".32rem", m6: ".26rem", h2: "1.4rem" };
+  const qsVars = {
+    "--qs-fs": qsDensity.fs,
+    "--qs-td": qsDensity.td,
+    "--qs-m8": qsDensity.m8,
+    "--qs-m6": qsDensity.m6,
+    "--qs-h2": qsDensity.h2,
+  };
 
   const inputCls =
     "w-full rounded border border-ink/15 px-2 py-1 text-sm outline-none focus:border-primary print:border-0 print:p-0";
@@ -412,7 +418,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
       {/* 견적서 본체 (A4) */}
       <div
         id="quote-sheet"
-        style={{ "--qs-fs": printFs }}
+        style={qsVars}
         className="rounded-xl border border-ink/10 bg-white p-8 print:rounded-none print:border-0 print:p-0"
       >
         <h2 className="text-center text-3xl font-extrabold tracking-[0.5em] text-ink">
