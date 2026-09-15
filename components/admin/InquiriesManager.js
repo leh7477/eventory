@@ -172,6 +172,7 @@ export default function InquiriesManager({
   const [schEnd, setSchEnd] = useState("");
   const [schCategory, setSchCategory] = useState(""); // 배정할 기기 종류
   const [schQty, setSchQty] = useState("1"); // 배정 수량
+  const [schLocation, setSchLocation] = useState(""); // 행사 장소(주소) — 배차 필수
 
   const openSchedule = (q) => {
     const st = statusOf(q);
@@ -185,6 +186,7 @@ export default function InquiriesManager({
     setSchEnd("");
     setSchCategory(matchCategory(q.product, equipmentCategories));
     setSchQty(String(parseQty(q.product) || 1)); // 문의 수량 자동 (예: 2대)
+    setSchLocation([q.address, q.address_detail].filter(Boolean).join(" "));
     setScheduleFor(q);
   };
 
@@ -204,13 +206,18 @@ export default function InquiriesManager({
   const schQtyNum = parseInt(schQty, 10) || 0;
   const schOver = schAvail && schQtyNum > schAvail.available;
 
-  const submitSchedule = () =>
+  const submitSchedule = () => {
+    if (!schLocation.trim()) {
+      alert("행사 장소(주소)를 입력하세요. 주소 미정이면 배차·일정 진행이 불가합니다.");
+      return;
+    }
     run(async () => {
       const res = await createScheduleFromInquiry(scheduleFor.id, {
         start_date: schStartDate,
         end_date: schEndDate,
         start_time: schStart,
         end_time: schEnd,
+        location: schLocation.trim(),
         equipment:
           schCategory && schQtyNum > 0
             ? { category: schCategory, quantity: schQtyNum }
@@ -222,6 +229,7 @@ export default function InquiriesManager({
         alert(res?.warning || "일정에 등록되었습니다. (행사 일정 메뉴에서 확인)");
       }
     });
+  };
 
   const openEdit = (q) => {
     setEditId(q.id);
@@ -1045,6 +1053,24 @@ export default function InquiriesManager({
             </p>
 
             <div className="mt-5 space-y-4">
+              <div>
+                <label className="mb-1 block text-xs font-bold text-ink/60">
+                  행사 장소 (주소) <span className="text-primary">*</span>
+                </label>
+                <input
+                  value={schLocation}
+                  onChange={(e) => setSchLocation(e.target.value)}
+                  placeholder="주소를 입력하세요 (배차 필수)"
+                  className={`w-full rounded-md border px-2.5 py-1.5 text-sm outline-none focus:border-primary ${
+                    schLocation.trim() ? "border-ink/15" : "border-primary/50 bg-primary/[0.03]"
+                  }`}
+                />
+                {!schLocation.trim() && (
+                  <p className="mt-1 text-[11px] text-primary">
+                    주소 미정이면 등록할 수 없습니다.
+                  </p>
+                )}
+              </div>
               <div>
                 <label className="mb-1 block text-xs font-bold text-blue-700">납품 일시</label>
                 <div className="space-y-1.5">

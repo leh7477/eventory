@@ -143,7 +143,10 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
   const title = [q.company_name || q.name || "행사", q.product]
     .filter(Boolean)
     .join(" · ");
-  const location = [q.address, q.address_detail].filter(Boolean).join(" ") || null;
+  const location =
+    (opts?.location && String(opts.location).trim()) ||
+    [q.address, q.address_detail].filter(Boolean).join(" ") ||
+    null;
 
   // 제작은 회수가 없는 '납품 일정만' — 종료일·회수시간 없음, 기기 배정 없음
   const isMade = q.usage === "제작";
