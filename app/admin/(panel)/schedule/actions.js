@@ -381,9 +381,15 @@ export async function deleteSchedule(id) {
 }
 
 // 일정 취소 — 기록은 남기고 상태만 '취소'로, 기기 배정은 해제(재고 반환)
-export async function cancelSchedule(id) {
+// cancelInquiry=true 면 연결된 견적 문의도 '취소' 처리(매출·정산에서 제외)
+export async function cancelSchedule(id, cancelInquiry = false) {
   await requireAdmin();
   const admin = createAdminClient();
+  const { data: sch } = await admin
+    .from("schedules")
+    .select("inquiry_id")
+    .eq("id", id)
+    .maybeSingle();
   // 배정된 기기 해제 (재고 반환) — best-effort
   await admin.from("schedule_items").delete().eq("schedule_id", id);
   const { error } = await admin
@@ -395,6 +401,14 @@ export async function cancelSchedule(id) {
       return { error: "취소 컬럼이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
     }
     return { error: error.message };
+  }
+  // 행사 자체 취소 → 연결 문의도 취소
+  if (cancelInquiry && sch?.inquiry_id) {
+    await admin
+      .from("inquiries")
+      .update({ status: "cancelled" })
+      .eq("id", sch.inquiry_id);
+    revalidatePath("/admin/stats");
   }
   rv();
   return { ok: true };

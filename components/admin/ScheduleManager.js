@@ -961,11 +961,15 @@ export default function ScheduleManager({
                         disabled={pending}
                         onClick={() => {
                           if (
-                            confirm(
+                            !confirm(
                               `'${ev.title}' 일정을 취소할까요?\n기기 배정이 해제되고 상태가 '취소'로 바뀝니다. (기록은 남습니다)`
                             )
                           )
-                            run(() => cancelSchedule(ev.id));
+                            return;
+                          const alsoCancelEvent =
+                            !!ev.inquiry_id &&
+                            confirm("행사 자체도 취소할까요? (매출에서 제외)");
+                          run(() => cancelSchedule(ev.id, alsoCancelEvent));
                         }}
                         className="shrink-0 rounded-md border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/5"
                       >
