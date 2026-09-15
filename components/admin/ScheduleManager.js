@@ -70,6 +70,18 @@ export default function ScheduleManager({
   const [equipEditId, setEquipEditId] = useState(null);
   const [infoEditId, setInfoEditId] = useState(null);
   const [mode, setMode] = useState("list"); // 'list' | 'dispatch'
+  const [cancelTarget, setCancelTarget] = useState(null); // 취소 확인 대상 일정
+
+  const doCancel = (alsoInquiry) => {
+    const ev = cancelTarget;
+    if (!ev) return;
+    run(async () => {
+      const res = await cancelSchedule(ev.id, alsoInquiry);
+      if (res?.error) alert(res.error);
+      setCancelTarget(null);
+      return res;
+    });
+  };
 
   // 행사 외(업무) 일정 — 추가/편집
   const emptyTask = { date: "", start_time: "", end_time: "", title: "", memo: "" };
@@ -959,18 +971,7 @@ export default function ScheduleManager({
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => {
-                          if (
-                            !confirm(
-                              `'${ev.title}' 일정을 취소할까요?\n기기 배정이 해제되고 상태가 '취소'로 바뀝니다. (기록은 남습니다)`
-                            )
-                          )
-                            return;
-                          const alsoCancelEvent =
-                            !!ev.inquiry_id &&
-                            confirm("행사 자체도 취소할까요? (매출에서 제외)");
-                          run(() => cancelSchedule(ev.id, alsoCancelEvent));
-                        }}
+                        onClick={() => setCancelTarget(ev)}
                         className="shrink-0 rounded-md border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/5"
                       >
                         취소
@@ -1067,6 +1068,59 @@ export default function ScheduleManager({
           </ul>
         )}
       </div>
+        </div>
+      )}
+
+      {/* 일정 취소 확인 (버튼 명확) */}
+      {cancelTarget && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+          <div
+            onClick={() => setCancelTarget(null)}
+            className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+            aria-hidden
+          />
+          <div className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+            <p className="text-base font-bold text-ink">일정 취소</p>
+            <p className="mt-1 truncate text-sm text-ink/70">{cancelTarget.title}</p>
+            <p className="mt-3 text-sm leading-relaxed text-ink/70">
+              취소하면 <b>기기 배정이 해제</b>되고 상태가 <b>‘취소’</b>로 바뀝니다. (기록은
+              남습니다)
+            </p>
+            {cancelTarget.inquiry_id && (
+              <p className="mt-2 rounded-md bg-ink/[0.03] px-3 py-2 text-xs leading-relaxed text-ink/60">
+                <b className="text-ink/70">일정만 취소</b> — 견적·매출은 유지 (날짜 재조정 등)
+                <br />
+                <b className="text-primary">행사까지 취소</b> — 연결된 견적·매출도 취소 처리
+              </p>
+            )}
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setCancelTarget(null)}
+                className="rounded-md border border-ink/15 px-3 py-2 text-xs font-medium text-ink/60 hover:bg-ink/5"
+              >
+                닫기
+              </button>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => doCancel(false)}
+                className="rounded-md border border-primary/40 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/5 disabled:opacity-60"
+              >
+                일정만 취소
+              </button>
+              {cancelTarget.inquiry_id && (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => doCancel(true)}
+                  className="rounded-md bg-primary px-3 py-2 text-xs font-bold text-white hover:bg-primary/90 disabled:opacity-60"
+                >
+                  행사까지 취소
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
