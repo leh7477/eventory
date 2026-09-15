@@ -29,30 +29,32 @@ html {
   #quote-sheet {
     padding: 0 !important;
   }
-  /* 본문·입력칸 폰트 통일 축소 (입력칸만 커지는 문제 방지) */
+  /* 본문·입력칸 폰트 통일 — 품목 수에 따라 --qs-fs로 자동 조절(적으면 여유있게) */
   #quote-sheet,
   #quote-sheet input:not([type="checkbox"]):not([type="radio"]),
   #quote-sheet select,
   #quote-sheet textarea {
-    font-size: 12.5px !important;
+    font-size: var(--qs-fs, 12.5px) !important;
     line-height: 1.3 !important;
   }
   #quote-sheet h2 {
-    font-size: 1.4rem !important;
+    font-size: 1.45rem !important;
     letter-spacing: 0.3em !important;
   }
   #quote-sheet .text-lg { font-size: 1rem !important; }
+  /* 부속품·안내 문구는 작게 고정 (품목만 커지게) */
+  #quote-sheet .text-\[13px\] { font-size: 11px !important; }
   /* 큰 상하 여백 축소 */
-  #quote-sheet .mt-10 { margin-top: 0.5rem !important; }
-  #quote-sheet .mt-8 { margin-top: 0.55rem !important; }
-  #quote-sheet .mt-6 { margin-top: 0.45rem !important; }
+  #quote-sheet .mt-10 { margin-top: 0.45rem !important; }
+  #quote-sheet .mt-8 { margin-top: 0.45rem !important; }
+  #quote-sheet .mt-6 { margin-top: 0.38rem !important; }
   #quote-sheet .mt-5,
-  #quote-sheet .mt-4 { margin-top: 0.35rem !important; }
-  #quote-sheet .mt-2 { margin-top: 0.2rem !important; }
-  #quote-sheet .gap-6 { gap: 0.5rem !important; }
+  #quote-sheet .mt-4 { margin-top: 0.32rem !important; }
+  #quote-sheet .mt-2 { margin-top: 0.18rem !important; }
+  #quote-sheet .gap-6 { gap: 0.45rem !important; }
   /* 합계 강조줄·표 행 높이 축소 */
-  #quote-sheet .py-3 { padding-top: 0.3rem !important; padding-bottom: 0.3rem !important; }
-  #quote-sheet .p-4 { padding: 0.45rem !important; }
+  #quote-sheet .py-3 { padding-top: 0.28rem !important; padding-bottom: 0.28rem !important; }
+  #quote-sheet .p-4 { padding: 0.4rem !important; }
   #quote-sheet table td,
   #quote-sheet table th { padding-top: 0.15rem !important; padding-bottom: 0.15rem !important; }
 }

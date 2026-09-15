@@ -257,6 +257,20 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const supply = itemsTotal + shippingFee - serviceDiscount;
   const vat = vatIncluded ? Math.round(supply * 0.1) : 0;
   const total = supply + vat;
+  // 인쇄 글씨 크기 — 품목이 적으면 여유있게 크게, 많으면 자동으로 줄여 1장 유지
+  const itemN = items.length;
+  const printFs =
+    itemN <= 3
+      ? "13.5px"
+      : itemN === 4
+      ? "13px"
+      : itemN === 5
+      ? "12.5px"
+      : itemN === 6
+      ? "12px"
+      : itemN === 7
+      ? "11.5px"
+      : "11px";
 
   const inputCls =
     "w-full rounded border border-ink/15 px-2 py-1 text-sm outline-none focus:border-primary print:border-0 print:p-0";
@@ -398,6 +412,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
       {/* 견적서 본체 (A4) */}
       <div
         id="quote-sheet"
+        style={{ "--qs-fs": printFs }}
         className="rounded-xl border border-ink/10 bg-white p-8 print:rounded-none print:border-0 print:p-0"
       >
         <h2 className="text-center text-3xl font-extrabold tracking-[0.5em] text-ink">
