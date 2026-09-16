@@ -49,18 +49,8 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const location = [inquiry.address, inquiry.address_detail]
     .filter(Boolean)
     .join(" ");
-  // 상세주소가 길면(약 18자 초과) 가운데 공백에서 두 줄로 나눠 표시 (박스 영역까지 밀고 들어가지 않게)
-  const locationLines = (() => {
-    if (!location || location.length <= 18) return [location];
-    const mid = Math.floor(location.length / 2);
-    let cut = -1;
-    for (let i = 0; i < location.length; i++) {
-      if (location[i] === " " && (cut === -1 || Math.abs(i - mid) < Math.abs(cut - mid)))
-        cut = i;
-    }
-    if (cut === -1) return [location];
-    return [location.slice(0, cut), location.slice(cut + 1)];
-  })();
+  // 메인주소(도로명·검색 기반)는 1줄, 상세주소(입력 기반)는 그 아래 줄로 분리 표시
+  const locationLines = [inquiry.address, inquiry.address_detail].filter(Boolean);
 
   const isMade = inquiry.usage === "제작";
   const allRental = rates?.rental ?? [];
