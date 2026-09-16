@@ -940,7 +940,7 @@ export default function ScheduleManager({
                           : "border-ink/15 text-ink/70 hover:bg-ink/5"
                       }`}
                     >
-                      정보
+                      정보 수정
                     </button>
                     <button
                       type="button"
@@ -953,7 +953,7 @@ export default function ScheduleManager({
                           : "border-ink/15 text-ink/70 hover:bg-ink/5"
                       }`}
                     >
-                      일시
+                      일시 수정
                     </button>
                     {ev.cancelled ? (
                       <button
