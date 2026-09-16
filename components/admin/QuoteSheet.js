@@ -259,17 +259,13 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const total = supply + vat;
   // 인쇄 글씨 크기 — 품목이 적으면 여유있게 크게, 많으면 자동으로 줄여 1장 유지
   const itemN = items.length;
-  // 품목이 적으면 큼직하게(배치·글씨), 많으면 촘촘하게 → A4 한 장을 채우면서 넘치지 않게
+  // 품목이 적으면 큼직하게(배치·글씨), 많으면 촘촘하게 → A4 한 장을 채우면서 넘치지 않게 (최대 5품목 기준)
   const qsDensity =
     itemN <= 3
-      ? { fs: "14px", td: ".2rem", m8: ".55rem", m6: ".45rem", h2: "1.6rem" }
+      ? { fs: "14px", td: ".14rem", m8: ".42rem", m6: ".32rem", h2: "1.65rem" }
       : itemN === 4
-      ? { fs: "13px", td: ".18rem", m8: ".5rem", m6: ".42rem", h2: "1.55rem" }
-      : itemN === 5
-      ? { fs: "12.5px", td: ".16rem", m8: ".46rem", m6: ".4rem", h2: "1.5rem" }
-      : itemN <= 7
-      ? { fs: "12px", td: ".12rem", m8: ".38rem", m6: ".32rem", h2: "1.45rem" }
-      : { fs: "11px", td: ".09rem", m8: ".32rem", m6: ".26rem", h2: "1.4rem" };
+      ? { fs: "14px", td: ".11rem", m8: ".35rem", m6: ".26rem", h2: "1.6rem" }
+      : { fs: "13px", td: ".09rem", m8: ".31rem", m6: ".23rem", h2: "1.55rem" };
   const qsVars = {
     "--qs-fs": qsDensity.fs,
     "--qs-td": qsDensity.td,
@@ -425,23 +421,29 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
           견 적 서
         </h2>
 
-        {/* 상단: 수신 / 공급자 */}
-        <div className="mt-8 grid gap-6 text-sm sm:grid-cols-2">
-          <div>
+        {/* 견적일자 — 제목 하단 우측 */}
+        <div className="mt-4 flex items-center justify-end gap-2 text-sm text-ink/50">
+          <span>견적일자</span>
+          <span className="inline-block w-32">
+            <input
+              value={quoteDate}
+              onChange={(e) => setQuoteDate(e.target.value)}
+              className={`${inputCls} text-right`}
+            />
+          </span>
+        </div>
+
+        {/* 상단: 받는 곳 / 공급자 — 좌우 대칭 카드 (행 높이·시작선 일치) */}
+        <div className="mt-4 grid gap-6 text-sm sm:grid-cols-2 sm:items-stretch">
+          {/* 받는 곳 */}
+          <div className="flex flex-col rounded-lg border border-ink/10 p-4">
+            <p className="mb-2 flex h-7 items-center text-xs font-semibold uppercase tracking-[0.2em] text-ink/40">
+              받는 곳
+            </p>
             <table className="w-full">
               <tbody>
                 <tr>
-                  <td className="w-20 py-1.5 text-ink/50">견적일자</td>
-                  <td>
-                    <input
-                      value={quoteDate}
-                      onChange={(e) => setQuoteDate(e.target.value)}
-                      className={inputCls}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-1.5 text-ink/50">수신</td>
+                  <td className="w-20 py-1.5 text-ink/50">수신</td>
                   <td className="font-bold text-ink">
                     {inquiry.company_name || inquiry.name || "-"} 귀중
                   </td>
@@ -470,28 +472,31 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
             </table>
           </div>
 
-          <div className="rounded-lg border border-ink/10 p-4">
-            <p className="font-tesla text-base font-semibold tracking-[0.28em] text-ink">EVENT LAND</p>
-            <table className="mt-2 w-full">
+          {/* 공급자 */}
+          <div className="flex flex-col rounded-lg border border-ink/10 p-4">
+            <p className="mb-2 flex h-7 items-center font-tesla text-base font-semibold tracking-[0.28em] text-ink">
+              EVENT LAND
+            </p>
+            <table className="w-full">
               <tbody>
                 <tr>
-                  <td className="w-24 py-1 text-ink/50">상호</td>
+                  <td className="w-24 py-1.5 text-ink/50">상호</td>
                   <td className="text-ink">{SITE.nameKo}</td>
                 </tr>
                 <tr>
-                  <td className="py-1 text-ink/50">사업자번호</td>
+                  <td className="py-1.5 text-ink/50">사업자번호</td>
                   <td className="text-ink">{SITE.bizNumber}</td>
                 </tr>
                 <tr>
-                  <td className="py-1 text-ink/50">연락처</td>
+                  <td className="py-1.5 text-ink/50">연락처</td>
                   <td className="text-ink">{SITE.phone}</td>
                 </tr>
                 <tr>
-                  <td className="py-1 text-ink/50">이메일</td>
+                  <td className="py-1.5 text-ink/50">이메일</td>
                   <td className="text-ink">{SITE.email}</td>
                 </tr>
                 <tr>
-                  <td className="py-1 text-ink/50">홈페이지</td>
+                  <td className="py-1.5 text-ink/50">홈페이지</td>
                   <td className="text-ink">{SITE.homepage}</td>
                 </tr>
               </tbody>
