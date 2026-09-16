@@ -11,9 +11,8 @@ export default function SiteFooter() {
             <LogoAnimated />
           </div>
           <p className="text-xs text-ink/55">
-            상호 <span className="font-semibold text-ink">{SITE.nameKo}</span> ·
-            사업자등록번호{" "}
-            <span className="font-semibold text-ink">{SITE.bizNumber}</span> · 전화{" "}
+            상호 <span className="text-ink">{SITE.nameKo}</span> · 사업자등록번호{" "}
+            <span className="text-ink">{SITE.bizNumber}</span> · 전화{" "}
             <a href={`tel:${SITE.phone}`} className="text-ink hover:underline">
               {SITE.phone}
             </a>{" "}
