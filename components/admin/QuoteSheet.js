@@ -433,10 +433,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
           </span>
         </div>
 
-        {/* 상단: 받는 곳 / 공급자 — 좌우 대칭 카드 (행 높이·시작선 일치) */}
-        <div className="mt-4 grid gap-6 text-sm sm:grid-cols-2 sm:items-stretch">
-          {/* 받는 곳 */}
-          <div className="flex flex-col rounded-lg border border-ink/10 p-4">
+        {/* 상단: 받는 곳(테두리 없음) / 공급자(박스) — 행 시작선 일치 */}
+        <div className="mt-4 grid gap-6 text-sm sm:grid-cols-2 sm:items-start">
+          {/* 받는 곳 — 박스 없이, 주소 길면 두 줄 (EVENT LAND 박스는 안 건드림) */}
+          <div className="flex flex-col p-4">
             <p className="mb-2 flex h-7 items-center text-xs font-semibold uppercase tracking-[0.2em] text-ink/40">
               받는 곳
             </p>
@@ -460,6 +460,12 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                   <tr>
                     <td className="py-1.5 text-ink/50">행사 기간</td>
                     <td className="text-ink">{period}</td>
+                  </tr>
+                )}
+                {location && (
+                  <tr>
+                    <td className="py-1.5 align-top text-ink/50">행사 장소</td>
+                    <td className="text-ink">{location}</td>
                   </tr>
                 )}
               </tbody>
@@ -497,14 +503,6 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
             </table>
           </div>
         </div>
-
-        {/* 행사 장소 — 전체 너비 (상세주소가 길어도 카드 정렬이 밀리지 않게) */}
-        {location && (
-          <div className="mt-4 flex gap-3 rounded-lg border border-ink/10 px-4 py-2 text-sm">
-            <span className="w-16 shrink-0 pt-0.5 text-ink/50">행사 장소</span>
-            <span className="text-ink">{location}</span>
-          </div>
-        )}
 
         {/* 합계 금액 */}
         <p className="mt-8 border-y-2 border-ink py-3 text-center text-lg font-bold text-ink">
