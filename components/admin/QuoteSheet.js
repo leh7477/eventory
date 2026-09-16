@@ -262,10 +262,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   // 품목이 적으면 큼직하게(배치·글씨), 많으면 촘촘하게 → A4 한 장을 채우면서 넘치지 않게 (최대 5품목 기준)
   const qsDensity =
     itemN <= 3
-      ? { fs: "14px", td: ".14rem", m8: ".42rem", m6: ".32rem", h2: "1.65rem" }
+      ? { fs: "15px", td: ".4rem", m8: "1.3rem", m6: "1.1rem", h2: "1.8rem" }
       : itemN === 4
-      ? { fs: "14px", td: ".11rem", m8: ".35rem", m6: ".26rem", h2: "1.6rem" }
-      : { fs: "13px", td: ".09rem", m8: ".31rem", m6: ".23rem", h2: "1.55rem" };
+      ? { fs: "15px", td: ".34rem", m8: "1.15rem", m6: ".95rem", h2: "1.75rem" }
+      : { fs: "14px", td: ".32rem", m8: "1.05rem", m6: ".88rem", h2: "1.7rem" };
   const qsVars = {
     "--qs-fs": qsDensity.fs,
     "--qs-td": qsDensity.td,
