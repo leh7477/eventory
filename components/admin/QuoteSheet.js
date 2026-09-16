@@ -421,12 +421,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
           견 적 서
         </h2>
 
-        {/* 상단: 받는 곳(테두리 없음) / 공급자(박스) — 행 시작선 일치 */}
-        <div className="mt-4 grid gap-6 text-sm sm:grid-cols-2 sm:items-start">
-          {/* 받는 곳 — 박스·머리글 없음, 라벨 한 줄 고정 (EVENT LAND 박스는 안 건드림) */}
+        {/* 상단: 받는 곳(테두리 없음) / 공급자(박스) — 박스를 세로 가운데로 밸런스 */}
+        <div className="mt-4 grid gap-6 text-sm sm:grid-cols-2 sm:items-center">
+          {/* 받는 곳 — 박스·머리글 없음, 라벨 한 줄 고정 */}
           <div className="flex min-w-0 flex-col p-4">
-            {/* EVENT LAND 머리글과 행 시작선을 맞추기 위한 빈 공간 */}
-            <p className="mb-2 flex h-7 items-center" aria-hidden />
             <table className="w-full table-fixed [&_td]:py-1.5 [&_td]:align-top">
               <tbody>
                 <tr>
