@@ -227,7 +227,14 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
 
   const handlePrint = () => {
     if (autoRecord && supply > 0) recordQuote();
+    // PDF 저장 파일명 = "고객사명 - 이벤트랜드" (인쇄 시 document.title 사용)
+    const company = inquiry.company_name || inquiry.name || "견적서";
+    const prevTitle = document.title;
+    document.title = `${company} - 이벤트랜드`;
     window.print();
+    setTimeout(() => {
+      document.title = prevTitle;
+    }, 800);
   };
 
   const setItem = (i, k, v) =>
