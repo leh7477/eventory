@@ -49,8 +49,6 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const location = [inquiry.address, inquiry.address_detail]
     .filter(Boolean)
     .join(" ");
-  // 메인주소(도로명·검색 기반)는 1줄, 상세주소(입력 기반)는 그 아래 줄로 분리 표시
-  const locationLines = [inquiry.address, inquiry.address_detail].filter(Boolean);
 
   const isMade = inquiry.usage === "제작";
   const allRental = rates?.rental ?? [];
@@ -438,10 +436,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
         {/* 상단: 받는 곳(테두리 없음) / 공급자(박스) — 행 시작선 일치 */}
         <div className="mt-4 grid gap-6 text-sm sm:grid-cols-2 sm:items-start">
           {/* 받는 곳 — 박스·머리글 없음, 라벨 한 줄 고정 (EVENT LAND 박스는 안 건드림) */}
-          <div className="flex flex-col p-4">
+          <div className="flex min-w-0 flex-col p-4">
             {/* EVENT LAND 머리글과 행 시작선을 맞추기 위한 빈 공간 */}
             <p className="mb-2 flex h-7 items-center" aria-hidden />
-            <table className="w-full">
+            <table className="w-full table-fixed">
               <tbody>
                 <tr>
                   <td className="w-20 whitespace-nowrap py-1.5 align-top text-ink/50">수신</td>
@@ -460,16 +458,20 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                 {period && (
                   <tr>
                     <td className="whitespace-nowrap py-1.5 align-top text-ink/50">행사 기간</td>
-                    <td className="text-ink">{period}</td>
+                    <td className="whitespace-nowrap text-ink">{period}</td>
                   </tr>
                 )}
                 {location && (
                   <tr>
                     <td className="whitespace-nowrap py-1.5 align-top text-ink/50">행사 장소</td>
                     <td className="align-top text-ink">
-                      {locationLines.map((line, i) => (
-                        <div key={i}>{line}</div>
-                      ))}
+                      {/* 메인주소(검색)는 1줄, 상세주소(입력)는 칸을 넘으면 자동 줄바꿈해 박스에 닿지 않게 */}
+                      {inquiry.address && <div>{inquiry.address}</div>}
+                      {inquiry.address_detail && (
+                        <div className="[overflow-wrap:anywhere]">
+                          {inquiry.address_detail}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 )}
