@@ -49,6 +49,18 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const location = [inquiry.address, inquiry.address_detail]
     .filter(Boolean)
     .join(" ");
+  // 상세주소가 길면(약 18자 초과) 가운데 공백에서 두 줄로 나눠 표시 (박스 영역까지 밀고 들어가지 않게)
+  const locationLines = (() => {
+    if (!location || location.length <= 18) return [location];
+    const mid = Math.floor(location.length / 2);
+    let cut = -1;
+    for (let i = 0; i < location.length; i++) {
+      if (location[i] === " " && (cut === -1 || Math.abs(i - mid) < Math.abs(cut - mid)))
+        cut = i;
+    }
+    if (cut === -1) return [location];
+    return [location.slice(0, cut), location.slice(cut + 1)];
+  })();
 
   const isMade = inquiry.usage === "제작";
   const allRental = rates?.rental ?? [];
@@ -464,7 +476,11 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                 {location && (
                   <tr>
                     <td className="whitespace-nowrap py-1.5 align-top text-ink/50">행사 장소</td>
-                    <td className="align-top text-ink">{location}</td>
+                    <td className="align-top text-ink">
+                      {locationLines.map((line, i) => (
+                        <div key={i}>{line}</div>
+                      ))}
+                    </td>
                   </tr>
                 )}
               </tbody>
