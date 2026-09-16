@@ -44,6 +44,8 @@ html {
   #quote-sheet .text-lg { font-size: 1.05rem !important; }
   /* 부속품·안내 문구는 작게 고정 (품목만 커지게) */
   #quote-sheet .text-\[13px\] { font-size: 11px !important; }
+  /* 하단 비고(약관)는 공간 절약 위해 작게·촘촘히 고정 */
+  #quote-sheet .qs-terms { font-size: 12px !important; line-height: 1.4 !important; }
   /* 상하 여백 — 품목 수에 따라 조절 */
   #quote-sheet .mt-10 { margin-top: var(--qs-m8, 0.5rem) !important; }
   #quote-sheet .mt-8 { margin-top: var(--qs-m8, 0.5rem) !important; }
