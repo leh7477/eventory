@@ -262,10 +262,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   // 품목이 적으면 큼직하게(배치·글씨), 많으면 촘촘하게 → A4 한 장을 채우면서 넘치지 않게 (최대 5품목 기준)
   const qsDensity =
     itemN <= 3
-      ? { fs: "15px", td: ".4rem", m8: "1.3rem", m6: "1.1rem", h2: "1.8rem" }
+      ? { fs: "15px", td: ".36rem", m8: "1.15rem", m6: ".98rem", h2: "1.8rem" }
       : itemN === 4
-      ? { fs: "15px", td: ".34rem", m8: "1.15rem", m6: ".95rem", h2: "1.75rem" }
-      : { fs: "14px", td: ".32rem", m8: "1.05rem", m6: ".88rem", h2: "1.7rem" };
+      ? { fs: "15px", td: ".32rem", m8: "1.05rem", m6: ".86rem", h2: "1.75rem" }
+      : { fs: "14px", td: ".28rem", m8: ".92rem", m6: ".76rem", h2: "1.7rem" };
   const qsVars = {
     "--qs-fs": qsDensity.fs,
     "--qs-td": qsDensity.td,
@@ -462,12 +462,6 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                     <td className="text-ink">{period}</td>
                   </tr>
                 )}
-                {location && (
-                  <tr>
-                    <td className="py-1.5 text-ink/50">행사 장소</td>
-                    <td className="text-ink">{location}</td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
@@ -503,6 +497,14 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
             </table>
           </div>
         </div>
+
+        {/* 행사 장소 — 전체 너비 (상세주소가 길어도 카드 정렬이 밀리지 않게) */}
+        {location && (
+          <div className="mt-4 flex gap-3 rounded-lg border border-ink/10 px-4 py-2 text-sm">
+            <span className="w-16 shrink-0 pt-0.5 text-ink/50">행사 장소</span>
+            <span className="text-ink">{location}</span>
+          </div>
+        )}
 
         {/* 합계 금액 */}
         <p className="mt-8 border-y-2 border-ink py-3 text-center text-lg font-bold text-ink">
