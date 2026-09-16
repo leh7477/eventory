@@ -262,12 +262,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   // 품목이 적으면 큼직하게(배치·글씨), 많으면 촘촘하게 → A4 한 장을 채우면서 넘치지 않게 (최대 5품목 기준)
   const qsDensity =
     itemN <= 3
-      ? { fs: "15px", td: ".5rem", m8: "1.45rem", m6: "1.25rem", h2: "1.8rem" }
+      ? { fs: "15px", td: ".36rem", m8: "1.15rem", m6: ".98rem", h2: "1.8rem" }
       : itemN === 4
-      ? { fs: "15px", td: ".44rem", m8: "1.3rem", m6: "1.1rem", h2: "1.75rem" }
-      : itemN === 5
-      ? { fs: "14px", td: ".4rem", m8: "1.2rem", m6: "1rem", h2: "1.72rem" }
-      : { fs: "13.5px", td: ".34rem", m8: "1.05rem", m6: ".88rem", h2: "1.68rem" };
+      ? { fs: "15px", td: ".32rem", m8: "1.05rem", m6: ".86rem", h2: "1.75rem" }
+      : { fs: "14px", td: ".28rem", m8: ".92rem", m6: ".76rem", h2: "1.7rem" };
   const qsVars = {
     "--qs-fs": qsDensity.fs,
     "--qs-td": qsDensity.td,
@@ -278,8 +276,6 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
 
   const inputCls =
     "w-full rounded border border-ink/15 px-2 py-1 text-sm outline-none focus:border-primary print:border-0 print:p-0";
-  // 서비스 표시용 포인트 컬러 — 채도 낮춘 버건디 (프리미엄 톤)
-  const svc = "#9d2c48";
 
   return (
     <div className="quote-sheet">
@@ -419,7 +415,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
       <div
         id="quote-sheet"
         style={qsVars}
-        className="rounded-xl border border-ink/10 bg-white p-6 print:rounded-none print:border-0 print:p-0"
+        className="rounded-xl border border-ink/10 bg-white p-8 print:rounded-none print:border-0 print:p-0"
       >
         <h2 className="text-center text-3xl font-extrabold tracking-[0.5em] text-ink">
           견 적 서
@@ -520,13 +516,13 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
         {/* 품목 표 */}
         <table className="mt-6 w-full table-fixed text-sm">
           <thead>
-            <tr className="border-b-2 border-ink/60 text-left text-ink/70">
-              <th className="w-[37%] py-2 font-semibold">품목</th>
-              <th className="w-[9%] py-2 text-center font-semibold">수량</th>
-              <th className="w-[7%] py-2 text-center font-semibold">단위</th>
-              <th className="w-[15%] py-2 text-right font-semibold">단가</th>
-              <th className="w-[15%] py-2 pr-4 text-right font-semibold">금액</th>
-              <th className="w-[17%] py-2 pl-4 text-left font-semibold">비고</th>
+            <tr className="border-b-2 border-ink/60 text-left text-ink/60">
+              <th className="py-2 font-medium">품목</th>
+              <th className="w-12 py-2 text-center font-medium">수량</th>
+              <th className="w-10 py-2 text-center font-medium">단위</th>
+              <th className="w-24 py-2 text-right font-medium">단가</th>
+              <th className="w-28 py-2 pr-4 text-right font-medium">금액</th>
+              <th className="w-32 py-2 pl-4 text-left font-medium">비고</th>
               <th className="print-hide w-16" />
             </tr>
           </thead>
@@ -583,8 +579,9 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                     value={r.note ?? ""}
                     onChange={(e) => setItem(i, "note", e.target.value)}
                     placeholder="비고"
-                    className={`${inputCls} text-xs ${r.service ? "font-medium" : ""}`}
-                    style={r.service ? { color: svc } : undefined}
+                    className={`${inputCls} text-xs ${
+                      r.service ? "font-medium text-primary" : ""
+                    }`}
                   />
                 </td>
                 <td className="print-hide py-2 text-center">
@@ -656,7 +653,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                 <td colSpan={4} className="py-1 text-right text-ink/60">
                   할인 (서비스)
                 </td>
-                <td className="py-1 pr-4 text-right font-medium" style={{ color: svc }}>
+                <td className="py-1 pr-4 text-right font-medium text-primary">
                   - {won(serviceDiscount)}
                 </td>
                 <td />
@@ -707,7 +704,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={Math.max(3, note.split("\n").length + 1)}
-            className="qs-terms mt-2 w-full resize-y overflow-hidden rounded border border-ink/15 px-3 py-2 text-[13px] leading-[1.4] text-ink/80 outline-none focus:border-primary print:resize-none print:border-0 print:p-0"
+            className="mt-2 w-full resize-y overflow-hidden rounded border border-ink/15 px-3 py-2 text-sm leading-relaxed text-ink/80 outline-none focus:border-primary print:resize-none print:border-0 print:p-0"
           />
         </div>
 
