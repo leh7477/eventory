@@ -421,28 +421,26 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
           견 적 서
         </h2>
 
-        {/* 견적일자 — 제목 하단 우측 */}
-        <div className="mt-4 flex items-center justify-end gap-2 text-sm text-ink/50">
-          <span>견적일자</span>
-          <span className="inline-block w-32">
-            <input
-              value={quoteDate}
-              onChange={(e) => setQuoteDate(e.target.value)}
-              className={`${inputCls} text-right`}
-            />
-          </span>
-        </div>
-
         {/* 상단: 받는 곳(테두리 없음) / 공급자(박스) — 행 시작선 일치 */}
         <div className="mt-4 grid gap-6 text-sm sm:grid-cols-2 sm:items-start">
           {/* 받는 곳 — 박스·머리글 없음, 라벨 한 줄 고정 (EVENT LAND 박스는 안 건드림) */}
           <div className="flex min-w-0 flex-col p-4">
             {/* EVENT LAND 머리글과 행 시작선을 맞추기 위한 빈 공간 */}
             <p className="mb-2 flex h-7 items-center" aria-hidden />
-            <table className="w-full table-fixed">
+            <table className="w-full table-fixed [&_td]:py-1.5 [&_td]:align-top">
               <tbody>
                 <tr>
-                  <td className="w-20 whitespace-nowrap py-1.5 align-top text-ink/50">수신</td>
+                  <td className="w-20 whitespace-nowrap text-ink/50">견적일자</td>
+                  <td className="text-ink">
+                    <input
+                      value={quoteDate}
+                      onChange={(e) => setQuoteDate(e.target.value)}
+                      className="w-full rounded bg-transparent outline-none focus:bg-primary/10"
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="whitespace-nowrap py-1.5 align-top text-ink/50">수신</td>
                   <td className="font-bold text-ink">
                     {inquiry.company_name || inquiry.name || "-"} 귀중
                   </td>
@@ -464,13 +462,14 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                 {location && (
                   <tr>
                     <td className="whitespace-nowrap py-1.5 align-top text-ink/50">행사 장소</td>
-                    <td className="align-top text-ink">
-                      {/* 메인주소(검색)는 1줄, 상세주소(입력)는 칸을 넘으면 자동 줄바꿈해 박스에 닿지 않게 */}
-                      {inquiry.address && <div>{inquiry.address}</div>}
+                    <td className="align-top text-ink [overflow-wrap:anywhere]">
+                      {/* 메인주소(검색)는 라벨과 같은 첫 줄, 상세주소(입력)는 다음 줄부터 (칸 넘으면 자동 줄바꿈해 박스에 안 닿게) */}
+                      {inquiry.address}
                       {inquiry.address_detail && (
-                        <div className="[overflow-wrap:anywhere]">
+                        <>
+                          <br />
                           {inquiry.address_detail}
-                        </div>
+                        </>
                       )}
                     </td>
                   </tr>
@@ -484,10 +483,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
             <p className="mb-2 flex h-7 items-center font-tesla text-base font-semibold tracking-[0.28em] text-ink">
               EVENT LAND
             </p>
-            <table className="w-full">
+            <table className="w-full [&_td]:py-1.5 [&_td]:align-top">
               <tbody>
                 <tr>
-                  <td className="w-24 py-1.5 text-ink/50">상호</td>
+                  <td className="w-24 text-ink/50">상호</td>
                   <td className="text-ink">{SITE.nameKo}</td>
                 </tr>
                 <tr>
