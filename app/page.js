@@ -91,7 +91,7 @@ export default async function Home() {
               tagline: "포토·경품 이벤트의 필수 장비",
               bg: "bg-gradient-to-br from-[#FF7A59] to-[#FF4D8D]",
               image: "/images/gacha-black.webp",
-              imagePosition: "68% center",
+              imagePosition: "68% 0%",
             },
             {
               name: "스톱워치",
