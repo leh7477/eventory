@@ -59,7 +59,8 @@ export default function HomeFeature({ items = [] }) {
                   ? {
                       backgroundImage: `url(${it.image})`,
                       backgroundSize: "cover",
-                      backgroundPosition: "center",
+                      // 기기가 한쪽에 있는 사진은 imagePosition으로 모바일에서도 잘리지 않게 (기본 가운데)
+                      backgroundPosition: it.imagePosition || "center",
                     }
                   : undefined
               }
