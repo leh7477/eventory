@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { profileFromUser } from "@/lib/admin/sections";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminIdleGuard from "@/components/admin/AdminIdleGuard";
 
 export const metadata = {
   title: "관리자 | 이벤트랜드",
@@ -33,6 +34,7 @@ export default async function AdminPanelLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-ink/[0.03] font-sans text-ink md:flex">
+      <AdminIdleGuard />
       <AdminSidebar
         email={user.email}
         isOwner={profile.isOwner}
