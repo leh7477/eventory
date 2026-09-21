@@ -31,16 +31,23 @@ function shiftMonth(ym, delta) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
 }
 
-export default function DispatchView({ schedules = [], scheduleItems = [], onOpenEvent }) {
+export default function DispatchView({
+  schedules = [],
+  scheduleItems = [],
+  onOpenEvent,
+  target = null, // 일정 탭에서 납품/회수 날짜를 눌러 넘어온 경우 { date, evId, type, nonce }
+}) {
   const router = useRouter();
   const today = todayKST();
-  const [month, setMonth] = useState(today.slice(0, 7));
+  // 넘어온 목표가 있으면 처음부터 그 달을 보여줌
+  const [month, setMonth] = useState((target?.date || today).slice(0, 7));
+  const [flashKey, setFlashKey] = useState(target ? `${target.evId}-${target.type}` : null);
   const [pending, startTransition] = useTransition();
   const [editSupId, setEditSupId] = useState(null);
   const [supText, setSupText] = useState("");
   const [editRemarkId, setEditRemarkId] = useState(null);
   const [remarkText, setRemarkText] = useState("");
-  const [scrollTo, setScrollTo] = useState(null);
+  const [scrollTo, setScrollTo] = useState(target?.date || null);
   const rowsRef = useRef(null);
 
   // 일정별 기기 요약
@@ -85,16 +92,36 @@ export default function DispatchView({ schedules = [], scheduleItems = [], onOpe
 
   // '오늘' → 이번 달로 이동 후 오늘 섹션으로 스크롤
   const goToday = () => {
+    setFlashKey(null); // 이전 강조가 남아 있으면 그 줄로 스크롤하므로 해제
     setMonth(today.slice(0, 7));
     setScrollTo(today);
   };
   useEffect(() => {
     if (!scrollTo) return;
-    const el = document.getElementById(`disp-${scrollTo}`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    // 일정 탭에서 넘어온 경우엔 그 줄로, '오늘' 버튼은 오늘 날짜 블록 맨 위로
+    const row = flashKey ? document.getElementById(`disp-row-${flashKey}`) : null;
+    if (row) row.scrollIntoView({ behavior: "smooth", block: "center" });
+    else {
+      const el = document.getElementById(`disp-${scrollTo}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
     const t = setTimeout(() => setScrollTo(null), 100);
     return () => clearTimeout(t);
   }, [scrollTo, days]);
+
+  // 일정 탭에서 이미 상세를 열어둔 채 다른 날짜를 눌러 target이 바뀐 경우도 처리
+  useEffect(() => {
+    if (!target) return;
+    setMonth(target.date.slice(0, 7));
+    setScrollTo(target.date);
+    setFlashKey(`${target.evId}-${target.type}`);
+  }, [target?.nonce]);
+  // 강조는 잠깐만 보여주고 해제
+  useEffect(() => {
+    if (!flashKey) return;
+    const t = setTimeout(() => setFlashKey(null), 2500);
+    return () => clearTimeout(t);
+  }, [flashKey]);
 
   const run = (fn) =>
     startTransition(async () => {
@@ -197,7 +224,15 @@ export default function DispatchView({ schedules = [], scheduleItems = [], onOpe
                     const ev = s.ev;
                     const isInstall = s.type === "install";
                     return (
-                      <li key={s.key} className="rounded-xl border border-ink/10 bg-white p-3">
+                      <li
+                        key={s.key}
+                        id={`disp-row-${s.key}`}
+                        className={`rounded-xl border p-3 transition-colors ${
+                          flashKey === s.key
+                            ? "border-primary/40 bg-primary/10"
+                            : "border-ink/10 bg-white"
+                        }`}
+                      >
                         <div className="flex items-start gap-2.5">
                           {/* 순번 + 이동 */}
                           <div className="flex flex-col items-center gap-0.5">

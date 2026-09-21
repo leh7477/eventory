@@ -116,6 +116,15 @@ export default function ScheduleManager({
     setMode("list");
     focusEvent(ev);
   };
+  // 일정 카드의 납품/회수 날짜를 눌렀을 때: 상세 탭으로 전환 후 그 날짜의 해당 줄로 이동
+  //  type: "install"(납품) | "pickup"(회수). nonce로 같은 곳을 다시 눌러도 이동이 다시 실행되게 함
+  const [dispatchTarget, setDispatchTarget] = useState(null);
+  const openInDispatch = (ev, type) => {
+    const date = type === "install" ? ev.start_date : ev.end_date || ev.start_date;
+    if (!date) return;
+    setDispatchTarget({ date, evId: ev.id, type, nonce: Date.now() });
+    setMode("dispatch");
+  };
   useEffect(() => {
     // 상세 탭에 있을 땐 일정 카드가 화면에 없으므로, 일정 탭이 그려진 뒤에 실행
     if (!highlightId || mode !== "list") return;
@@ -331,6 +340,7 @@ export default function ScheduleManager({
           schedules={schedules}
           scheduleItems={scheduleItems}
           onOpenEvent={openFromDispatch}
+          target={dispatchTarget}
         />
       ) : (
         <div className="space-y-6">
@@ -716,16 +726,27 @@ export default function ScheduleManager({
                             : ""}
                         </span>
                       )}
-                      <span className="mt-0.5 block">
+                      {/* 납품/회수 날짜를 누르면 상세 탭의 그 날짜로 이동 */}
+                      <button
+                        type="button"
+                        onClick={() => openInDispatch(ev, "install")}
+                        title="상세에서 이 날짜 보기"
+                        className="mt-0.5 block text-left transition hover:text-primary hover:underline hover:underline-offset-4"
+                      >
                         <b className={past ? "text-ink/35" : "text-blue-700"}>납품</b>{" "}
                         {ev.start_date}
                         {ev.start_time ? ` ${hm(ev.start_time)}` : ""}
-                      </span>
-                      <span className="mt-0.5 block">
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openInDispatch(ev, "pickup")}
+                        title="상세에서 이 날짜 보기"
+                        className="mt-0.5 block text-left transition hover:text-primary hover:underline hover:underline-offset-4"
+                      >
                         <b className={past ? "text-ink/35" : "text-amber-700"}>회수</b>{" "}
                         {ev.end_date || ev.start_date}
                         {ev.end_time ? ` ${hm(ev.end_time)}` : ""}
-                      </span>
+                      </button>
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className={`truncate text-sm font-semibold ${ev.cancelled ? "text-ink/40 line-through" : past ? "text-ink/40" : "text-ink"}`}>
