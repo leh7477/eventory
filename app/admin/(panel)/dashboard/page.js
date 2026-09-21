@@ -111,7 +111,13 @@ export default async function DashboardPage() {
   const todayS = todayKST();
   const tomorrowS = kstPlusDays(1);
 
-  const [inqRes, schRes, schedInqRes] = await Promise.all([
+  // 이번 달(KST) 범위 — 납품/회수 건수 집계용
+  const ymNow = todayS.slice(0, 7);
+  const [yNow, mNow] = ymNow.split("-").map(Number);
+  const monthStart = `${ymNow}-01`;
+  const monthEnd = `${ymNow}-${pad(new Date(Date.UTC(yNow, mNow, 0)).getUTCDate())}`;
+
+  const [inqRes, schRes, schedInqRes, monthSchRes] = await Promise.all([
     admin
       .from("inquiries")
       .select("id, status, is_read, created_at, event_start, event_end"),
@@ -121,6 +127,13 @@ export default async function DashboardPage() {
       .lte("start_date", tomorrowS) // 오늘·내일 일정만 필요
       .order("start_date", { ascending: true }),
     admin.from("schedules").select("inquiry_id"), // 일정 등록된 문의 id (진행중 제외용)
+    // 이번 달에 납품(시작일)이나 회수(종료일)가 걸리는 일정
+    admin
+      .from("schedules")
+      .select("id, kind, cancelled, start_date, end_date, memo")
+      .or(
+        `and(start_date.gte.${monthStart},start_date.lte.${monthEnd}),and(end_date.gte.${monthStart},end_date.lte.${monthEnd})`
+      ),
   ]);
 
   const schedules = schRes.data ?? [];
@@ -162,6 +175,17 @@ export default async function DashboardPage() {
     return true;
   };
   const activeCount = inquiries.filter(isActive).length;
+
+  // 이번 달 납품/회수 건수 (취소·업무 제외, 제작은 회수 없음)
+  //  납품 = 시작일이 이번 달, 회수 = 종료일이 이번 달
+  const inMonth = (d) => !!d && d >= monthStart && d <= monthEnd;
+  let monthDeliver = 0;
+  let monthPickup = 0;
+  (monthSchRes.data ?? []).forEach((ev) => {
+    if (ev.cancelled || isTask(ev)) return;
+    if (inMonth(ev.start_date)) monthDeliver++;
+    if (!isDeliveryOnly(ev) && inMonth(ev.end_date || ev.start_date)) monthPickup++;
+  });
 
   const kpis = [
     { label: "미확인 문의", value: `${unread}건`, href: "/admin/inquiries", hl: unread > 0 },
@@ -211,6 +235,30 @@ export default async function DashboardPage() {
             </div>
           );
         })}
+      </div>
+
+      {/* 이번 달 납품/회수 건수 */}
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        <Link href="/admin/schedule" className="block min-w-0">
+          <div className="h-full rounded-xl border border-blue-200 bg-blue-50 p-3 transition hover:shadow-sm sm:p-4">
+            <p className="break-keep text-[11px] text-blue-700/70 sm:text-xs">
+              이번 달 납품 ({mNow}월)
+            </p>
+            <p className="mt-1 text-xl font-extrabold text-blue-700 sm:text-2xl">
+              {monthDeliver}건
+            </p>
+          </div>
+        </Link>
+        <Link href="/admin/schedule" className="block min-w-0">
+          <div className="h-full rounded-xl border border-amber-200 bg-amber-50 p-3 transition hover:shadow-sm sm:p-4">
+            <p className="break-keep text-[11px] text-amber-700/70 sm:text-xs">
+              이번 달 회수 ({mNow}월)
+            </p>
+            <p className="mt-1 text-xl font-extrabold text-amber-700 sm:text-2xl">
+              {monthPickup}건
+            </p>
+          </div>
+        </Link>
       </div>
 
       {/* 일정 요약 */}
