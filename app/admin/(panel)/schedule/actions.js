@@ -199,22 +199,7 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
   return { ok: true };
 }
 
-// 거래처(발주처) 추가
-export async function createVendor(name) {
-  await requireAdmin();
-  const nm = (name ?? "").trim();
-  if (!nm) return { error: "거래처 이름을 입력하세요." };
-  const admin = createAdminClient();
-  const { data, error } = await admin.from("vendors").insert({ name: nm }).select().single();
-  if (error) {
-    if (/vendors|does not exist|Could not find the table/i.test(error.message)) {
-      return { error: "거래처(vendors) 테이블이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
-    }
-    return { error: error.message };
-  }
-  rv();
-  return { ok: true, vendor: data };
-}
+// (거래처 등록은 거래처 관리 화면에서만 — 일정 화면에서는 발주처 선택만 가능)
 
 // 일정의 발주처 지정 (schedule.vendor에 저장)
 export async function setScheduleVendor(id, vendor) {

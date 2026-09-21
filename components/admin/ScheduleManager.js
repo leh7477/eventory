@@ -11,7 +11,6 @@ import {
   restoreSchedule,
   updateScheduleDatetime,
   setScheduleStage,
-  createVendor,
   setScheduleVendor,
 } from "@/app/admin/(panel)/schedule/actions";
 
@@ -853,22 +852,6 @@ export default function ScheduleManager({
                            <option value={ev.vendor}>{ev.vendor}</option>
                          )}
                        </select>
-                       <button
-                         type="button"
-                         disabled={pending}
-                         onClick={() => {
-                           const name = window.prompt("새 거래처 이름");
-                           if (name && name.trim())
-                             run(async () => {
-                               const res = await createVendor(name);
-                               if (!res?.error) await setScheduleVendor(ev.id, name.trim());
-                               return res;
-                             });
-                         }}
-                         className="rounded-md border border-ink/15 px-2 py-1 text-xs text-ink/60 hover:bg-ink/5 disabled:opacity-50"
-                       >
-                         + 거래처
-                       </button>
                        {(() => {
                          const its = itemsBySchedule(ev.id).filter(
                            (x) => Number(x.quantity) > 0
