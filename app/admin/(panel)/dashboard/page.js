@@ -104,18 +104,27 @@ function ScheduleGroup({ title, occurrences, emptyText, showDate = false }) {
   );
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }) {
   const admin = createAdminClient();
 
   // 날짜 계산 — 한국시간(KST) 기준 오늘/내일
   const todayS = todayKST();
   const tomorrowS = kstPlusDays(1);
 
-  // 이번 달(KST) 범위 — 납품/회수 건수 집계용
+  // 납품/회수 건수를 볼 달 — ?month=YYYY-MM (없거나 형식이 틀리면 이번 달, KST)
   const ymNow = todayS.slice(0, 7);
-  const [yNow, mNow] = ymNow.split("-").map(Number);
-  const monthStart = `${ymNow}-01`;
-  const monthEnd = `${ymNow}-${pad(new Date(Date.UTC(yNow, mNow, 0)).getUTCDate())}`;
+  const monthParam = String(searchParams?.month || "");
+  const ymSel = /^\d{4}-(0[1-9]|1[0-2])$/.test(monthParam) ? monthParam : ymNow;
+  const [ySel, mSel] = ymSel.split("-").map(Number);
+  const monthStart = `${ymSel}-01`;
+  const monthEnd = `${ymSel}-${pad(new Date(Date.UTC(ySel, mSel, 0)).getUTCDate())}`;
+  const shiftYm = (delta) => {
+    const d = new Date(Date.UTC(ySel, mSel - 1 + delta, 1));
+    return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`;
+  };
+  const isCurrentMonth = ymSel === ymNow;
+  // 이번 달이면 "이번 달", 다른 달이면 "2026년 8월" 식으로 표기
+  const monthLabel = isCurrentMonth ? "이번 달" : `${ySel}년 ${mSel}월`;
 
   const [inqRes, schRes, schedInqRes, monthSchRes] = await Promise.all([
     admin
@@ -176,7 +185,7 @@ export default async function DashboardPage() {
   };
   const activeCount = inquiries.filter(isActive).length;
 
-  // 이번 달 납품/회수 건수 (취소·업무 제외, 제작은 회수 없음)
+  // 선택한 달의 납품/회수 건수 (취소·업무 제외, 제작은 회수 없음)
   //  납품 = 시작일이 이번 달, 회수 = 종료일이 이번 달
   const inMonth = (d) => !!d && d >= monthStart && d <= monthEnd;
   let monthDeliver = 0;
@@ -237,12 +246,42 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      {/* 이번 달 납품/회수 건수 */}
-      <div className="mt-3 grid grid-cols-2 gap-3">
+      {/* 월별 납품/회수 건수 — 화살표로 달 이동 */}
+      <div className="mt-6 flex flex-wrap items-center gap-2">
+        <p className="text-sm font-bold text-ink">납품·회수 건수</p>
+        <div className="flex items-center gap-1">
+          <Link
+            href={`/admin/dashboard?month=${shiftYm(-1)}`}
+            aria-label="이전 달"
+            className="flex h-7 w-7 items-center justify-center rounded-md border border-ink/15 text-ink/60 hover:bg-ink/5"
+          >
+            ‹
+          </Link>
+          <span className="min-w-[88px] text-center text-sm font-bold text-ink">
+            {ySel}. {pad(mSel)}
+          </span>
+          <Link
+            href={`/admin/dashboard?month=${shiftYm(1)}`}
+            aria-label="다음 달"
+            className="flex h-7 w-7 items-center justify-center rounded-md border border-ink/15 text-ink/60 hover:bg-ink/5"
+          >
+            ›
+          </Link>
+        </div>
+        {!isCurrentMonth && (
+          <Link
+            href="/admin/dashboard"
+            className="rounded-md border border-ink/15 px-2 py-1 text-xs font-bold text-ink/60 hover:bg-ink/5"
+          >
+            이번 달로
+          </Link>
+        )}
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-3">
         <Link href="/admin/schedule" className="block min-w-0">
           <div className="h-full rounded-xl border border-blue-200 bg-blue-50 p-3 transition hover:shadow-sm sm:p-4">
             <p className="break-keep text-[11px] text-blue-700/70 sm:text-xs">
-              이번 달 납품 ({mNow}월)
+              {monthLabel} 납품
             </p>
             <p className="mt-1 text-xl font-extrabold text-blue-700 sm:text-2xl">
               {monthDeliver}건
@@ -252,7 +291,7 @@ export default async function DashboardPage() {
         <Link href="/admin/schedule" className="block min-w-0">
           <div className="h-full rounded-xl border border-amber-200 bg-amber-50 p-3 transition hover:shadow-sm sm:p-4">
             <p className="break-keep text-[11px] text-amber-700/70 sm:text-xs">
-              이번 달 회수 ({mNow}월)
+              {monthLabel} 회수
             </p>
             <p className="mt-1 text-xl font-extrabold text-amber-700 sm:text-2xl">
               {monthPickup}건
