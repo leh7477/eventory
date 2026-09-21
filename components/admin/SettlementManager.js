@@ -122,14 +122,16 @@ export default function SettlementManager({ deals }) {
   const sum = useMemo(() => {
     let contract = 0, paid = 0, vat = 0;
     // 건수: 계약=전체 건, 실입금=입금액이 있는 건, 미수=부가세 포함 금액에서 입금액을 뺀 값이 남은 건
-    let nPaid = 0, nUnpaid = 0;
+    // 내역: 완납(입금액 ≥ 부가세 포함 금액) / 부분입금 / 입금 전 — 실입금=완납+부분, 미수=입금 전+부분
+    let nFull = 0, nPartial = 0, nNone = 0;
     for (const d of monthDeals) {
       const p = Number(d.paid_amount) || 0;
       contract += Number(d.contract_amount) || 0;
       paid += p;
       vat += vatTotalOf(d);
-      if (p > 0) nPaid++;
-      if (vatTotalOf(d) - p > 0) nUnpaid++;
+      if (p <= 0) nNone++;
+      else if (p >= vatTotalOf(d)) nFull++;
+      else nPartial++;
     }
     return {
       contract,
@@ -137,8 +139,11 @@ export default function SettlementManager({ deals }) {
       vat,
       unpaid: vat - paid,
       nContract: monthDeals.length,
-      nPaid,
-      nUnpaid,
+      nPaid: nFull + nPartial,
+      nUnpaid: nNone + nPartial,
+      nFull,
+      nPartial,
+      nNone,
     };
   }, [monthDeals]);
 
@@ -238,9 +243,14 @@ export default function SettlementManager({ deals }) {
           계약 <b className="text-ink">₩{won(sum.contract)}</b>
           <span className="text-ink/40"> ({sum.nContract}건)</span> · 실입금{" "}
           <b className="text-green-700">₩{won(sum.paid)}</b>
-          <span className="text-ink/40"> ({sum.nPaid}건)</span> · 미수{" "}
+          <span className="text-ink/40">
+            {" "}({sum.nPaid}건 · 완납 {sum.nFull} · 부분 {sum.nPartial})
+          </span>{" "}
+          · 미수{" "}
           <b className={sum.unpaid > 0 ? "text-red-600" : "text-ink/50"}>₩{won(sum.unpaid)}</b>
-          <span className="text-ink/40"> ({sum.nUnpaid}건)</span>
+          <span className="text-ink/40">
+            {" "}({sum.nUnpaid}건 · 입금 전 {sum.nNone} · 부분 {sum.nPartial})
+          </span>
         </span>
       </div>
 

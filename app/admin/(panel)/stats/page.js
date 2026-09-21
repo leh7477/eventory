@@ -60,13 +60,19 @@ export default async function AdminStatsPage({ searchParams }) {
   const yPaid = yearDeals.reduce((s, d) => s + (Number(d.paid_amount) || 0), 0);
   const yVat = yearDeals.reduce((s, d) => s + Math.round((Number(d.contract_amount) || 0) * 1.1), 0);
   const yUnpaid = yVat - yPaid;
-  // 건수 — 금액과 같은 기준 (실입금=입금액 있는 건, 미수=부가세 포함 금액에서 입금액을 뺀 값이 남은 건)
+  // 건수 — 금액과 같은 기준. 내역: 완납 / 부분입금 / 입금 전
+  // 실입금 = 완납 + 부분, 미수 = 입금 전 + 부분
   const yContractN = yearDeals.length;
-  const yPaidN = yearDeals.filter((d) => (Number(d.paid_amount) || 0) > 0).length;
-  const yUnpaidN = yearDeals.filter(
-    (d) =>
-      Math.round((Number(d.contract_amount) || 0) * 1.1) - (Number(d.paid_amount) || 0) > 0
-  ).length;
+  let yFullN = 0, yPartialN = 0, yNoneN = 0;
+  yearDeals.forEach((d) => {
+    const p = Number(d.paid_amount) || 0;
+    const v = Math.round((Number(d.contract_amount) || 0) * 1.1);
+    if (p <= 0) yNoneN++;
+    else if (p >= v) yFullN++;
+    else yPartialN++;
+  });
+  const yPaidN = yFullN + yPartialN;
+  const yUnpaidN = yNoneN + yPartialN;
   const initialTab = searchParams?.tab === "stats" ? 1 : 0;
 
   const count = deals.length;
@@ -113,7 +119,9 @@ export default async function AdminStatsPage({ searchParams }) {
         <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
           <p className="text-xs text-green-700/70">{selectedYear}년 실입금</p>
           <p className="mt-1 text-lg font-extrabold text-green-700">₩ {won(yPaid)}</p>
-          <p className="mt-0.5 text-xs text-green-700/60">{yPaidN}건</p>
+          <p className="mt-0.5 text-xs text-green-700/60">
+            {yPaidN}건 · 완납 {yFullN} · 부분 {yPartialN}
+          </p>
         </div>
         <div className={`rounded-2xl border p-4 ${yUnpaid > 0 ? "border-red-200 bg-red-50" : "border-ink/10 bg-white"}`}>
           <p className={`text-xs ${yUnpaid > 0 ? "text-red-600/70" : "text-ink/50"}`}>{selectedYear}년 미수금</p>
@@ -121,7 +129,7 @@ export default async function AdminStatsPage({ searchParams }) {
             ₩ {won(yUnpaid)}
           </p>
           <p className={`mt-0.5 text-xs ${yUnpaid > 0 ? "text-red-600/60" : "text-ink/45"}`}>
-            {yUnpaidN}건
+            {yUnpaidN}건 · 입금 전 {yNoneN} · 부분 {yPartialN}
           </p>
         </div>
       </div>
