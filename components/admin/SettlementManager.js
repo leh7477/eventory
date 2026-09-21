@@ -230,6 +230,21 @@ export default function SettlementManager({ deals }) {
         >
           전체
         </button>
+        {/* 이번 달: 전체 보기를 끄고 이번 달로 돌아옴. 이미 이번 달을 보는 중이면 켜진 모양 */}
+        <button
+          type="button"
+          onClick={() => {
+            setAllMonths(false);
+            setMonth(todayStr().slice(0, 7));
+          }}
+          className={`rounded-md px-2.5 py-1 text-xs font-bold ${
+            !allMonths && month === todayStr().slice(0, 7)
+              ? "bg-ink text-white"
+              : "border border-ink/15 text-ink/60 hover:bg-ink/5"
+          }`}
+        >
+          이번 달
+        </button>
         <button
           type="button"
           onClick={exportCSV}

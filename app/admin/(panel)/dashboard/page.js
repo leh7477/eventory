@@ -305,7 +305,7 @@ export default async function DashboardPage({ searchParams }) {
             href="/admin/dashboard"
             className="rounded-md border border-ink/15 px-2 py-1 text-xs font-bold text-ink/60 hover:bg-ink/5"
           >
-            이번 달로
+            이번 달
           </Link>
         )}
       </div>
