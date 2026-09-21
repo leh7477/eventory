@@ -33,7 +33,19 @@ function toOccurrences(schedules) {
   return occ;
 }
 
-function OccurrenceItem({ o, showDate }) {
+// 납품 준비 경고 — 진행 단계(stage: 1=출력물 발주, 2=랩핑, 3=출고 완료)
+//  오늘 납품인데 출고 전(stage<3) → "출고 전"
+//  내일 납품인데 랩핑 전(stage<2)  → 다음 할 단계(출력물 발주 전 / 랩핑 전)
+//  내일 납품이고 랩핑은 끝나 출고만 남은 경우(stage=2)는 정상 흐름이라 경고 없음. 회수·업무는 경고 없음.
+function prepWarning(o, dayKind) {
+  if (o.type !== "납품") return null;
+  const st = Number(o.ev.stage) || 0;
+  if (dayKind === "today" && st < 3) return st < 1 ? "출력물 발주 전" : st < 2 ? "랩핑 전" : "출고 전";
+  if (dayKind === "tomorrow" && st < 2) return st < 1 ? "출력물 발주 전" : "랩핑 전";
+  return null;
+}
+
+function OccurrenceItem({ o, showDate, warn }) {
   const badge =
     o.type === "납품"
       ? "bg-blue-100 text-blue-700"
@@ -55,6 +67,11 @@ function OccurrenceItem({ o, showDate }) {
         </span>
         {o.time && <span className={`mr-1.5 font-bold ${timeColor}`}>{o.time}</span>}
         {o.ev.title}
+        {warn && (
+          <span className="ml-1.5 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700 align-middle">
+            ⚠ {warn}
+          </span>
+        )}
       </p>
       {(showDate || sub) && (
         <p className="mt-0.5 text-xs text-ink/50">
@@ -66,7 +83,9 @@ function OccurrenceItem({ o, showDate }) {
   );
 }
 
-function ScheduleGroup({ title, occurrences, emptyText, showDate = false }) {
+function ScheduleGroup({ title, occurrences, emptyText, showDate = false, dayKind }) {
+  const warnOf = (o) => (dayKind ? prepWarning(o, dayKind) : null);
+  const warnCount = occurrences.filter((o) => warnOf(o)).length;
   const deliver = occurrences.filter((o) => o.type === "납품").length;
   const pickup = occurrences.filter((o) => o.type === "회수").length;
   const task = occurrences.filter((o) => o.type === "업무").length;
@@ -89,6 +108,11 @@ function ScheduleGroup({ title, occurrences, emptyText, showDate = false }) {
               업무 {task}
             </span>
           )}
+          {warnCount > 0 && (
+            <span className="rounded bg-red-100 px-1.5 py-0.5 text-red-700">
+              ⚠ 준비 {warnCount}
+            </span>
+          )}
         </span>
       </div>
       {occurrences.length === 0 ? (
@@ -96,7 +120,12 @@ function ScheduleGroup({ title, occurrences, emptyText, showDate = false }) {
       ) : (
         <ul className="divide-y divide-ink/5">
           {occurrences.map((o, i) => (
-            <OccurrenceItem key={`${o.ev.id}-${o.type}-${i}`} o={o} showDate={showDate} />
+            <OccurrenceItem
+              key={`${o.ev.id}-${o.type}-${i}`}
+              o={o}
+              showDate={showDate}
+              warn={warnOf(o)}
+            />
           ))}
         </ul>
       )}
@@ -323,11 +352,13 @@ export default async function DashboardPage({ searchParams }) {
       <div className="mt-3 grid gap-4 md:grid-cols-2">
         <ScheduleGroup
           title="오늘 일정"
+          dayKind="today"
           occurrences={todayOcc}
           emptyText="오늘 일정이 없습니다."
         />
         <ScheduleGroup
           title="내일 일정"
+          dayKind="tomorrow"
           occurrences={tomorrowOcc}
           emptyText="내일 일정이 없습니다."
         />

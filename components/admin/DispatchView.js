@@ -306,6 +306,35 @@ export default function DispatchView({
                               )}
                             </div>
 
+                            {/* 진행 단계 표시(조회 전용) — 납품 줄: 출력물 발주·랩핑·출고 / 회수 줄: 회수.
+                                체크는 일정 탭에서. 일정 카드의 단계 표시와 같은 모양(완료=초록 ✓) */}
+                            <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                              {(isInstall
+                                ? [
+                                    { name: "출력물 발주", step: 1 },
+                                    { name: "랩핑", step: 2 },
+                                    { name: "출고", step: 3 },
+                                  ]
+                                : [{ name: "회수", step: 4 }]
+                              ).map((c) => {
+                                const done = (ev.stage || 0) >= c.step;
+                                return (
+                                  <span
+                                    key={c.name}
+                                    className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                      done
+                                        ? "bg-emerald-600 text-white"
+                                        : "bg-ink/5 text-ink/45"
+                                    }`}
+                                    title={done ? `${c.name} 완료` : `${c.name} 전`}
+                                  >
+                                    {done ? "✓ " : ""}
+                                    {c.name}
+                                  </span>
+                                );
+                              })}
+                            </div>
+
                             {ev.location && (
                               <p className="mt-1 flex items-start gap-1 break-words text-xs text-ink/60">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mt-[1px] shrink-0 text-ink/40">
