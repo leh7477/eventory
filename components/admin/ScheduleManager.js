@@ -626,7 +626,7 @@ export default function ScheduleManager({
                           placeholder="메모 (선택)"
                           className={inputCls}
                         />
-                        <div className="flex gap-2">
+                        <div className="flex justify-end gap-2">
                           <button
                             type="button"
                             disabled={pending}
@@ -1029,7 +1029,7 @@ export default function ScheduleManager({
                         </div>
                         <TimeSelect value={timeEnd} onChange={setTimeEnd} />
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex justify-end gap-2">
                         <button
                           type="button"
                           disabled={pending}

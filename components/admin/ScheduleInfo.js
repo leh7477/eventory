@@ -60,7 +60,13 @@ export default function ScheduleInfo({ schedule }) {
           />
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      {/* 저장 버튼은 오른쪽 끝, 결과 메시지("저장됨")는 그 왼쪽에 */}
+      <div className="flex items-center justify-end gap-2">
+        {msg && (
+          <span className={`text-xs font-medium ${msg === "저장됨" ? "text-green-600" : "text-primary"}`}>
+            {msg}
+          </span>
+        )}
         <button
           type="button"
           disabled={pending}
@@ -69,11 +75,6 @@ export default function ScheduleInfo({ schedule }) {
         >
           {pending ? "저장 중..." : "정보 저장"}
         </button>
-        {msg && (
-          <span className={`text-xs font-medium ${msg === "저장됨" ? "text-green-600" : "text-primary"}`}>
-            {msg}
-          </span>
-        )}
       </div>
     </div>
   );
