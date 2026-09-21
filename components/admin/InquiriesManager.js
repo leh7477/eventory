@@ -173,6 +173,8 @@ export default function InquiriesManager({
   const [schCategory, setSchCategory] = useState(""); // 배정할 기기 종류
   const [schQty, setSchQty] = useState("1"); // 배정 수량
   const [schLocation, setSchLocation] = useState(""); // 행사 장소(주소) — 배차 필수
+  const [schSupplies, setSchSupplies] = useState(""); // 물품 (상세 화면의 '물품' — 예: 캡슐, 전원선)
+  const [schRemark, setSchRemark] = useState(""); // 비고 (상세 화면의 '비고' — 예: 주차 지하 B2)
 
   const openSchedule = (q) => {
     const st = statusOf(q);
@@ -187,6 +189,8 @@ export default function InquiriesManager({
     setSchCategory(matchCategory(q.product, equipmentCategories));
     setSchQty(String(parseQty(q.product) || 1)); // 문의 수량 자동 (예: 2대)
     setSchLocation([q.address, q.address_detail].filter(Boolean).join(" "));
+    setSchSupplies("");
+    setSchRemark("");
     setScheduleFor(q);
   };
 
@@ -218,6 +222,8 @@ export default function InquiriesManager({
         start_time: schStart,
         end_time: schEnd,
         location: schLocation.trim(),
+        supplies: schSupplies,
+        remark: schRemark,
         equipment:
           schCategory && schQtyNum > 0
             ? { category: schCategory, quantity: schQtyNum }
@@ -1142,6 +1148,29 @@ export default function InquiriesManager({
               </div>
                 </>
               )}
+              {/* 상세(배차) 화면의 물품·비고 — 제작 건 포함 공통, 모두 선택 입력 */}
+              <div>
+                <label className="mb-1 block text-xs font-bold text-emerald-700">
+                  물품 (선택)
+                </label>
+                <input
+                  value={schSupplies}
+                  onChange={(e) => setSchSupplies(e.target.value)}
+                  placeholder="예: 캡슐, 전원선, 리모컨, 바구니"
+                  className="w-full rounded-md border border-emerald-200 bg-emerald-50/60 px-2.5 py-1.5 text-sm outline-none focus:border-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-bold text-amber-700">
+                  비고 (선택)
+                </label>
+                <input
+                  value={schRemark}
+                  onChange={(e) => setSchRemark(e.target.value)}
+                  placeholder="예: 일찍 도착해도 됨 / 주차 지하 B2"
+                  className="w-full rounded-md border border-amber-200 bg-amber-50/60 px-2.5 py-1.5 text-sm outline-none focus:border-amber-500"
+                />
+              </div>
             </div>
             <p className="mt-2 text-[11px] text-ink/40">
               전날 납품라면 납품 날짜를 바꿔주세요. 기기 배정은 선택이며 등록 후

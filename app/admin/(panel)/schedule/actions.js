@@ -167,6 +167,9 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
       client_manager: q.contact_name || q.name || null,
       client_phone: q.phone || null,
       memo: q.usage ? `용도: ${q.usage}` : null, // 용도 배지는 memo에서 읽음(usageOf)
+      // 상세(배차) 화면의 물품·비고 — 등록할 때 미리 입력 (비우면 null, 상세에서 나중에 입력 가능)
+      supplies: (opts?.supplies ?? "").toString().trim() || null,
+      remark: (opts?.remark ?? "").toString().trim() || null,
       inquiry_id: inquiryId,
     })
     .select("id")
