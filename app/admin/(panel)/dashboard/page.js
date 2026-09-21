@@ -136,12 +136,12 @@ export default async function DashboardPage({ searchParams }) {
       .lte("start_date", tomorrowS) // 오늘·내일 일정만 필요
       .order("start_date", { ascending: true }),
     admin.from("schedules").select("inquiry_id"), // 일정 등록된 문의 id (진행중 제외용)
-    // 이번 달에 납품(시작일)이나 회수(종료일)가 걸리는 일정
+    // 선택한 달에 행사 시작일·납품(시작일)·회수(종료일) 중 하나라도 걸리는 일정
     admin
       .from("schedules")
-      .select("id, kind, cancelled, start_date, end_date, memo")
+      .select("id, kind, cancelled, start_date, end_date, event_start, memo")
       .or(
-        `and(start_date.gte.${monthStart},start_date.lte.${monthEnd}),and(end_date.gte.${monthStart},end_date.lte.${monthEnd})`
+        `and(start_date.gte.${monthStart},start_date.lte.${monthEnd}),and(end_date.gte.${monthStart},end_date.lte.${monthEnd}),and(event_start.gte.${monthStart},event_start.lte.${monthEnd})`
       ),
   ]);
 
@@ -188,12 +188,15 @@ export default async function DashboardPage({ searchParams }) {
   // 선택한 달의 납품/회수 건수 (취소·업무 제외, 제작은 회수 없음)
   //  납품 = 시작일이 이번 달, 회수 = 종료일이 이번 달
   const inMonth = (d) => !!d && d >= monthStart && d <= monthEnd;
+  let monthEvents = 0;
   let monthDeliver = 0;
   let monthPickup = 0;
   (monthSchRes.data ?? []).forEach((ev) => {
     if (ev.cancelled || isTask(ev)) return;
     if (inMonth(ev.start_date)) monthDeliver++;
     if (!isDeliveryOnly(ev) && inMonth(ev.end_date || ev.start_date)) monthPickup++;
+    // 행사 = 행사 시작일 기준(비어 있으면 납품일로 대신), 제작 건은 행사가 아니라 제외
+    if (!isDeliveryOnly(ev) && inMonth(ev.event_start || ev.start_date)) monthEvents++;
   });
 
   const kpis = [
@@ -246,9 +249,9 @@ export default async function DashboardPage({ searchParams }) {
         })}
       </div>
 
-      {/* 월별 납품/회수 건수 — 화살표로 달 이동 */}
+      {/* 월별 행사/납품/회수 건수 — 화살표로 달 이동 */}
       <div className="mt-6 flex flex-wrap items-center gap-2">
-        <p className="text-sm font-bold text-ink">납품·회수 건수</p>
+        <p className="text-sm font-bold text-ink">행사·납품·회수 건수</p>
         <div className="flex items-center gap-1">
           <Link
             href={`/admin/dashboard?month=${shiftYm(-1)}`}
@@ -277,7 +280,17 @@ export default async function DashboardPage({ searchParams }) {
           </Link>
         )}
       </div>
-      <div className="mt-2 grid grid-cols-2 gap-3">
+      <div className="mt-2 grid grid-cols-3 gap-3">
+        <Link href="/admin/schedule" className="block min-w-0">
+          <div className="h-full rounded-xl border border-ink/10 bg-white p-3 transition hover:shadow-sm sm:p-4">
+            <p className="break-keep text-[11px] text-ink/50 sm:text-xs">
+              {monthLabel} 행사
+            </p>
+            <p className="mt-1 text-xl font-extrabold text-ink sm:text-2xl">
+              {monthEvents}건
+            </p>
+          </div>
+        </Link>
         <Link href="/admin/schedule" className="block min-w-0">
           <div className="h-full rounded-xl border border-blue-200 bg-blue-50 p-3 transition hover:shadow-sm sm:p-4">
             <p className="break-keep text-[11px] text-blue-700/70 sm:text-xs">
