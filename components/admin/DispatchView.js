@@ -176,7 +176,7 @@ export default function DispatchView({
           이 달 배차(납품/회수)가 없습니다.
         </p>
       ) : (
-        <div ref={rowsRef} className="space-y-4">
+        <div ref={rowsRef} className="space-y-8">
           {days.map((day) => {
             const stops = byDay[day];
             const cnt = {};
@@ -191,33 +191,31 @@ export default function DispatchView({
                 id={`disp-${day}`}
                 className={`scroll-mt-16 rounded-xl border border-l-4 bg-white shadow-sm md:scroll-mt-4 ${
                   isToday
-                    ? "border-violet-200 border-l-violet-500 ring-1 ring-violet-200"
-                    : "border-ink/15 border-l-ink/70"
+                    ? "border-violet-300 border-l-violet-700 ring-1 ring-violet-200"
+                    : "border-ink/20 border-l-ink"
                 }`}
               >
                 {/* 날짜 헤더 — 스크롤해도 위에 붙어 있어 어느 날짜 소속인지 계속 보임 */}
                 <div
-                  className={`sticky top-14 z-10 flex items-center gap-2 rounded-t-xl border-b px-4 py-2.5 md:top-0 ${
-                    isToday
-                      ? "border-violet-200 bg-violet-100"
-                      : "border-ink/10 bg-[#efeff1]"
+                  className={`sticky top-14 z-10 flex items-center gap-2 rounded-t-xl px-4 py-2.5 md:top-0 ${
+                    isToday ? "bg-violet-700" : "bg-ink"
                   }`}
                 >
                   <span
                     className={`text-base font-extrabold ${
-                      wd === 0 ? "text-red-500" : wd === 6 ? "text-blue-500" : "text-ink"
+                      wd === 0 ? "text-red-300" : wd === 6 ? "text-sky-300" : "text-white"
                     }`}
                   >
                     {day.slice(5).replace("-", "/")} ({WEEK[wd]})
                   </span>
                   {isToday && (
-                    <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-violet-700">
                       오늘
                     </span>
                   )}
-                  <span className="text-xs text-ink/40">{stops.length}건</span>
+                  <span className="text-xs text-white/60">{stops.length}건</span>
                   {conflicts.size > 0 && (
-                    <span className="ml-auto rounded bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-600">
+                    <span className="ml-auto rounded bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
                       ⚠ 시간 겹침({[...conflicts].join(", ")}) · 조율 필요
                     </span>
                   )}
