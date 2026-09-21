@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ADMIN_SECTIONS } from "@/lib/admin/sections";
+import { ADMIN_SECTIONS, ADMIN_GROUP_ORDER } from "@/lib/admin/sections";
 import {
   createAdminUser,
   updateAdminUser,
@@ -22,23 +22,44 @@ function PermissionPicker({ role, permissions, toggle }) {
     return (
       <p className="text-xs text-ink/45">최고관리자는 모든 메뉴에 접근합니다.</p>
     );
+  // 사이드바와 같은 묶음(홈페이지 / 운영 관리)으로 나눠 표기
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {ADMIN_SECTIONS.map((s) => {
-        const on = permissions.includes(s.key);
+    <div className="space-y-3">
+      {ADMIN_GROUP_ORDER.map((group) => {
+        const items = ADMIN_SECTIONS.filter((s) => s.group === group);
+        if (items.length === 0) return null;
+        const onCount = items.filter((s) => permissions.includes(s.key)).length;
         return (
-          <button
-            key={s.key}
-            type="button"
-            onClick={() => toggle(s.key)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-              on
-                ? "bg-ink text-white"
-                : "border border-ink/15 text-ink/50 hover:bg-ink/5"
-            }`}
+          <div
+            key={group}
+            className="rounded-xl border border-ink/10 bg-ink/[0.02] px-3.5 py-3"
           >
-            {s.label}
-          </button>
+            <p className="mb-2 flex items-center gap-2 text-sm font-bold text-ink">
+              {group}
+              <span className="text-[11px] font-medium text-ink/40">
+                {onCount}/{items.length}
+              </span>
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {items.map((s) => {
+                const on = permissions.includes(s.key);
+                return (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => toggle(s.key)}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                      on
+                        ? "bg-ink text-white"
+                        : "border border-ink/15 bg-white text-ink/50 hover:bg-ink/5"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         );
       })}
     </div>
