@@ -41,7 +41,9 @@ export default async function AdminPanelLayout({ children }) {
         permissions={profile.permissions}
         newInquiries={newInquiries}
       />
-      <main className="min-w-0 max-w-full flex-1 overflow-x-hidden px-4 py-6 md:px-6 md:py-8 lg:px-10">
+      {/* overflow-x-clip: 가로 넘침은 자르되 스크롤 컨테이너로 만들지 않음
+          (hidden 이면 안쪽 sticky 헤더가 붙지 않음 — 상세 화면 날짜 헤더) */}
+      <main className="min-w-0 max-w-full flex-1 overflow-x-clip px-4 py-6 md:px-6 md:py-8 lg:px-10">
         {children}
       </main>
     </div>

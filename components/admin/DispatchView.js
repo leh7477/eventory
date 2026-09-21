@@ -185,21 +185,26 @@ export default function DispatchView({
             const isToday = day === today;
             const wd = dow(day);
             return (
+              /* 날짜 하나 = 박스 하나 (헤더 + 그날의 납품/회수 줄들을 구분선으로 묶음) */
               <div
                 key={day}
                 id={`disp-${day}`}
-                className={`scroll-mt-4 ${
-                  isToday ? "rounded-xl bg-violet-50 p-2 ring-1 ring-violet-200" : ""
+                className={`scroll-mt-16 rounded-xl border border-l-4 bg-white shadow-sm md:scroll-mt-4 ${
+                  isToday
+                    ? "border-violet-200 border-l-violet-500 ring-1 ring-violet-200"
+                    : "border-ink/15 border-l-ink/70"
                 }`}
               >
-                {/* 날짜 헤더 */}
+                {/* 날짜 헤더 — 스크롤해도 위에 붙어 있어 어느 날짜 소속인지 계속 보임 */}
                 <div
-                  className={`mb-1.5 flex items-center gap-2 rounded-lg px-3 py-1.5 ${
-                    isToday ? "bg-violet-100" : "bg-ink/[0.04]"
+                  className={`sticky top-14 z-10 flex items-center gap-2 rounded-t-xl border-b px-4 py-2.5 md:top-0 ${
+                    isToday
+                      ? "border-violet-200 bg-violet-100"
+                      : "border-ink/10 bg-[#efeff1]"
                   }`}
                 >
                   <span
-                    className={`text-sm font-bold ${
+                    className={`text-base font-extrabold ${
                       wd === 0 ? "text-red-500" : wd === 6 ? "text-blue-500" : "text-ink"
                     }`}
                   >
@@ -219,7 +224,7 @@ export default function DispatchView({
                 </div>
 
                 {/* 스톱 목록 */}
-                <ul className="space-y-2">
+                <ul className="divide-y divide-ink/10">
                   {stops.map((s, i) => {
                     const ev = s.ev;
                     const isInstall = s.type === "install";
@@ -227,10 +232,8 @@ export default function DispatchView({
                       <li
                         key={s.key}
                         id={`disp-row-${s.key}`}
-                        className={`rounded-xl border p-3 transition-colors ${
-                          flashKey === s.key
-                            ? "border-primary/40 bg-primary/10"
-                            : "border-ink/10 bg-white"
+                        className={`p-3 transition-colors last:rounded-b-xl ${
+                          flashKey === s.key ? "bg-primary/10" : ""
                         }`}
                       >
                         <div className="flex items-start gap-2.5">
