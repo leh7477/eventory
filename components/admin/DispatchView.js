@@ -31,7 +31,7 @@ function shiftMonth(ym, delta) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
 }
 
-export default function DispatchView({ schedules = [], scheduleItems = [] }) {
+export default function DispatchView({ schedules = [], scheduleItems = [], onOpenEvent }) {
   const router = useRouter();
   const today = todayKST();
   const [month, setMonth] = useState(today.slice(0, 7));
@@ -250,7 +250,19 @@ export default function DispatchView({ schedules = [], scheduleItems = [] }) {
                                   시간 겹침
                                 </span>
                               )}
-                              <span className="text-sm font-semibold text-ink">{ev.title}</span>
+                              {/* 행사 제목 클릭 → 일정 탭의 해당 카드로 이동 (출력물 발주·랩핑 등 단계 확인) */}
+                              {onOpenEvent ? (
+                                <button
+                                  type="button"
+                                  onClick={() => onOpenEvent(ev)}
+                                  title="일정 탭에서 이 행사 보기"
+                                  className="text-left text-sm font-semibold text-ink underline decoration-ink/25 decoration-dotted underline-offset-4 transition hover:text-primary hover:decoration-primary"
+                                >
+                                  {ev.title}
+                                </button>
+                              ) : (
+                                <span className="text-sm font-semibold text-ink">{ev.title}</span>
+                              )}
                               {equipBySched[ev.id] && (
                                 <span className="rounded bg-ink/5 px-1.5 py-0.5 text-[10px] font-medium text-ink/60">
                                   {equipBySched[ev.id].join(" · ")}

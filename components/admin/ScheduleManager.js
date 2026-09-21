@@ -111,13 +111,19 @@ export default function ScheduleManager({
     setView({ y: d.getFullYear(), m: d.getMonth() }); // 그 달로 이동
     setHighlightId(ev.id);
   };
+  // 상세(배차) 화면에서 행사를 눌러 넘어온 경우: 일정 탭으로 전환 후 그 카드로 이동
+  const openFromDispatch = (ev) => {
+    setMode("list");
+    focusEvent(ev);
+  };
   useEffect(() => {
-    if (!highlightId) return;
+    // 상세 탭에 있을 땐 일정 카드가 화면에 없으므로, 일정 탭이 그려진 뒤에 실행
+    if (!highlightId || mode !== "list") return;
     const el = document.getElementById(`sch-${highlightId}`);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
     const t = setTimeout(() => setHighlightId(null), 2500);
     return () => clearTimeout(t);
-  }, [highlightId]);
+  }, [highlightId, mode, view]);
 
   // 일정별 행사 기간 + 납품/회수 일시 인라인 편집
   const [timeEditId, setTimeEditId] = useState(null);
@@ -321,7 +327,11 @@ export default function ScheduleManager({
       </div>
 
       {mode === "dispatch" ? (
-        <DispatchView schedules={schedules} scheduleItems={scheduleItems} />
+        <DispatchView
+          schedules={schedules}
+          scheduleItems={scheduleItems}
+          onOpenEvent={openFromDispatch}
+        />
       ) : (
         <div className="space-y-6">
       {/* 오늘 / 내일 요약 */}
