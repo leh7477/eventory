@@ -121,12 +121,25 @@ export default function SettlementManager({ deals }) {
   }, [monthDeals]);
   const sum = useMemo(() => {
     let contract = 0, paid = 0, vat = 0;
+    // 건수: 계약=전체 건, 실입금=입금액이 있는 건, 미수=부가세 포함 금액에서 입금액을 뺀 값이 남은 건
+    let nPaid = 0, nUnpaid = 0;
     for (const d of monthDeals) {
+      const p = Number(d.paid_amount) || 0;
       contract += Number(d.contract_amount) || 0;
-      paid += Number(d.paid_amount) || 0;
+      paid += p;
       vat += vatTotalOf(d);
+      if (p > 0) nPaid++;
+      if (vatTotalOf(d) - p > 0) nUnpaid++;
     }
-    return { contract, paid, vat, unpaid: vat - paid };
+    return {
+      contract,
+      paid,
+      vat,
+      unpaid: vat - paid,
+      nContract: monthDeals.length,
+      nPaid,
+      nUnpaid,
+    };
   }, [monthDeals]);
 
   // 필터/월/검색 바뀌면 첫 페이지로
@@ -222,9 +235,12 @@ export default function SettlementManager({ deals }) {
         </button>
         {/* 이 범위 합계 */}
         <span className="ml-auto text-xs text-ink/50">
-          계약 <b className="text-ink">₩{won(sum.contract)}</b> · 실입금{" "}
-          <b className="text-green-700">₩{won(sum.paid)}</b> · 미수{" "}
+          계약 <b className="text-ink">₩{won(sum.contract)}</b>
+          <span className="text-ink/40"> ({sum.nContract}건)</span> · 실입금{" "}
+          <b className="text-green-700">₩{won(sum.paid)}</b>
+          <span className="text-ink/40"> ({sum.nPaid}건)</span> · 미수{" "}
           <b className={sum.unpaid > 0 ? "text-red-600" : "text-ink/50"}>₩{won(sum.unpaid)}</b>
+          <span className="text-ink/40"> ({sum.nUnpaid}건)</span>
         </span>
       </div>
 
