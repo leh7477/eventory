@@ -256,7 +256,7 @@ export default function DispatchView({ schedules = [], scheduleItems = [], onOpe
                                   type="button"
                                   onClick={() => onOpenEvent(ev)}
                                   title="일정 탭에서 이 행사 보기"
-                                  className="text-left text-sm font-semibold text-ink underline decoration-ink/25 decoration-dotted underline-offset-4 transition hover:text-primary hover:decoration-primary"
+                                  className="text-left text-sm font-semibold text-ink transition hover:text-primary hover:underline hover:underline-offset-4"
                                 >
                                   {ev.title}
                                 </button>
