@@ -3,8 +3,11 @@ import ScheduleManager from "@/components/admin/ScheduleManager";
 
 export const revalidate = 0;
 
-export default async function AdminSchedulePage() {
+export default async function AdminSchedulePage({ searchParams }) {
   const admin = createAdminClient();
+  // ?month=YYYY-MM 으로 열 달 지정 (대시보드 카드에서 넘어올 때). 없거나 형식이 틀리면 이번 달
+  const monthParam = String(searchParams?.month || "");
+  const initialMonth = /^\d{4}-(0[1-9]|1[0-2])$/.test(monthParam) ? monthParam : null;
 
   const [{ data: schedules }, { data: equipment }, { data: items }, { data: vendors }] =
     await Promise.all([
@@ -38,6 +41,7 @@ export default async function AdminSchedulePage() {
           equipmentCategories={categories}
           scheduleItems={items ?? []}
           vendors={(vendors ?? []).map((v) => v.name)}
+          initialMonth={initialMonth}
         />
       </div>
     </div>

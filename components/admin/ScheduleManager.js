@@ -57,6 +57,7 @@ export default function ScheduleManager({
   equipmentCategories = [],
   scheduleItems = [],
   vendors = [],
+  initialMonth = null, // "YYYY-MM" — 대시보드 카드 등에서 특정 달로 열 때
 }) {
   const router = useRouter();
   const now = new Date();
@@ -88,7 +89,13 @@ export default function ScheduleManager({
   const [newTask, setNewTask] = useState(emptyTask);
   const [taskEditId, setTaskEditId] = useState(null);
   const [taskForm, setTaskForm] = useState(emptyTask);
-  const [view, setView] = useState({ y: now.getFullYear(), m: now.getMonth() });
+  const [view, setView] = useState(() => {
+    if (initialMonth) {
+      const [iy, im] = initialMonth.split("-").map(Number);
+      return { y: iy, m: im - 1 };
+    }
+    return { y: now.getFullYear(), m: now.getMonth() };
+  });
   const [form, setForm] = useState({
     title: "",
     event_start: "",
@@ -341,6 +348,7 @@ export default function ScheduleManager({
           scheduleItems={scheduleItems}
           onOpenEvent={openFromDispatch}
           target={dispatchTarget}
+          initialMonth={initialMonth}
         />
       ) : (
         <div className="space-y-6">

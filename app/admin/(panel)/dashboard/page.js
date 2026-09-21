@@ -310,7 +310,7 @@ export default async function DashboardPage({ searchParams }) {
         )}
       </div>
       <div className="mt-2 grid grid-cols-3 gap-3">
-        <Link href="/admin/schedule" className="block min-w-0">
+        <Link href={`/admin/schedule?month=${ymSel}`} className="block min-w-0">
           <div className="h-full rounded-xl border border-ink/10 bg-white p-3 transition hover:shadow-sm sm:p-4">
             <p className="break-keep text-[11px] text-ink/50 sm:text-xs">
               {monthLabel} 행사
@@ -320,7 +320,7 @@ export default async function DashboardPage({ searchParams }) {
             </p>
           </div>
         </Link>
-        <Link href="/admin/schedule" className="block min-w-0">
+        <Link href={`/admin/schedule?month=${ymSel}`} className="block min-w-0">
           <div className="h-full rounded-xl border border-blue-200 bg-blue-50 p-3 transition hover:shadow-sm sm:p-4">
             <p className="break-keep text-[11px] text-blue-700/70 sm:text-xs">
               {monthLabel} 납품
@@ -330,7 +330,7 @@ export default async function DashboardPage({ searchParams }) {
             </p>
           </div>
         </Link>
-        <Link href="/admin/schedule" className="block min-w-0">
+        <Link href={`/admin/schedule?month=${ymSel}`} className="block min-w-0">
           <div className="h-full rounded-xl border border-amber-200 bg-amber-50 p-3 transition hover:shadow-sm sm:p-4">
             <p className="break-keep text-[11px] text-amber-700/70 sm:text-xs">
               {monthLabel} 회수

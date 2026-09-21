@@ -36,11 +36,12 @@ export default function DispatchView({
   scheduleItems = [],
   onOpenEvent,
   target = null, // 일정 탭에서 납품/회수 날짜를 눌러 넘어온 경우 { date, evId, type, nonce }
+  initialMonth = null, // 대시보드 카드 등에서 특정 달로 열 때 "YYYY-MM"
 }) {
   const router = useRouter();
   const today = todayKST();
-  // 넘어온 목표가 있으면 처음부터 그 달을 보여줌
-  const [month, setMonth] = useState((target?.date || today).slice(0, 7));
+  // 넘어온 목표가 있으면 그 달, 없으면 지정된 달, 그것도 없으면 이번 달
+  const [month, setMonth] = useState((target?.date || initialMonth || today).slice(0, 7));
   const [flashKey, setFlashKey] = useState(target ? `${target.evId}-${target.type}` : null);
   const [pending, startTransition] = useTransition();
   const [editSupId, setEditSupId] = useState(null);
@@ -341,7 +342,21 @@ export default function DispatchView({
                                   <path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z" />
                                   <circle cx="12" cy="10" r="2.5" />
                                 </svg>
-                                <span className="min-w-0">{ev.location}</span>
+                                {/* 주소를 누르면 네이버지도에서 검색 (폰에 앱이 있으면 앱, 없으면 브라우저).
+                                    주소가 '미정'이면 검색할 게 없으니 링크 없이 글자로만 표시 */}
+                                {ev.location.trim() === "미정" ? (
+                                  <span className="min-w-0">{ev.location}</span>
+                                ) : (
+                                  <a
+                                    href={`https://map.naver.com/p/search/${encodeURIComponent(ev.location)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="네이버지도에서 보기"
+                                    className="min-w-0 transition hover:text-primary hover:underline hover:underline-offset-2"
+                                  >
+                                    {ev.location}
+                                  </a>
+                                )}
                               </p>
                             )}
                             {(ev.client_manager || ev.client_phone) && (
