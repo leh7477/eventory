@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireSection } from "@/lib/admin/auth";
+import { writeAudit } from "@/lib/admin/audit";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 function rv() {
@@ -19,7 +20,7 @@ function friendly(error) {
 const clean = (v) => ((v ?? "").trim() ? v.trim() : null);
 
 export async function createVendor({ name, contact, phone, memo } = {}) {
-  await requireSection("vendors");
+  const user = await requireSection("vendors");
   const nm = (name ?? "").trim();
   if (!nm) return { error: "거래처 이름을 입력하세요." };
   const admin = createAdminClient();
@@ -30,12 +31,13 @@ export async function createVendor({ name, contact, phone, memo } = {}) {
     memo: clean(memo),
   });
   if (error) return friendly(error);
+  await writeAudit({ user, section: "vendors", action: "create", table: "vendors", detail: { name: nm } });
   rv();
   return { ok: true };
 }
 
 export async function updateVendor(id, { name, contact, phone, memo } = {}) {
-  await requireSection("vendors");
+  const user = await requireSection("vendors");
   const nm = (name ?? "").trim();
   if (!nm) return { error: "거래처 이름을 입력하세요." };
   const admin = createAdminClient();
@@ -49,15 +51,19 @@ export async function updateVendor(id, { name, contact, phone, memo } = {}) {
     })
     .eq("id", id);
   if (error) return friendly(error);
+  await writeAudit({ user, section: "vendors", action: "update", table: "vendors", id, detail: { name: nm } });
   rv();
   return { ok: true };
 }
 
 export async function deleteVendor(id) {
-  await requireSection("vendors");
+  const user = await requireSection("vendors");
   const admin = createAdminClient();
+  // 지워지고 나면 이름을 알 수 없으므로 미리 확보해 기록에 남긴다
+  const { data: before } = await admin.from("vendors").select("name").eq("id", id).maybeSingle();
   const { error } = await admin.from("vendors").delete().eq("id", id);
   if (error) return friendly(error);
+  await writeAudit({ user, section: "vendors", action: "delete", table: "vendors", id, detail: { name: before?.name ?? null } });
   rv();
   return { ok: true };
 }

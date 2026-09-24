@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireSection } from "@/lib/admin/auth";
+import { writeAudit } from "@/lib/admin/audit";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const toInt = (v) => {
@@ -16,7 +17,7 @@ const missingTable = (msg) =>
 
 // ---- 배송료 단가 ----
 export async function saveShippingRate(row) {
-  await requireSection("rates");
+  const user = await requireSection("rates");
   const admin = createAdminClient();
   const region = String(row.region ?? "").trim();
   if (!region) return { error: "지역명을 입력하세요." };
@@ -40,22 +41,24 @@ export async function saveShippingRate(row) {
       return { error: "단가 테이블이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
     return { error: error.message };
   }
+  await writeAudit({ user, section: "rates", action: row.id ? "update" : "create", table: "shipping_rates", id: row.id, detail: payload });
   revalidatePath("/admin/rates");
   return { ok: true };
 }
 
 export async function deleteShippingRate(id) {
-  await requireSection("rates");
+  const user = await requireSection("rates");
   const admin = createAdminClient();
   const { error } = await admin.from("shipping_rates").delete().eq("id", id);
   if (error) return { error: error.message };
+  await writeAudit({ user, section: "rates", action: "delete", table: "shipping_rates", id });
   revalidatePath("/admin/rates");
   return { ok: true };
 }
 
 // ---- 대여 단가 ----
 export async function saveRentalRate(row) {
-  await requireSection("rates");
+  const user = await requireSection("rates");
   const admin = createAdminClient();
   const product = String(row.product ?? "").trim();
   if (!product) return { error: "제품명을 입력하세요." };
@@ -78,22 +81,24 @@ export async function saveRentalRate(row) {
       return { error: "단가 테이블이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
     return { error: error.message };
   }
+  await writeAudit({ user, section: "rates", action: row.id ? "update" : "create", table: "rental_rates", id: row.id, detail: { product, prices } });
   revalidatePath("/admin/rates");
   return { ok: true };
 }
 
 export async function deleteRentalRate(id) {
-  await requireSection("rates");
+  const user = await requireSection("rates");
   const admin = createAdminClient();
   const { error } = await admin.from("rental_rates").delete().eq("id", id);
   if (error) return { error: error.message };
+  await writeAudit({ user, section: "rates", action: "delete", table: "rental_rates", id });
   revalidatePath("/admin/rates");
   return { ok: true };
 }
 
 // ---- 제작 단가 (rental_rates.made_price, 카테고리별 1칸) ----
 export async function saveMadeRate(product, price) {
-  await requireSection("rates");
+  const user = await requireSection("rates");
   const admin = createAdminClient();
   const p = String(product ?? "").trim();
   if (!p) return { error: "제품명을 입력하세요." };
@@ -108,6 +113,7 @@ export async function saveMadeRate(product, price) {
       return { error: "단가 테이블이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
     return { error: error.message };
   }
+  await writeAudit({ user, section: "rates", action: "update", table: "rental_rates", detail: { product: p, made_price: toInt(price) } });
   revalidatePath("/admin/rates");
   return { ok: true };
 }

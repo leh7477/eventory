@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireSection } from "@/lib/admin/auth";
+import { writeAudit } from "@/lib/admin/audit";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 function revalidate() {
@@ -18,7 +19,7 @@ function friendly(error) {
 }
 
 export async function createEquipment({ name, category } = {}) {
-  await requireSection("inventory");
+  const user = await requireSection("inventory");
   const nm = (name ?? "").trim();
   if (!nm) return { error: "기기 이름을 입력하세요." };
   const admin = createAdminClient();
@@ -28,6 +29,7 @@ export async function createEquipment({ name, category } = {}) {
     active: true,
   });
   if (error) return friendly(error);
+  await writeAudit({ user, section: "inventory", action: "create", table: "equipment", detail: { name: nm, category } });
   revalidate();
   return { ok: true };
 }
@@ -35,7 +37,7 @@ export async function createEquipment({ name, category } = {}) {
 // 종류 이름 + 수량 → 번호 매긴 기기 자동 생성 (예: 가챠머신 × 7 → 가챠머신1~7)
 // 이미 있는 번호는 건너뛰고, 부족한 만큼만 채움(수량 늘리기에도 사용)
 export async function createEquipmentBulk({ category, count } = {}) {
-  await requireSection("inventory");
+  const user = await requireSection("inventory");
   const cat = (category ?? "").trim();
   const n = parseInt(count, 10);
   if (!cat) return { error: "종류 이름을 입력하세요." };
@@ -59,13 +61,14 @@ export async function createEquipmentBulk({ category, count } = {}) {
 
   const { error } = await admin.from("equipment").insert(rows);
   if (error) return friendly(error);
+  await writeAudit({ user, section: "inventory", action: "create", table: "equipment", detail: { category: cat, created: rows.length, names: rows.map((x) => x.name) } });
   revalidate();
   return { ok: true, created: rows.length };
 }
 
 // 해당 종류에 다음 번호 기기 1대 추가 (예: 가챠머신 → 가챠머신8)
 export async function addNextUnit({ category } = {}) {
-  await requireSection("inventory");
+  const user = await requireSection("inventory");
   const cat = (category ?? "").trim();
   if (!cat) return { error: "종류 이름이 없습니다." };
   const admin = createAdminClient();
@@ -84,12 +87,13 @@ export async function addNextUnit({ category } = {}) {
   const name = `${cat}${max + 1}`;
   const { error } = await admin.from("equipment").insert({ name, category: cat, active: true });
   if (error) return friendly(error);
+  await writeAudit({ user, section: "inventory", action: "create", table: "equipment", detail: { name, category: cat } });
   revalidate();
   return { ok: true };
 }
 
 export async function updateEquipment(id, { name, category, memo } = {}) {
-  await requireSection("inventory");
+  const user = await requireSection("inventory");
   const nm = (name ?? "").trim();
   if (!nm) return { error: "기기 이름을 입력하세요." };
   const admin = createAdminClient();
@@ -102,25 +106,30 @@ export async function updateEquipment(id, { name, category, memo } = {}) {
     })
     .eq("id", id);
   if (error) return friendly(error);
+  await writeAudit({ user, section: "inventory", action: "update", table: "equipment", id, detail: { name: nm, category, memo } });
   revalidate();
   return { ok: true };
 }
 
 // 운영(재고 포함) 여부 토글
 export async function setEquipmentActive(id, active) {
-  await requireSection("inventory");
+  const user = await requireSection("inventory");
   const admin = createAdminClient();
   const { error } = await admin.from("equipment").update({ active: !!active }).eq("id", id);
   if (error) return friendly(error);
+  await writeAudit({ user, section: "inventory", action: "update", table: "equipment", id, detail: { active: !!active } });
   revalidate();
   return { ok: true };
 }
 
 export async function deleteEquipment(id) {
-  await requireSection("inventory");
+  const user = await requireSection("inventory");
   const admin = createAdminClient();
+  // 지워지고 나면 알 수 없으므로 미리 확보해 기록에 남긴다
+  const { data: before } = await admin.from("equipment").select("name, category").eq("id", id).maybeSingle();
   const { error } = await admin.from("equipment").delete().eq("id", id);
   if (error) return friendly(error);
+  await writeAudit({ user, section: "inventory", action: "delete", table: "equipment", id, detail: before ?? null });
   revalidate();
   return { ok: true };
 }
