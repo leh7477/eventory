@@ -64,7 +64,9 @@
 ### 지금 문제
 `schema.sql` 한 파일에 `alter table ... add column`이 56개 쌓였다.
 버전 표기가 없어 **파일과 실제 DB가 같은지 확인할 방법이 없다.**
-(실제로 `public insert inquiries` 정책이 파일과 DB에서 달랐다)
+(지금도 그렇다: `schema.sql` 에는 `audit_log` 테이블과 `privacy_agreed_at`
+컬럼이 적혀 있지만 실제 DB에는 아직 없다. 파일은 "이래야 한다"는 선언일 뿐,
+실제와 같은지는 **아무도 보증하지 않는다**.)
 
 ### 기준: 변경은 파일에 먼저, DB에 나중
 
