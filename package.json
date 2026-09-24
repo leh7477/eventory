@@ -9,7 +9,8 @@
     "lint": "next lint",
     "check": "node scripts/check-launch.mjs",
     "check:schema": "node scripts/check-schema.mjs",
-    "backup": "node scripts/backup-db.mjs"
+    "backup": "node scripts/backup-db.mjs",
+    "seed:dev": "node scripts/seed-dev.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

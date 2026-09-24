@@ -14,9 +14,14 @@
 ## 빠른 참조
 
 ```bash
-npm run dev      # 개발 (기본 3000)
-npm run build    # 빌드 검증 — 커밋 전 반드시
-npm start        # 운영 모드 실행
+npm run dev           # 개발 서버 (기본 3000)
+npm run build         # 빌드 검증 — 커밋 전 반드시
+npm start             # 운영 모드 실행
+
+npm run check         # 오픈 전 점검 (임시값 + 미적용 SQL)
+npm run check:schema  # schema.sql 과 실제 DB 대조
+npm run backup        # DB 백업
+npm run seed:dev      # 개발 DB 에 가짜 데이터 채우기
 ```
 
 배포·백업·스키마 변경 절차는 [BACKEND.md](BACKEND.md)를 따른다.
