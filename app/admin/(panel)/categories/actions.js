@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSection } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 function revalidate() {
@@ -13,7 +13,7 @@ function revalidate() {
 
 // 카테고리 기본 스펙 저장 (Stories 등록 시 기본값으로 사용)
 export async function updateCategorySpecs(id, specsText) {
-  await requireAdmin();
+  await requireSection("categories");
   const admin = createAdminClient();
   const { error } = await admin
     .from("categories")
@@ -25,7 +25,7 @@ export async function updateCategorySpecs(id, specsText) {
 }
 
 export async function createCategory(name) {
-  await requireAdmin();
+  await requireSection("categories");
   const trimmed = (name ?? "").trim();
   if (!trimmed) return { error: "이름을 입력하세요." };
   const admin = createAdminClient();
@@ -43,7 +43,7 @@ export async function createCategory(name) {
 }
 
 export async function updateCategory(id, name) {
-  await requireAdmin();
+  await requireSection("categories");
   const trimmed = (name ?? "").trim();
   if (!trimmed) return { error: "이름을 입력하세요." };
   const admin = createAdminClient();
@@ -54,7 +54,7 @@ export async function updateCategory(id, name) {
 }
 
 export async function deleteCategory(id) {
-  await requireAdmin();
+  await requireSection("categories");
   const admin = createAdminClient();
   const { error } = await admin.from("categories").delete().eq("id", id);
   if (error) return { error: error.message };
@@ -64,7 +64,7 @@ export async function deleteCategory(id) {
 
 // 두 카테고리의 order_num 교환 (순서 위/아래 이동)
 export async function swapCategoryOrder(a, b) {
-  await requireAdmin();
+  await requireSection("categories");
   const admin = createAdminClient();
   await admin.from("categories").update({ order_num: b.order_num }).eq("id", a.id);
   await admin.from("categories").update({ order_num: a.order_num }).eq("id", b.id);

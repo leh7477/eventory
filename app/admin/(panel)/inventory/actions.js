@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSection } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 function revalidate() {
@@ -18,7 +18,7 @@ function friendly(error) {
 }
 
 export async function createEquipment({ name, category } = {}) {
-  await requireAdmin();
+  await requireSection("inventory");
   const nm = (name ?? "").trim();
   if (!nm) return { error: "기기 이름을 입력하세요." };
   const admin = createAdminClient();
@@ -35,7 +35,7 @@ export async function createEquipment({ name, category } = {}) {
 // 종류 이름 + 수량 → 번호 매긴 기기 자동 생성 (예: 가챠머신 × 7 → 가챠머신1~7)
 // 이미 있는 번호는 건너뛰고, 부족한 만큼만 채움(수량 늘리기에도 사용)
 export async function createEquipmentBulk({ category, count } = {}) {
-  await requireAdmin();
+  await requireSection("inventory");
   const cat = (category ?? "").trim();
   const n = parseInt(count, 10);
   if (!cat) return { error: "종류 이름을 입력하세요." };
@@ -65,7 +65,7 @@ export async function createEquipmentBulk({ category, count } = {}) {
 
 // 해당 종류에 다음 번호 기기 1대 추가 (예: 가챠머신 → 가챠머신8)
 export async function addNextUnit({ category } = {}) {
-  await requireAdmin();
+  await requireSection("inventory");
   const cat = (category ?? "").trim();
   if (!cat) return { error: "종류 이름이 없습니다." };
   const admin = createAdminClient();
@@ -89,7 +89,7 @@ export async function addNextUnit({ category } = {}) {
 }
 
 export async function updateEquipment(id, { name, category, memo } = {}) {
-  await requireAdmin();
+  await requireSection("inventory");
   const nm = (name ?? "").trim();
   if (!nm) return { error: "기기 이름을 입력하세요." };
   const admin = createAdminClient();
@@ -108,7 +108,7 @@ export async function updateEquipment(id, { name, category, memo } = {}) {
 
 // 운영(재고 포함) 여부 토글
 export async function setEquipmentActive(id, active) {
-  await requireAdmin();
+  await requireSection("inventory");
   const admin = createAdminClient();
   const { error } = await admin.from("equipment").update({ active: !!active }).eq("id", id);
   if (error) return friendly(error);
@@ -117,7 +117,7 @@ export async function setEquipmentActive(id, active) {
 }
 
 export async function deleteEquipment(id) {
-  await requireAdmin();
+  await requireSection("inventory");
   const admin = createAdminClient();
   const { error } = await admin.from("equipment").delete().eq("id", id);
   if (error) return friendly(error);

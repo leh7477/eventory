@@ -47,8 +47,8 @@ export async function createAdminUser({ username, password, name, role, permissi
   const id = (username || "").trim().toLowerCase();
   if (!/^[a-z0-9_]{3,20}$/.test(id))
     return { error: "아이디는 영문/숫자/_ 3~20자로 입력하세요." };
-  if (!password || password.length < 6)
-    return { error: "비밀번호는 6자 이상이어야 합니다." };
+  if (!password || password.length < 10)
+    return { error: "비밀번호는 10자 이상이어야 합니다." };
   if (!name?.trim()) return { error: "이름을 입력하세요." };
 
   const isOwner = role === "owner";
@@ -85,7 +85,7 @@ export async function updateAdminUser(userId, { name, role, permissions, passwor
     },
   };
   if (password) {
-    if (password.length < 6) return { error: "비밀번호는 6자 이상이어야 합니다." };
+    if (password.length < 10) return { error: "비밀번호는 10자 이상이어야 합니다." };
     payload.password = password;
   }
   const { error } = await admin.auth.admin.updateUserById(userId, payload);

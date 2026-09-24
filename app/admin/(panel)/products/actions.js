@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSection } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { processAndUpload } from "@/lib/admin/storage";
 import { getYouTubeId } from "@/lib/youtube";
@@ -13,7 +13,7 @@ function rv() {
 }
 
 export async function createProduct(formData) {
-  await requireAdmin();
+  await requireSection("products");
   const name = formData.get("name")?.toString().trim();
   const categoryId = formData.get("category_id")?.toString() || null;
   const description = formData.get("description")?.toString().trim() || null;
@@ -84,7 +84,7 @@ export async function createProduct(formData) {
 }
 
 export async function toggleProduct(id, isActive) {
-  await requireAdmin();
+  await requireSection("products");
   const admin = createAdminClient();
   const { error } = await admin.from("products").update({ is_active: isActive }).eq("id", id);
   if (error) return { error: error.message };
@@ -93,7 +93,7 @@ export async function toggleProduct(id, isActive) {
 }
 
 export async function deleteProduct(id) {
-  await requireAdmin();
+  await requireSection("products");
   const admin = createAdminClient();
   // product_images 는 FK on delete cascade 로 자동 삭제됨
   const { error } = await admin.from("products").delete().eq("id", id);
@@ -103,7 +103,7 @@ export async function deleteProduct(id) {
 }
 
 export async function swapProductOrder(a, b) {
-  await requireAdmin();
+  await requireSection("products");
   const admin = createAdminClient();
   await admin.from("products").update({ order_num: b.order_num }).eq("id", a.id);
   await admin.from("products").update({ order_num: a.order_num }).eq("id", b.id);

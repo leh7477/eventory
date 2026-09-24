@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSection } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const toInt = (v) => {
@@ -16,7 +16,7 @@ const missingTable = (msg) =>
 
 // ---- 배송료 단가 ----
 export async function saveShippingRate(row) {
-  await requireAdmin();
+  await requireSection("rates");
   const admin = createAdminClient();
   const region = String(row.region ?? "").trim();
   if (!region) return { error: "지역명을 입력하세요." };
@@ -45,7 +45,7 @@ export async function saveShippingRate(row) {
 }
 
 export async function deleteShippingRate(id) {
-  await requireAdmin();
+  await requireSection("rates");
   const admin = createAdminClient();
   const { error } = await admin.from("shipping_rates").delete().eq("id", id);
   if (error) return { error: error.message };
@@ -55,7 +55,7 @@ export async function deleteShippingRate(id) {
 
 // ---- 대여 단가 ----
 export async function saveRentalRate(row) {
-  await requireAdmin();
+  await requireSection("rates");
   const admin = createAdminClient();
   const product = String(row.product ?? "").trim();
   if (!product) return { error: "제품명을 입력하세요." };
@@ -83,7 +83,7 @@ export async function saveRentalRate(row) {
 }
 
 export async function deleteRentalRate(id) {
-  await requireAdmin();
+  await requireSection("rates");
   const admin = createAdminClient();
   const { error } = await admin.from("rental_rates").delete().eq("id", id);
   if (error) return { error: error.message };
@@ -93,7 +93,7 @@ export async function deleteRentalRate(id) {
 
 // ---- 제작 단가 (rental_rates.made_price, 카테고리별 1칸) ----
 export async function saveMadeRate(product, price) {
-  await requireAdmin();
+  await requireSection("rates");
   const admin = createAdminClient();
   const p = String(product ?? "").trim();
   if (!p) return { error: "제품명을 입력하세요." };

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSection } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { processAndUpload } from "@/lib/admin/storage";
 
@@ -12,7 +12,7 @@ function rv() {
 }
 
 export async function createCase(formData) {
-  await requireAdmin();
+  await requireSection("cases");
   const title = formData.get("title")?.toString().trim();
   const categoryId = formData.get("category_id")?.toString() || null;
   const specs = formData.get("specs")?.toString().trim() || null;
@@ -70,7 +70,7 @@ export async function createCase(formData) {
 }
 
 export async function deleteCase(id) {
-  await requireAdmin();
+  await requireSection("cases");
   const admin = createAdminClient();
   // case_images 는 FK on delete cascade 로 자동 삭제됨
   const { error } = await admin.from("cases").delete().eq("id", id);
@@ -81,7 +81,7 @@ export async function deleteCase(id) {
 
 // 홈 Stories 표시 방식 설정 (off | marquee | carousel)
 export async function updateStoriesMode(mode, speed) {
-  await requireAdmin();
+  await requireSection("cases");
   const admin = createAdminClient();
   const { error } = await admin.from("settings").upsert({
     id: 1,
@@ -104,7 +104,7 @@ export async function updateStoriesMode(mode, speed) {
 }
 
 export async function swapCaseOrder(a, b) {
-  await requireAdmin();
+  await requireSection("cases");
   const admin = createAdminClient();
   await admin.from("cases").update({ order_num: b.order_num }).eq("id", a.id);
   await admin.from("cases").update({ order_num: a.order_num }).eq("id", b.id);

@@ -294,7 +294,7 @@ export default function AccountsManager({ users, currentUserId }) {
               type="password"
               value={form.password}
               onChange={(e) => setF("password", e.target.value)}
-              placeholder="6자 이상"
+              placeholder="10자 이상"
               className={inputCls}
               autoComplete="new-password"
             />

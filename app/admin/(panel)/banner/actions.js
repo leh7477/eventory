@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSection } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { processAndUpload } from "@/lib/admin/storage";
 
@@ -11,7 +11,7 @@ function rv() {
 }
 
 export async function createBanner(formData) {
-  await requireAdmin();
+  await requireSection("banner");
   const file = formData.get("image");
   const title = formData.get("title")?.toString().trim() || null;
   const subtitle = formData.get("subtitle")?.toString().trim() || null;
@@ -42,7 +42,7 @@ export async function createBanner(formData) {
 }
 
 export async function toggleBanner(id, isActive) {
-  await requireAdmin();
+  await requireSection("banner");
   const admin = createAdminClient();
   const { error } = await admin.from("banners").update({ is_active: isActive }).eq("id", id);
   if (error) return { error: error.message };
@@ -51,7 +51,7 @@ export async function toggleBanner(id, isActive) {
 }
 
 export async function deleteBanner(id) {
-  await requireAdmin();
+  await requireSection("banner");
   const admin = createAdminClient();
   const { error } = await admin.from("banners").delete().eq("id", id);
   if (error) return { error: error.message };
@@ -60,7 +60,7 @@ export async function deleteBanner(id) {
 }
 
 export async function swapBannerOrder(a, b) {
-  await requireAdmin();
+  await requireSection("banner");
   const admin = createAdminClient();
   await admin.from("banners").update({ order_num: b.order_num }).eq("id", a.id);
   await admin.from("banners").update({ order_num: a.order_num }).eq("id", b.id);
@@ -70,7 +70,7 @@ export async function swapBannerOrder(a, b) {
 
 // 메인 히어로 표시 방식 (static: 사진 한 장 고정 | marquee: 사진이 옆으로 흐름)
 export async function updateHeroMode(mode) {
-  await requireAdmin();
+  await requireSection("banner");
   const admin = createAdminClient();
   const { error } = await admin.from("settings").upsert({ id: 1, hero_mode: mode });
   if (error) {
@@ -88,7 +88,7 @@ export async function updateHeroMode(mode) {
 
 // 타이포 히어로 문구 저장 (워드마크·서브문구·장비 줄)
 export async function updateHeroText({ wordmark, subtitle, sublist }) {
-  await requireAdmin();
+  await requireSection("banner");
   const admin = createAdminClient();
   const { error } = await admin.from("settings").upsert({
     id: 1,

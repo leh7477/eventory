@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSection } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logActor } from "@/lib/admin/sections";
 
@@ -11,7 +11,7 @@ function rv() {
 }
 
 export async function setInquiryRead(id, isRead) {
-  await requireAdmin();
+  await requireSection("inquiries");
   const admin = createAdminClient();
   const { error } = await admin.from("inquiries").update({ is_read: isRead }).eq("id", id);
   if (error) return { error: error.message };
@@ -21,7 +21,7 @@ export async function setInquiryRead(id, isRead) {
 
 // 회신 완료 처리 (담당자·시각 기록). 취소 시 비움.
 export async function setInquiryHandled(id, handled) {
-  const user = await requireAdmin();
+  const user = await requireSection("inquiries");
   const admin = createAdminClient();
   const who = logActor(user);
   const update = handled
@@ -48,7 +48,7 @@ const STATUS_LABEL = {
 };
 
 export async function updateInquiryStatus(id, status) {
-  const user = await requireAdmin();
+  const user = await requireSection("inquiries");
   if (!STATUS_LABEL[status]) return { error: "잘못된 상태입니다." };
   const admin = createAdminClient();
   const who = logActor(user);
@@ -71,7 +71,7 @@ export async function updateInquiryStatus(id, status) {
 
 // 견적서에서 견적 금액(공급가액) 기록 → 상세에 '최근 견적'으로 표시, 신규면 '견적발송'으로 승격
 export async function saveQuotedAmount(id, amount) {
-  const user = await requireAdmin();
+  const user = await requireSection("inquiries");
   const admin = createAdminClient();
   const digits = String(amount ?? "").replace(/\D/g, "");
   const val = digits === "" ? null : parseInt(digits, 10);
@@ -97,7 +97,7 @@ export async function saveQuotedAmount(id, amount) {
 
 // 계약 금액 입력 (매출 통계용)
 export async function setContractAmount(id, amount) {
-  const user = await requireAdmin();
+  const user = await requireSection("inquiries");
   const admin = createAdminClient();
   const digits = String(amount ?? "").replace(/\D/g, "");
   const val = digits === "" ? null : parseInt(digits, 10);
@@ -131,7 +131,7 @@ async function appendActivityLog(admin, id, by, action) {
 
 // 문의 내용 수정 (고객 오입력 정정용) — 어떤 항목을 수정했는지 로그 기록
 export async function updateInquiry(id, fields) {
-  const user = await requireAdmin();
+  const user = await requireSection("inquiries");
   const admin = createAdminClient();
 
   const { data: cur } = await admin
@@ -192,7 +192,7 @@ export async function updateInquiry(id, fields) {
 }
 
 export async function deleteInquiry(id) {
-  await requireAdmin();
+  await requireSection("inquiries");
   const admin = createAdminClient();
   const { error } = await admin.from("inquiries").delete().eq("id", id);
   if (error) return { error: error.message };

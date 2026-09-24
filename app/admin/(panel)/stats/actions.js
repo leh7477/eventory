@@ -1,13 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSection } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logActor } from "@/lib/admin/sections";
 
 // 정산 정보 저장 — 전달된 필드만 업데이트 + 처리 직원·시각 기록
 export async function updateSettlement(id, fields = {}) {
-  const user = await requireAdmin();
+  const user = await requireSection("stats");
   const admin = createAdminClient();
   const actor = logActor(user);
   const nowIso = new Date().toISOString();

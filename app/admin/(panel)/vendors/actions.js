@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSection } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 function rv() {
@@ -19,7 +19,7 @@ function friendly(error) {
 const clean = (v) => ((v ?? "").trim() ? v.trim() : null);
 
 export async function createVendor({ name, contact, phone, memo } = {}) {
-  await requireAdmin();
+  await requireSection("vendors");
   const nm = (name ?? "").trim();
   if (!nm) return { error: "거래처 이름을 입력하세요." };
   const admin = createAdminClient();
@@ -35,7 +35,7 @@ export async function createVendor({ name, contact, phone, memo } = {}) {
 }
 
 export async function updateVendor(id, { name, contact, phone, memo } = {}) {
-  await requireAdmin();
+  await requireSection("vendors");
   const nm = (name ?? "").trim();
   if (!nm) return { error: "거래처 이름을 입력하세요." };
   const admin = createAdminClient();
@@ -54,7 +54,7 @@ export async function updateVendor(id, { name, contact, phone, memo } = {}) {
 }
 
 export async function deleteVendor(id) {
-  await requireAdmin();
+  await requireSection("vendors");
   const admin = createAdminClient();
   const { error } = await admin.from("vendors").delete().eq("id", id);
   if (error) return friendly(error);

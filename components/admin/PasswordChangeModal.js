@@ -16,7 +16,7 @@ export default function PasswordChangeModal({ email, onClose }) {
     e.preventDefault();
     setError("");
 
-    if (next.length < 6) return setError("새 비밀번호는 6자 이상이어야 합니다.");
+    if (next.length < 6) return setError("새 비밀번호는 10자 이상이어야 합니다.");
     if (next !== confirm) return setError("새 비밀번호가 서로 다릅니다.");
     if (next === current) return setError("현재 비밀번호와 다른 값을 입력해주세요.");
 
@@ -86,7 +86,7 @@ export default function PasswordChangeModal({ email, onClose }) {
               </div>
               <div>
                 <label className="mb-1 block text-xs text-ink/50">
-                  새 비밀번호 (6자 이상)
+                  새 비밀번호 (10자 이상)
                 </label>
                 <input
                   type="password"

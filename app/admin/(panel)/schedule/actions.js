@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/admin/auth";
+import { requireSection, requireAnySection } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { availableFor } from "@/lib/inventory";
 import { logActor } from "@/lib/admin/sections";
@@ -22,7 +22,7 @@ export async function createSchedule({
   location,
   memo,
 }) {
-  await requireAdmin();
+  await requireSection("schedule");
   if (!title?.trim()) return { error: "일정 제목을 입력하세요." };
   if (!start_date) return { error: "납품 날짜를 선택하세요." };
   const admin = createAdminClient();
@@ -44,7 +44,7 @@ export async function createSchedule({
 
 // 행사 외(업무) 일정 추가 — 날짜 + 시간 + 업무 내용만
 export async function createTask({ date, start_time, end_time, title, memo }) {
-  await requireAdmin();
+  await requireSection("schedule");
   if (!title?.trim()) return { error: "업무 내용을 입력하세요." };
   if (!date) return { error: "날짜를 선택하세요." };
   const admin = createAdminClient();
@@ -69,7 +69,7 @@ export async function createTask({ date, start_time, end_time, title, memo }) {
 
 // 행사 외 일정 수정 (날짜/시간/내용)
 export async function updateTask(id, { date, start_time, end_time, title, memo }) {
-  await requireAdmin();
+  await requireSection("schedule");
   if (!title?.trim()) return { error: "업무 내용을 입력하세요." };
   if (!date) return { error: "날짜를 선택하세요." };
   const admin = createAdminClient();
@@ -94,7 +94,7 @@ export async function updateScheduleDatetime(
   id,
   { event_start, event_end, start_date, end_date, start_time, end_time }
 ) {
-  await requireAdmin();
+  await requireSection("schedule");
   if (!start_date) return { error: "납품 날짜를 선택하세요." };
   const admin = createAdminClient();
   const { error } = await admin
@@ -116,7 +116,7 @@ export async function updateScheduleDatetime(
 // 견적 문의 → 행사 픽스 시 일정 자동 등록
 // opts: 납품/회수 일시 { start_date, end_date, start_time, end_time } (날짜 미지정 시 행사 기간 사용)
 export async function createScheduleFromInquiry(inquiryId, opts = {}) {
-  const user = await requireAdmin();
+  const user = await requireAnySection("inquiries", "schedule");
   const admin = createAdminClient();
   const { data: q } = await admin
     .from("inquiries")
@@ -206,7 +206,7 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
 
 // 일정의 발주처 지정 (schedule.vendor에 저장)
 export async function setScheduleVendor(id, vendor) {
-  await requireAdmin();
+  await requireSection("schedule");
   const admin = createAdminClient();
   const { error } = await admin
     .from("schedules")
@@ -219,7 +219,7 @@ export async function setScheduleVendor(id, vendor) {
 
 // 행사 일정 진행 단계 설정 (0~4) — 단계별 체크 시각 기록
 export async function setScheduleStage(id, stage) {
-  const user = await requireAdmin();
+  const user = await requireSection("schedule");
   const n = parseInt(stage, 10);
   if (!Number.isFinite(n) || n < 0 || n > 4) return { error: "단계 값이 올바르지 않습니다." };
   const admin = createAdminClient();
@@ -286,7 +286,7 @@ export async function setScheduleStage(id, stage) {
 
 // 일정 현장 정보 저장 (장소/담당자/연락처/발주처/비고)
 export async function updateScheduleInfo(id, fields = {}) {
-  await requireAdmin();
+  await requireSection("schedule");
   const admin = createAdminClient();
   const clean = (v) => {
     const s = typeof v === "string" ? v.trim() : v;
@@ -314,7 +314,7 @@ export async function updateScheduleInfo(id, fields = {}) {
 
 // 배차 물품(준비물) 저장
 export async function setScheduleSupplies(id, supplies) {
-  await requireAdmin();
+  await requireSection("schedule");
   const admin = createAdminClient();
   const { error } = await admin
     .from("schedules")
@@ -327,7 +327,7 @@ export async function setScheduleSupplies(id, supplies) {
 
 // 배차 비고 저장
 export async function setScheduleRemark(id, remark) {
-  await requireAdmin();
+  await requireSection("schedule");
   const admin = createAdminClient();
   const { error } = await admin
     .from("schedules")
@@ -340,7 +340,7 @@ export async function setScheduleRemark(id, remark) {
 
 // 배차 순번 재정렬 — stops: [{ id, type: 'install'|'pickup' }] 순서대로
 export async function reorderStops(stops = []) {
-  await requireAdmin();
+  await requireSection("schedule");
   const admin = createAdminClient();
   for (let i = 0; i < stops.length; i++) {
     const col = stops[i].type === "install" ? "install_seq" : "pickup_seq";
@@ -360,7 +360,7 @@ export async function reorderStops(stops = []) {
 }
 
 export async function deleteSchedule(id) {
-  await requireAdmin();
+  await requireSection("schedule");
   const admin = createAdminClient();
   const { error } = await admin.from("schedules").delete().eq("id", id);
   if (error) return { error: error.message };
@@ -371,7 +371,7 @@ export async function deleteSchedule(id) {
 // 일정 취소 — 기록은 남기고 상태만 '취소'로, 기기 배정은 해제(재고 반환)
 // cancelInquiry=true 면 연결된 견적 문의도 '취소' 처리(매출·정산에서 제외)
 export async function cancelSchedule(id, cancelInquiry = false) {
-  await requireAdmin();
+  await requireSection("schedule");
   const admin = createAdminClient();
   const { data: sch } = await admin
     .from("schedules")
@@ -404,7 +404,7 @@ export async function cancelSchedule(id, cancelInquiry = false) {
 
 // 취소 되돌리기 (취소 → 복구)
 export async function restoreSchedule(id) {
-  await requireAdmin();
+  await requireSection("schedule");
   const admin = createAdminClient();
   const { error } = await admin
     .from("schedules")
@@ -426,7 +426,7 @@ function equipFriendly(error) {
 
 // 특정 일정에 특정 종류를 quantity 대 배정 (0이면 배정 해제)
 export async function setScheduleItem(scheduleId, category, quantity) {
-  await requireAdmin();
+  await requireSection("schedule");
   const cat = (category ?? "").trim();
   const qty = parseInt(quantity, 10);
   if (!scheduleId) return { error: "일정이 없습니다." };
