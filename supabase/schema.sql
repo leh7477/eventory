@@ -338,3 +338,9 @@ alter table schedules add column if not exists stage_by jsonb default '{}'::json
 
 -- 일정 취소(소프트) 상태
 alter table schedules add column if not exists cancelled boolean default false;
+
+-- ===== 개인정보 수집·이용 동의 기록 (개인정보보호법 제15조 입증용) =====
+-- 견적 문의 폼에서 동의한 시각과 동의문 버전을 함께 저장합니다.
+-- (컬럼이 없어도 폼은 동작하지만, 동의 기록이 남지 않으므로 반드시 실행하세요)
+alter table inquiries add column if not exists privacy_agreed_at timestamptz;
+alter table inquiries add column if not exists privacy_version text;

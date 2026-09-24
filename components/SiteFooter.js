@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SITE } from "@/lib/constants";
 import LogoAnimated from "@/components/LogoAnimated";
 
@@ -22,9 +23,20 @@ export default function SiteFooter() {
             </a>
           </p>
         </div>
-        <p className="mt-2 text-center text-[11px] text-ink/35 sm:text-left">
-          © {new Date().getFullYear()} {SITE.name}. All rights reserved.
-        </p>
+        {/* 개인정보처리방침은 법상 공개 의무 — 항상 클릭 가능해야 하므로
+            우하단 떠있는 문의 버튼과 겹치지 않도록 왼쪽에 배치 */}
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 sm:justify-start">
+          <Link
+            href="/privacy"
+            className="text-[11px] font-bold text-ink/60 underline underline-offset-2 hover:text-ink"
+          >
+            개인정보처리방침
+          </Link>
+          <span className="text-[11px] text-ink/20">·</span>
+          <p className="text-[11px] text-ink/35">
+            © {new Date().getFullYear()} {SITE.name}. All rights reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );

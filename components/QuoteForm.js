@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import DatePicker from "@/components/DatePicker";
+import { CONSENT_NOTICE, PRIVACY_VERSION } from "@/lib/privacy";
 
 const initial = {
   company_name: "",
@@ -20,6 +21,7 @@ const initial = {
   address_detail: "",
   location_tbd: false, // 장소 미정
   message: "",
+  privacy_agree: false, // 개인정보 수집·이용 동의
 };
 
 function Label({ children, required }) {
@@ -115,10 +117,15 @@ export default function QuoteForm() {
       setErrorMsg("장소를 입력하거나 '장소 미정'을 선택해주세요.");
       return;
     }
+    // 개인정보 수집·이용 동의 (법정 고지 후 동의)
+    if (!form.privacy_agree) {
+      setErrorMsg("개인정보 수집·이용에 동의해주세요.");
+      return;
+    }
 
     setStatus("sending");
     const supabase = createClient();
-    const { error } = await supabase.from("inquiries").insert({
+    const payload = {
       company_name: form.company_name,
       contact_name: form.contact_name,
       phone: `${form.phone1}-${form.phone2}-${form.phone3}`,
@@ -130,7 +137,17 @@ export default function QuoteForm() {
       address: form.location_tbd ? "미정" : form.address,
       address_detail: form.location_tbd ? "" : form.address_detail,
       message: form.message,
+    };
+
+    // 동의 기록을 함께 저장 (입증용). 아직 컬럼이 없으면 본문만 저장하고 진행.
+    let { error } = await supabase.from("inquiries").insert({
+      ...payload,
+      privacy_agreed_at: new Date().toISOString(),
+      privacy_version: PRIVACY_VERSION,
     });
+    if (error && /privacy_agreed_at|privacy_version|column/i.test(error.message)) {
+      ({ error } = await supabase.from("inquiries").insert(payload));
+    }
 
     if (error) {
       console.error("inquiry insert:", error.message);
@@ -333,6 +350,55 @@ export default function QuoteForm() {
             onChange={set("message")}
           />
         </div>
+      </div>
+
+      {/* 개인정보 수집·이용 동의 — 개인정보보호법 제15조 제2항 고지 4항목 */}
+      <div className="mt-10 rounded-xl border border-ink/15 bg-ink/[0.02] p-5">
+        <p className="text-sm font-bold text-ink">개인정보 수집·이용 동의</p>
+
+        <dl className="mt-3 space-y-2 text-xs leading-relaxed text-ink/65">
+          <div className="flex gap-2">
+            <dt className="w-[72px] shrink-0 font-bold text-ink/80">수집 목적</dt>
+            <dd className="min-w-0">{CONSENT_NOTICE.purpose}</dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="w-[72px] shrink-0 font-bold text-ink/80">수집 항목</dt>
+            <dd className="min-w-0">
+              {CONSENT_NOTICE.items}
+              <span className="text-ink/45"> (선택: {CONSENT_NOTICE.optional})</span>
+            </dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="w-[72px] shrink-0 font-bold text-ink/80">보유 기간</dt>
+            <dd className="min-w-0">{CONSENT_NOTICE.period}</dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="w-[72px] shrink-0 font-bold text-ink/80">거부 권리</dt>
+            <dd className="min-w-0">{CONSENT_NOTICE.refusal}</dd>
+          </div>
+        </dl>
+
+        <label className="mt-4 flex cursor-pointer items-start gap-2.5 border-t border-ink/10 pt-4">
+          <input
+            type="checkbox"
+            checked={form.privacy_agree}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, privacy_agree: e.target.checked }))
+            }
+            className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
+          />
+          <span className="text-sm font-medium text-ink">
+            위 내용을 확인하였으며 개인정보 수집·이용에 동의합니다.
+            <span className="ml-1 text-primary">•</span>
+            <Link
+              href="/privacy"
+              target="_blank"
+              className="ml-2 text-xs font-normal text-ink/50 underline underline-offset-2 hover:text-primary"
+            >
+              개인정보처리방침 전문
+            </Link>
+          </span>
+        </label>
       </div>
 
       {errorMsg && (
