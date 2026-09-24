@@ -10,7 +10,8 @@
     "check": "node scripts/check-launch.mjs",
     "check:schema": "node scripts/check-schema.mjs",
     "backup": "node scripts/backup-db.mjs",
-    "seed:dev": "node scripts/seed-dev.mjs"
+    "seed:dev": "node scripts/seed-dev.mjs",
+    "smoke": "node scripts/smoke/index.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
@@ -21,6 +22,7 @@
     "sharp": "^0.35.2"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "autoprefixer": "^10.5.2",
     "eslint": "^8",
     "eslint-config-next": "14.2.35",
