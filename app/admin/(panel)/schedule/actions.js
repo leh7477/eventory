@@ -204,6 +204,25 @@ export async function createScheduleFromInquiry(inquiryId, opts = {}) {
 
 // (거래처 등록은 거래처 관리 화면에서만 — 일정 화면에서는 발주처 선택만 가능)
 
+// 발주처 이름으로 vendor_id 를 함께 채운다.
+//
+// 지금은 schedules.vendor 에 '이름(글자)'이 저장돼 거래처 표와 끊어져 있다.
+// (실제로 거래처 목록에 없는 이름이 남아 고아 데이터가 생겼다)
+// 이름과 id 를 같이 저장해두고, 화면 정리가 끝나면 이름 컬럼을 제거한다.
+// vendor_id 컬럼이 아직 없으면 아무 일도 하지 않는다 — 기존 동작에 영향 없음.
+async function syncVendorId(admin, scheduleId, vendorName) {
+  try {
+    const name = (vendorName ?? '').trim();
+    let vendorId = null;
+    if (name) {
+      const { data } = await admin.from('vendors').select('id').eq('name', name).maybeSingle();
+      vendorId = data?.id ?? null;
+    }
+    await admin.from('schedules').update({ vendor_id: vendorId }).eq('id', scheduleId);
+  } catch {
+    // vendor_id 컬럼 미적용 상태 — 무시하고 진행
+  }
+}
 // 일정의 발주처 지정 (schedule.vendor에 저장)
 export async function setScheduleVendor(id, vendor) {
   await requireSection("schedule");
@@ -213,6 +232,7 @@ export async function setScheduleVendor(id, vendor) {
     .update({ vendor: (vendor ?? "").trim() || null })
     .eq("id", id);
   if (error) return { error: error.message };
+  await syncVendorId(admin, id, vendor);
   rv();
   return { ok: true };
 }
@@ -308,6 +328,7 @@ export async function updateScheduleInfo(id, fields = {}) {
     }
     return { error: error.message };
   }
+  await syncVendorId(admin, id, fields.vendor);
   rv();
   return { ok: true };
 }
