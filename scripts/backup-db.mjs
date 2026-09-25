@@ -34,12 +34,25 @@ function env(key) {
   return m[1].trim().replace(/^["']|["']$/g, "");
 }
 
-// schema.sql 에서 테이블 이름을 읽어온다 (새 테이블이 생겨도 자동 반영)
+// schema.sql + migrations/*.sql 에서 테이블 이름을 읽어온다.
+// check-schema.mjs 와 같은 곳을 본다 — schema.sql 만 보면 마이그레이션으로
+// 새로 생긴 표(settlements, audit_log)가 백업에서 통째로 빠진다.
 function tableNames() {
-  const sql = fs.readFileSync(path.join(ROOT, "supabase", "schema.sql"), "utf8");
-  const found = [...sql.matchAll(/create table if not exists\s+(\w+)/gi)].map(
-    (m) => m[1]
-  );
+  const files = [path.join(ROOT, "supabase", "schema.sql")];
+  const migDir = path.join(ROOT, "supabase", "migrations");
+  if (fs.existsSync(migDir)) {
+    for (const f of fs.readdirSync(migDir).filter((f) => f.endsWith(".sql")).sort()) {
+      files.push(path.join(migDir, f));
+    }
+  }
+
+  const found = [];
+  for (const file of files) {
+    const sql = fs.readFileSync(file, "utf8");
+    found.push(
+      ...[...sql.matchAll(/create table if not exists\s+(\w+)/gi)].map((m) => m[1])
+    );
+  }
   return [...new Set(found)].sort();
 }
 
