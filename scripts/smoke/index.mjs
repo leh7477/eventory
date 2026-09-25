@@ -24,6 +24,7 @@ import vendors, { seed as seedVendors } from "./modules/vendors.mjs";
 import settlements, { seed as seedSettlements } from "./modules/settlements.mjs";
 import audit from "./modules/audit.mjs";
 import rls from "./modules/rls.mjs";
+import settlementLogic from "./modules/settlement-logic.mjs";
 
 const MODULES = [
   { name: "privacy", run: privacy },
@@ -32,6 +33,7 @@ const MODULES = [
   { name: "settlements", run: settlements, seed: seedSettlements },
   { name: "audit", run: audit },
   { name: "rls", run: rls },
+  { name: "settlement-logic", run: settlementLogic },
 ];
 
 async function main() {
