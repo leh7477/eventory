@@ -117,10 +117,15 @@
 
 ## 4. 배포 절차
 
-### 현재
+### 방법
 ```bash
-git pull --ff-only origin main && npm run build && pm2 restart eventory
+npm run deploy
 ```
+
+`git pull` 만 하면 서버의 `package-lock.json` 이 npm 때문에 바뀌어 있어
+`--ff-only` 가 막히고, **빌드했다고 착각한 채 옛 코드가 그대로 도는** 일이 있었다.
+`npm run deploy` 는 서버 로컬 변경을 버리고, 받은 버전이 실제로 맞는지 확인하고,
+재시작 후 응답할 때까지 기다린 뒤 주요 페이지와 somtip.kr 까지 확인한다.
 
 ### 기준
 ```

@@ -11,7 +11,8 @@
     "check:schema": "node scripts/check-schema.mjs",
     "backup": "node scripts/backup-db.mjs",
     "seed:dev": "node scripts/seed-dev.mjs",
-    "smoke": "node scripts/smoke/index.mjs"
+    "smoke": "node scripts/smoke/index.mjs",
+    "deploy": "bash scripts/deploy.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
