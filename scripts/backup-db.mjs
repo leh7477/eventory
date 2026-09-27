@@ -31,7 +31,7 @@ function env(key) {
   const text = fs.readFileSync(file, "utf8");
   const m = text.match(new RegExp(`^${key}=(.*)$`, "m"));
   if (!m) throw new Error(`${key} 를 .env.local 에서 찾을 수 없습니다`);
-  return m[1].trim().replace(/^["']|["']$/g, "");
+  return m[1].trim().replace(/^["']|["']$/g, "").replace(/$/, "");
 }
 
 // schema.sql + migrations/*.sql 에서 테이블 이름을 읽어온다.

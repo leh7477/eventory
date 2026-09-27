@@ -37,7 +37,7 @@ function env(key) {
     const eq = line.indexOf("=");
     if (eq < 0) continue;
     if (line.slice(0, eq).trim() === key) {
-      return line.slice(eq + 1).trim().replace(/^["']|["']$/g, "");
+      return line.slice(eq + 1).trim().replace(/^["']|["']$/g, "").replace(/$/, "");
     }
   }
   return null;

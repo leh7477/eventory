@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendMail, buildInquiryMail } from "@/lib/mail";
+import { sendTelegram, buildInquiryTelegram } from "@/lib/telegram";
 import { PRIVACY_VERSION } from "@/lib/privacy";
 import { validateInquiry, cleanInquiry } from "@/lib/inquiry";
 
@@ -71,10 +72,14 @@ export async function submitInquiry(form = {}) {
     return { error: "전송에 실패했습니다. 잠시 후 다시 시도해주세요." };
   }
 
-  // 알림 메일 — 실패해도 접수는 성공으로 처리한다 (손님 잘못이 아니다)
-  const mail = buildInquiryMail(payload);
-  const sent = await sendMail(mail);
-  if (!sent.ok) console.error("문의 알림 메일 미발송:", sent.reason);
+  // 알림 — 실패해도 접수는 성공으로 처리한다 (손님 잘못이 아니다).
+  // 메일과 텔레그램을 동시에 보내고, 한쪽이 막혀도 다른 쪽은 간다.
+  const [mailRes, tgRes] = await Promise.all([
+    sendMail(buildInquiryMail(payload)),
+    sendTelegram(buildInquiryTelegram(payload)),
+  ]);
+  if (!mailRes.ok) console.error("문의 알림 메일 미발송:", mailRes.reason);
+  if (!tgRes.ok) console.error("문의 알림 텔레그램 미발송:", tgRes.reason);
 
   return { ok: true };
 }

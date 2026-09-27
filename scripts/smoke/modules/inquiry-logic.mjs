@@ -68,5 +68,20 @@ export default async function run() {
   const xss = M.buildInquiryMail({ ...cl, company_name: "<script>x</script>" });
   c.ok("HTML 특수문자 escape", !xss.html.includes("<script>") && xss.html.includes("&lt;script&gt;"));
 
+
+  // 텔레그램 알림 본문
+  const T = load("lib/telegram.js", ["buildInquiryTelegram"]);
+  const tg = T.buildInquiryTelegram(cl);
+  c.ok("업체명 포함", tg.includes("여백기획"));
+  c.ok("연락처 포함", tg.includes("010-1111-2222"));
+  c.ok("행사 기간 포함", tg.includes("2026-11-01"));
+  c.ok("제목 줄에 새 견적 문의", tg.split(String.fromCharCode(10))[0].includes("새 견적 문의"));
+  const tgSame = T.buildInquiryTelegram({ ...cl, event_start: "2026-11-01", event_end: "2026-11-01" });
+  c.ok("같은 날이면 한 번만", !tgSame.includes("~"));
+  const tgXss = T.buildInquiryTelegram({ ...cl, company_name: "<b>x</b>" });
+  c.ok("HTML 특수문자 escape", !tgXss.includes("<b>x</b>") && tgXss.includes("&lt;b&gt;"));
+  const tgNoMsg = T.buildInquiryTelegram({ ...cl, message: null });
+  c.ok("문의 내용 없으면 그 줄 생략", !tgNoMsg.includes("💬"));
+
   return c;
 }
