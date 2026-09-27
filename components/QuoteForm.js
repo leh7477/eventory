@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { submitInquiry } from "@/app/contact/actions";
 import DatePicker from "@/components/DatePicker";
-import { CONSENT_NOTICE, PRIVACY_VERSION } from "@/lib/privacy";
+import { CONSENT_NOTICE } from "@/lib/privacy";
 
 const initial = {
   company_name: "",
@@ -124,8 +124,10 @@ export default function QuoteForm() {
     }
 
     setStatus("sending");
-    const supabase = createClient();
-    const payload = {
+
+    // 서버 액션으로 보낸다. 서버가 저장하고 접수 알림 메일까지 처리한다.
+    // (브라우저에서 DB 에 직접 넣던 방식은 제한이 없어 스팸에 취약했다)
+    const res = await submitInquiry({
       company_name: form.company_name,
       contact_name: form.contact_name,
       phone: `${form.phone1}-${form.phone2}-${form.phone3}`,
@@ -137,22 +139,12 @@ export default function QuoteForm() {
       address: form.location_tbd ? "미정" : form.address,
       address_detail: form.location_tbd ? "" : form.address_detail,
       message: form.message,
-    };
-
-    // 동의 기록을 함께 저장 (입증용). 아직 컬럼이 없으면 본문만 저장하고 진행.
-    let { error } = await supabase.from("inquiries").insert({
-      ...payload,
-      privacy_agreed_at: new Date().toISOString(),
-      privacy_version: PRIVACY_VERSION,
+      privacy_agree: form.privacy_agree,
     });
-    if (error && /privacy_agreed_at|privacy_version|column/i.test(error.message)) {
-      ({ error } = await supabase.from("inquiries").insert(payload));
-    }
 
-    if (error) {
-      console.error("inquiry insert:", error.message);
+    if (res?.error) {
       setStatus("error");
-      setErrorMsg("전송에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      setErrorMsg(res.error);
       return;
     }
     setStatus("done");

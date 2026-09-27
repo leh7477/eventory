@@ -27,6 +27,7 @@ import rls from "./modules/rls.mjs";
 import settlementLogic from "./modules/settlement-logic.mjs";
 import stage6, { seed as seedStage6 } from "./modules/stage6.mjs";
 import stageLogic from "./modules/stage-logic.mjs";
+import inquiryLogic from "./modules/inquiry-logic.mjs";
 
 const MODULES = [
   { name: "privacy", run: privacy },
@@ -38,6 +39,7 @@ const MODULES = [
   { name: "settlement-logic", run: settlementLogic },
   { name: "stage6", run: stage6, seed: seedStage6 },
   { name: "stage-logic", run: stageLogic },
+  { name: "inquiry-logic", run: inquiryLogic },
 ];
 
 async function main() {
