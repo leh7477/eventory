@@ -16,7 +16,7 @@ export default async function run() {
   const S = load();
 
   c.eq("단계 6개", S.STAGES.length, 6);
-  c.eq("순서", S.STAGES.map((s) => s.label), ["AI파일", "발주", "수령", "랩핑", "출고", "회수"]);
+  c.eq("순서", S.STAGES.map((s) => s.label), ["AI파일", "출력물 발주", "출력물 수령", "랩핑", "출고", "회수"]);
 
   // 납품일 2026-10-20 기준 기한 역산
   const ev = { start_date: "2026-10-20", end_date: "2026-10-22", stage: 0, memo: "용도: 임대" };
@@ -53,7 +53,7 @@ export default async function run() {
   c.eq("가장 급한 단계는 AI파일", w?.stage?.label, "AI파일");
 
   const w2 = S.worstStage({ ...ev, stage: 2 }, today);
-  c.eq("AI파일·발주 끝냈으면 다음은 수령", w2?.stage?.label, "수령");
+  c.eq("AI파일·발주 끝냈으면 다음은 수령", w2?.stage?.label, "출력물 수령");
   c.eq("그 상태는 soon", w2?.state, "soon");
 
   const w3 = S.worstStage({ ...ev, stage: 6 }, today);

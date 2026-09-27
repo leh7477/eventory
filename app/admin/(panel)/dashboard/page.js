@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { todayKST, kstPlusDays } from "@/lib/date";
-import { worstStage } from "@/lib/admin/stages";
+import { worstStage, dueDateOf } from "@/lib/admin/stages";
 
 export const revalidate = 0;
 
@@ -391,9 +391,16 @@ export default async function DashboardPage({ searchParams }) {
                     {w.state === "overdue" ? "⚠ " : ""}
                     {w.stage.full} {w.state === "overdue" ? "지남" : "임박"}
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{ev.title}</span>
+                  {/* 제목 바로 옆에 납품일과 기한을 붙인다 — 오른쪽 끝으로 밀면 눈에 안 들어온다 */}
+                  <span className="min-w-0 max-w-full truncate text-sm font-semibold text-ink">{ev.title}</span>
                   <span className="text-xs text-ink/50">
-                    납품 {ev.start_date} <b className="font-semibold text-ink/70">D-{dday}</b>
+                    납품 <b className="font-semibold text-ink/70">{ev.start_date}</b>
+                    <span className="ml-1 text-ink/40">(D-{dday})</span>
+                    <span className="px-1 text-ink/25">·</span>
+                    {w.stage.full} 기한{" "}
+                    <b className={`font-semibold ${w.state === "overdue" ? "text-red-600" : "text-amber-600"}`}>
+                      {dueDateOf(ev, w.stage.step)}
+                    </b>
                   </span>
                 </li>
               );

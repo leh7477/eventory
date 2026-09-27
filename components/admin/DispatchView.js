@@ -313,8 +313,8 @@ export default function DispatchView({
                               {(isInstall
                                 ? [
                                     { name: "AI파일", step: 1 },
-                                    { name: "발주", step: 2 },
-                                    { name: "수령", step: 3 },
+                                    { name: "출력물 발주", step: 2 },
+                                    { name: "출력물 수령", step: 3 },
                                     { name: "랩핑", step: 4 },
                                     { name: "출고", step: 5 },
                                   ]
