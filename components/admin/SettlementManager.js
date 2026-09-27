@@ -255,20 +255,28 @@ export default function SettlementManager({ deals }) {
         </button>
         {/* 이 범위 합계 — 공급가와 VAT 포함 청구액을 함께 보여준다.
             미수 = 청구(VAT) - 실입금 이라, 청구액이 보여야 숫자가 맞아떨어진다. */}
-        <span className="ml-auto text-xs text-ink/50">
-          공급가 <b className="text-ink">₩{won(sum.contract)}</b>
-          <span className="text-ink/40"> ({sum.nContract}건)</span> · 청구(VAT){" "}
-          <b className="text-ink">₩{won(sum.vat)}</b> · 실입금{" "}
-          <b className="text-green-700">₩{won(sum.paid)}</b>
-          <span className="text-ink/40">
-            {" "}({sum.nPaid}건 · 완납 {sum.nFull} · 부분 {sum.nPartial})
-          </span>{" "}
-          · 미수{" "}
-          <b className={sum.unpaid > 0 ? "text-red-600" : "text-ink/50"}>₩{won(sum.unpaid)}</b>
-          <span className="text-ink/40">
-            {" "}({sum.nUnpaid}건 · 입금 전 {sum.nNone} · 부분 {sum.nPartial})
-          </span>
-        </span>
+        <div className="ml-auto text-xs leading-relaxed text-ink/50 sm:text-right">
+          {/* 1줄: 청구 기준 금액 */}
+          <p>
+            공급가 <b className="text-ink">₩{won(sum.contract)}</b>
+            <span className="text-ink/40"> ({sum.nContract}건)</span>
+            <span className="px-1 text-ink/25">·</span>
+            청구(VAT) <b className="text-ink">₩{won(sum.vat)}</b>
+          </p>
+          {/* 2줄: 받은 돈 / 남은 돈 */}
+          <p>
+            실입금 <b className="text-green-700">₩{won(sum.paid)}</b>
+            <span className="text-ink/40">
+              {" "}({sum.nPaid}건 · 완납 {sum.nFull} · 부분 {sum.nPartial})
+            </span>
+            <span className="px-1 text-ink/25">·</span>
+            미수{" "}
+            <b className={sum.unpaid > 0 ? "text-red-600" : "text-ink/50"}>₩{won(sum.unpaid)}</b>
+            <span className="text-ink/40">
+              {" "}({sum.nUnpaid}건 · 입금 전 {sum.nNone} · 부분 {sum.nPartial})
+            </span>
+          </p>
+        </div>
       </div>
 
       {/* 검색 */}
