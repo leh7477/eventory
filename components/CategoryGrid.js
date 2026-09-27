@@ -3,7 +3,7 @@ import CategoryIcon from "@/components/CategoryIcon";
 
 // 왼쪽 소개 텍스트 + 오른쪽 2×3 카드 그리드 (아이엠브랜드 'Our Creator' 느낌).
 // 사진(대표 사례)이 있으면 사진을, 없으면 브랜드 컬러 + 아이콘으로 채운다.
-const TAGS = ["팝업스토어", "지역축제", "기업행사", "박람회"];
+const TAGS = ["팝업스토어", "지역축제", "기업행사", "박람회", "행사장", "전시장", "전시회"];
 
 export default function CategoryGrid({ items = [] }) {
   if (items.length === 0) return null;

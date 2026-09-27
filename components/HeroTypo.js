@@ -9,7 +9,7 @@ import { SITE } from "@/lib/constants";
 const DEFAULT_WORDMARK = "EVENT LAND";
 const DEFAULT_SUBTITLE = "Every Event Has a Story";
 const DEFAULT_SUBLIST =
-  "가챠머신 · 에어볼추첨기 · 스톱워치 · 룰렛 · 사격게임 · 핀볼게임";
+  "가챠머신 · 에어볼추첨기 · 스톱워치 · 룰렛 · 사격게임";
 
 export default function HeroTypo({ wordmark, subtitle, sublist } = {}) {
   const wm = (wordmark || DEFAULT_WORDMARK).trim();

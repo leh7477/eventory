@@ -7,7 +7,7 @@ import { updateHeroText } from "@/app/admin/(panel)/banner/actions";
 const DEFAULTS = {
   wordmark: "EVENT LAND",
   subtitle: "Every Event Has a Story",
-  sublist: "가챠머신 · 에어볼추첨기 · 스톱워치 · 룰렛 · 사격게임 · 핀볼게임",
+  sublist: "가챠머신 · 에어볼추첨기 · 스톱워치 · 룰렛 · 사격게임",
 };
 
 // 타이포 히어로 문구 편집 (워드마크·서브문구·장비 줄)
