@@ -29,6 +29,8 @@ if [ \"\$got\" != \"$want\" ]; then
   exit 1
 fi
 
+# 새 라이브러리가 추가됐을 수 있으므로 설치부터 (빠뜨려서 빌드가 깨진 적이 있다)
+npm install --no-audit --no-fund
 npm run build
 pm2 restart eventory >/dev/null 2>&1
 
