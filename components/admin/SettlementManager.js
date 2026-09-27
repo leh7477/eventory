@@ -253,10 +253,12 @@ export default function SettlementManager({ deals }) {
         >
           CSV 내보내기
         </button>
-        {/* 이 범위 합계 */}
+        {/* 이 범위 합계 — 공급가와 VAT 포함 청구액을 함께 보여준다.
+            미수 = 청구(VAT) - 실입금 이라, 청구액이 보여야 숫자가 맞아떨어진다. */}
         <span className="ml-auto text-xs text-ink/50">
-          계약 <b className="text-ink">₩{won(sum.contract)}</b>
-          <span className="text-ink/40"> ({sum.nContract}건)</span> · 실입금{" "}
+          공급가 <b className="text-ink">₩{won(sum.contract)}</b>
+          <span className="text-ink/40"> ({sum.nContract}건)</span> · 청구(VAT){" "}
+          <b className="text-ink">₩{won(sum.vat)}</b> · 실입금{" "}
           <b className="text-green-700">₩{won(sum.paid)}</b>
           <span className="text-ink/40">
             {" "}({sum.nPaid}건 · 완납 {sum.nFull} · 부분 {sum.nPartial})

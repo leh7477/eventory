@@ -117,9 +117,13 @@ export default async function AdminStatsPage({ searchParams }) {
       {/* 선택 연도 계약/실입금/미수 */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-2xl border border-ink/10 bg-white p-4">
-          <p className="text-xs text-ink/50">{selectedYear}년 계약</p>
+          <p className="text-xs text-ink/50">{selectedYear}년 계약 (공급가)</p>
           <p className="mt-1 text-lg font-extrabold text-ink">₩ {won(yContract)}</p>
           <p className="mt-0.5 text-xs text-ink/45">{yContractN}건</p>
+          {/* 미수금은 VAT 포함 청구액 기준이라, 청구액을 함께 보여야 숫자가 맞는다 */}
+          <p className="mt-1 border-t border-ink/10 pt-1 text-xs text-ink/45">
+            청구(VAT포함) <b className="font-semibold text-ink/70">₩ {won(yVat)}</b>
+          </p>
         </div>
         <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
           <p className="text-xs text-green-700/70">{selectedYear}년 실입금</p>
