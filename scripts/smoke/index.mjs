@@ -25,6 +25,8 @@ import settlements, { seed as seedSettlements } from "./modules/settlements.mjs"
 import audit from "./modules/audit.mjs";
 import rls from "./modules/rls.mjs";
 import settlementLogic from "./modules/settlement-logic.mjs";
+import stage6, { seed as seedStage6 } from "./modules/stage6.mjs";
+import stageLogic from "./modules/stage-logic.mjs";
 
 const MODULES = [
   { name: "privacy", run: privacy },
@@ -34,6 +36,8 @@ const MODULES = [
   { name: "audit", run: audit },
   { name: "rls", run: rls },
   { name: "settlement-logic", run: settlementLogic },
+  { name: "stage6", run: stage6, seed: seedStage6 },
+  { name: "stage-logic", run: stageLogic },
 ];
 
 async function main() {

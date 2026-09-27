@@ -22,7 +22,8 @@ export default async function AdminVendorsPage() {
   // 발주 월 = 출력물 발주 체크시각(stage_dates["1"]) 기준, 없으면 납품일 기준
   const ordersByVendor = {};
   for (const s of scheds ?? []) {
-    if (!s.vendor || (s.stage || 0) < 1) continue;
+    // 출력물 발주는 2단계 (1단계는 AI파일 받기)
+    if (!s.vendor || (s.stage || 0) < 2) continue;
     const iso =
       s.stage_dates && typeof s.stage_dates === "object" ? s.stage_dates["1"] : null;
     const dateStr = iso ? kstDate(new Date(iso)) : s.start_date || "";

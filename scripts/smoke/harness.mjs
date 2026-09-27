@@ -58,7 +58,7 @@ export async function applyMigrations(db) {
 /** 통합본(APPLY-ALL)이 개별 파일과 같은 결과를 내는지 확인할 때 쓴다 */
 export async function applyCombined(db) {
   const dir = path.join(ROOT, "supabase", "migrations");
-  const f = fs.readdirSync(dir).find((x) => x.startsWith("APPLY-ALL"));
+  const f = fs.readdirSync(dir).find((x) => x === "APPLY-ALL.sql");
   if (!f) throw new Error("APPLY-ALL 파일을 찾을 수 없습니다");
   await db.exec(fs.readFileSync(path.join(dir, f), "utf8"));
   return f;

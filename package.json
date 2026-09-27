@@ -14,7 +14,8 @@
     "smoke": "node scripts/smoke/index.mjs",
     "deploy": "bash scripts/deploy.sh",
     "db:apply": "node scripts/db-apply.mjs",
-    "db:project": "node scripts/supabase-project.mjs"
+    "db:project": "node scripts/supabase-project.mjs",
+    "build:sql": "node scripts/build-apply-all.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

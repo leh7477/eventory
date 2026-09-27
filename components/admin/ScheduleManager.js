@@ -15,7 +15,7 @@ import {
 } from "@/app/admin/(panel)/schedule/actions";
 
 // 행사 일정 진행 단계
-const STAGES = ["출력물 발주", "랩핑", "출고", "회수"];
+
 import TimeSelect from "@/components/admin/TimeSelect";
 import DatePicker from "@/components/DatePicker";
 import ScheduleEquipment from "@/components/admin/ScheduleEquipment";
@@ -805,39 +805,46 @@ export default function ScheduleManager({
                     </div>
                    </div>
 
-                   {/* 진행 단계: 디자인 발주 → 랩핑 → 출고 → 회수 */}
+                   {/* 진행 단계 — AI파일 → 발주 → 수령 → 랩핑 → 출고 → 회수
+                       기한은 납품일에서 역산하며, 지나면 빨강 / 임박하면 주황 */}
                    <div className="mt-3 flex items-center gap-1 overflow-x-auto pb-0.5">
-                     {STAGES.map((s, i) => {
-                       const step = i + 1;
+                     {stagesFor(ev).map((st, i, arr) => {
+                       const step = st.step;
                        const cur = (ev.stage || 0) === step;
                        const done = (ev.stage || 0) >= step;
+                       const state = stageState(ev, step, today);
+                       const due = dueDateOf(ev, step);
+                       const locked = step > (ev.stage || 0) + 1;
+                       // 완료=초록, 기한 지남=빨강, 임박=주황, 그 외=회색
+                       const tone =
+                         state === "done"
+                           ? "bg-emerald-600 text-white"
+                           : state === "overdue"
+                           ? "bg-red-600 text-white"
+                           : state === "soon"
+                           ? "bg-amber-500 text-white"
+                           : "bg-ink/5 text-ink/45 hover:bg-ink/10";
                        return (
-                         <div key={s} className="flex items-center">
+                         <div key={st.step} className="flex items-center">
                            <button
                              type="button"
-                             disabled={pending || step > (ev.stage || 0) + 1}
-                             onClick={() =>
-                               run(() => setScheduleStage(ev.id, cur ? i : step))
-                             }
+                             disabled={pending || locked}
+                             onClick={() => run(() => setScheduleStage(ev.id, cur ? step - 1 : step))}
                              title={
-                               step > (ev.stage || 0) + 1
+                               locked
                                  ? "이전 단계를 먼저 진행하세요"
                                  : done
-                                 ? `${s} 완료 (클릭해 되돌리기)`
-                                 : `${s}(으)로 진행`
+                                 ? `${st.full} 완료 (클릭해 되돌리기)`
+                                 : `${st.full} — 기한 ${due ?? "-"}${state === "overdue" ? " (지남)" : state === "soon" ? " (임박)" : ""}`
                              }
-                             className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold transition ${
-                               done
-                                 ? "bg-emerald-600 text-white"
-                                 : "bg-ink/5 text-ink/45 hover:bg-ink/10"
-                             } ${cur ? "ring-2 ring-emerald-300" : ""} ${
-                               step > (ev.stage || 0) + 1 ? "cursor-not-allowed opacity-40" : ""
-                             }`}
+                             className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold transition ${tone} ${
+                               cur ? "ring-2 ring-emerald-300" : ""
+                             } ${locked ? "cursor-not-allowed opacity-40" : ""}`}
                            >
-                             {done ? "✓ " : ""}
-                             {s}
+                             {done ? "✓ " : state === "overdue" ? "⚠ " : ""}
+                             {st.label}
                            </button>
-                           {i < STAGES.length - 1 && (
+                           {i < arr.length - 1 && (
                              <span
                                className={`h-0.5 w-3 shrink-0 ${
                                  (ev.stage || 0) > step ? "bg-emerald-500" : "bg-ink/15"
@@ -847,22 +854,21 @@ export default function ScheduleManager({
                          </div>
                        );
                      })}
-                     {(ev.stage || 0) >= 4 && (
+                     {isComplete(ev) && (
                        <span className="ml-1.5 shrink-0 rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
                          완료
                        </span>
                      )}
                    </div>
-
                    {/* 단계별 체크 시각 */}
                    {(ev.stage || 0) >= 1 && ev.stage_dates && (
                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-ink/45">
-                       {STAGES.slice(0, ev.stage || 0).map((s, i) => {
-                         const ts = ev.stage_dates?.[String(i + 1)];
-                         const by = ev.stage_by?.[String(i + 1)];
+                       {stagesFor(ev).filter((st) => st.step <= (ev.stage || 0)).map((st) => {
+                         const ts = ev.stage_dates?.[String(st.step)];
+                         const by = ev.stage_by?.[String(st.step)];
                          return (
-                           <span key={s}>
-                             <b className="font-semibold text-ink/55">{s}</b>{" "}
+                           <span key={st.step}>
+                             <b className="font-semibold text-ink/55">{st.label}</b>{" "}
                              {ts ? fmtStamp(ts) : "-"}
                              {by ? ` · ${by}` : ""}
                            </span>
@@ -872,7 +878,7 @@ export default function ScheduleManager({
                    )}
 
                    {/* 출력물 발주 단계 → 발주처(거래처) 선택 */}
-                   {(ev.stage || 0) >= 1 && (
+                   {(ev.stage || 0) >= 2 && (
                      <div className="mt-2 flex flex-wrap items-center gap-2">
                        <span className="text-xs font-bold text-ink/50">발주처</span>
                        <select

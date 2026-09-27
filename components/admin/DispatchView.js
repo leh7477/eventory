@@ -312,11 +312,13 @@ export default function DispatchView({
                             <div className="mt-1.5 flex flex-wrap items-center gap-1">
                               {(isInstall
                                 ? [
-                                    { name: "출력물 발주", step: 1 },
-                                    { name: "랩핑", step: 2 },
-                                    { name: "출고", step: 3 },
+                                    { name: "AI파일", step: 1 },
+                                    { name: "발주", step: 2 },
+                                    { name: "수령", step: 3 },
+                                    { name: "랩핑", step: 4 },
+                                    { name: "출고", step: 5 },
                                   ]
-                                : [{ name: "회수", step: 4 }]
+                                : [{ name: "회수", step: 6 }]
                               ).map((c) => {
                                 const done = (ev.stage || 0) >= c.step;
                                 return (

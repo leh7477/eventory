@@ -23,8 +23,11 @@ export default async function run(db) {
     `insert into schedules (title, start_date, end_date) values ('당일행사','2026-05-10','2026-05-10')`);
 
   // 진행 단계 범위
-  await c.rejects("단계 5 거부(0~4만 허용)", db,
-    `insert into schedules (title, start_date, stage) values ('단계초과','2026-05-10', 5)`);
+  // 단계는 20260927-stage-6 이후 0~6 (AI파일·수령이 추가됨)
+  await c.accepts("단계 5(출고) 허용", db,
+    `insert into schedules (title, start_date, stage) values ('단계5허용','2026-05-10', 5)`);
+  await c.rejects("단계 7 거부(0~6만 허용)", db,
+    `insert into schedules (title, start_date, stage) values ('단계초과','2026-05-10', 7)`);
   await c.rejects("단계 음수 거부", db,
     `insert into schedules (title, start_date, stage) values ('단계음수','2026-05-10', -1)`);
 

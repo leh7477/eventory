@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { todayKST, kstPlusDays } from "@/lib/date";
+import { worstStage } from "@/lib/admin/stages";
 
 export const revalidate = 0;
 
@@ -33,17 +34,15 @@ function toOccurrences(schedules) {
   return occ;
 }
 
-// 납품 준비 경고 — 진행 단계(stage: 1=출력물 발주, 2=랩핑, 3=출고 완료)
-//  오늘·내일 모두 랩핑 전(stage<2)이면 경고 → 다음 할 단계(출력물 발주 전 / 랩핑 전)
-//  랩핑까지 끝나 출고만 남은 경우(stage=2)는 경고 없음 (출고는 납품 당일에 하는 일이라)
-//  회수·업무는 경고 없음.
-function prepWarning(o) {
+// 납품 준비 경고 — lib/admin/stages.js 의 기한 규칙을 쓴다.
+//   기한이 지났는데 안 한 단계가 있으면 그 단계를 알려준다.
+//   (지난 행사는 stages.js 에서 이미 제외된다)
+function prepWarning(o, today) {
   if (o.type !== "납품") return null;
-  const st = Number(o.ev.stage) || 0;
-  if (st < 2) return st < 1 ? "출력물 발주 전" : "랩핑 전";
-  return null;
+  const w = worstStage(o.ev, today);
+  if (!w) return null;
+  return { label: `${w.stage.full} ${w.state === "overdue" ? "지남" : "임박"}`, state: w.state };
 }
-
 function OccurrenceItem({ o, showDate, warn }) {
   const badge =
     o.type === "납품"
@@ -67,8 +66,8 @@ function OccurrenceItem({ o, showDate, warn }) {
         {o.time && <span className={`mr-1.5 font-bold ${timeColor}`}>{o.time}</span>}
         {o.ev.title}
         {warn && (
-          <span className="ml-1.5 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700 align-middle">
-            ⚠ {warn}
+          <span className={`ml-1.5 rounded px-1.5 py-0.5 text-[10px] font-bold align-middle ${warn.state === "overdue" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
+            ⚠ {warn.label}
           </span>
         )}
       </p>
@@ -82,9 +81,9 @@ function OccurrenceItem({ o, showDate, warn }) {
   );
 }
 
-function ScheduleGroup({ title, occurrences, emptyText, showDate = false, dayKind }) {
+function ScheduleGroup({ title, occurrences, emptyText, showDate = false, dayKind, today }) {
   // dayKind가 있는 목록(오늘·내일)에서만 경고 표시
-  const warnOf = (o) => (dayKind ? prepWarning(o) : null);
+  const warnOf = (o) => (dayKind ? prepWarning(o, today) : null);
   const warnCount = occurrences.filter((o) => warnOf(o)).length;
   const deliver = occurrences.filter((o) => o.type === "납품").length;
   const pickup = occurrences.filter((o) => o.type === "회수").length;
@@ -155,7 +154,7 @@ export default async function DashboardPage({ searchParams }) {
   // 이번 달이면 "이번 달", 다른 달이면 "2026년 8월" 식으로 표기
   const monthLabel = isCurrentMonth ? "이번 달" : `${ySel}년 ${mSel}월`;
 
-  const [inqRes, schRes, schedInqRes, monthSchRes] = await Promise.all([
+  const [inqRes, schRes, schedInqRes, monthSchRes, upcomingRes] = await Promise.all([
     admin
       .from("inquiries")
       .select("id, status, is_read, created_at, event_start, event_end"),
@@ -172,6 +171,13 @@ export default async function DashboardPage({ searchParams }) {
       .or(
         `and(start_date.gte.${monthStart},start_date.lte.${monthEnd}),and(end_date.gte.${monthStart},end_date.lte.${monthEnd}),and(event_start.gte.${monthStart},event_start.lte.${monthEnd})`
       ),
+    // 준비가 늦은 다가오는 행사를 찾기 위해 오늘 이후 30일치를 본다
+    admin
+      .from("schedules")
+      .select("*")
+      .gte("start_date", todayS)
+      .lte("start_date", kstPlusDays(30))
+      .order("start_date", { ascending: true }),
   ]);
 
   const schedules = schRes.data ?? [];
@@ -192,6 +198,19 @@ export default async function DashboardPage({ searchParams }) {
   );
   const todayOcc = allOcc.filter((o) => o.date === todayS);
   const tomorrowOcc = allOcc.filter((o) => o.date === tomorrowS);
+
+  // 준비가 늦은 다가오는 행사 — 기한이 지났거나 임박한 단계가 있는 건
+  // (지난 행사는 stages.js 가 제외한다)
+  const latePrep = (upcomingRes.data ?? [])
+    .filter((ev) => !ev.cancelled && ev.kind !== "task")
+    .map((ev) => ({ ev, w: worstStage(ev, todayS) }))
+    .filter((x) => x.w)
+    .sort((a, b) => {
+      // 기한 지난 것 먼저, 그 다음 납품일 빠른 순
+      if (a.w.state !== b.w.state) return a.w.state === "overdue" ? -1 : 1;
+      return (a.ev.start_date || "") < (b.ev.start_date || "") ? -1 : 1;
+    });
+  const lateOverdue = latePrep.filter((x) => x.w.state === "overdue").length;
 
   // 문의 KPI
   const inquiries = inqRes.data ?? [];
@@ -342,6 +361,50 @@ export default async function DashboardPage({ searchParams }) {
         </Link>
       </div>
 
+      {/* 준비 늦음 — 다가오는 행사 중 기한이 지났거나 임박한 단계가 있는 건.
+          "7일 전인데 아직 AI파일이 안 왔다" 같은 상황을 여기서 잡는다. */}
+      {latePrep.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-ink">
+              준비 확인
+              <span className={`ml-2 rounded px-2 py-0.5 text-xs font-bold ${lateOverdue > 0 ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
+                {lateOverdue > 0 ? `기한 지남 ${lateOverdue}` : `임박 ${latePrep.length}`}
+              </span>
+            </h2>
+            <Link href="/admin/schedule" className="text-sm text-ink/50 hover:text-primary">
+              일정에서 처리 →
+            </Link>
+          </div>
+          <ul className="mt-3 divide-y divide-ink/5 rounded-2xl border border-ink/10 bg-white">
+            {latePrep.slice(0, 8).map(({ ev, w }) => {
+              const dday = Math.round(
+                (new Date(`${ev.start_date}T00:00:00+09:00`) - new Date(`${todayS}T00:00:00+09:00`)) / 86400000
+              );
+              return (
+                <li key={ev.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 px-5 py-3">
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                      w.state === "overdue" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {w.state === "overdue" ? "⚠ " : ""}
+                    {w.stage.full} {w.state === "overdue" ? "지남" : "임박"}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{ev.title}</span>
+                  <span className="text-xs text-ink/50">
+                    납품 {ev.start_date} <b className="font-semibold text-ink/70">D-{dday}</b>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          {latePrep.length > 8 && (
+            <p className="mt-1.5 text-xs text-ink/40">외 {latePrep.length - 8}건</p>
+          )}
+        </div>
+      )}
+
       {/* 일정 요약 */}
       <div className="mt-8 flex items-center justify-between">
         <h2 className="text-lg font-bold text-ink">일정</h2>
@@ -353,12 +416,14 @@ export default async function DashboardPage({ searchParams }) {
         <ScheduleGroup
           title="오늘 일정"
           dayKind="today"
+          today={todayS}
           occurrences={todayOcc}
           emptyText="오늘 일정이 없습니다."
         />
         <ScheduleGroup
           title="내일 일정"
           dayKind="tomorrow"
+          today={todayS}
           occurrences={tomorrowOcc}
           emptyText="내일 일정이 없습니다."
         />
