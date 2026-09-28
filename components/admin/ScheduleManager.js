@@ -59,6 +59,8 @@ export default function ScheduleManager({
   scheduleItems = [],
   vendors = [],
   initialMonth = null, // "YYYY-MM" — 대시보드 카드 등에서 특정 달로 열 때
+  initialTarget = null, // 대시보드에서 납품·회수를 눌러 넘어온 경우 { evId, date, type }
+  initialFocusId = null, // 대시보드에서 업무를 눌러 넘어온 경우 (일정 탭에서 강조)
 }) {
   const router = useRouter();
   const now = new Date();
@@ -70,7 +72,8 @@ export default function ScheduleManager({
   const itemsBySchedule = (id) => scheduleItems.filter((it) => it.schedule_id === id);
   const [equipEditId, setEquipEditId] = useState(null);
   const [infoEditId, setInfoEditId] = useState(null);
-  const [mode, setMode] = useState("list"); // 'list' | 'dispatch'
+  // 대시보드에서 납품·회수를 눌러 오면 바로 상세 탭으로 연다
+  const [mode, setMode] = useState(initialTarget ? "dispatch" : "list"); // 'list' | 'dispatch'
   const [cancelTarget, setCancelTarget] = useState(null); // 취소 확인 대상 일정
 
   const doCancel = (alsoInquiry) => {
@@ -113,7 +116,7 @@ export default function ScheduleManager({
   const [showAdd, setShowAdd] = useState(false); // 직접 추가 폼 접힘(기본)
 
   // 달력/요약에서 클릭 시 하단 목록의 해당 건으로 스크롤·강조
-  const [highlightId, setHighlightId] = useState(null);
+  const [highlightId, setHighlightId] = useState(initialFocusId);
   const focusEvent = (ev) => {
     const d = new Date(ev.start_date);
     setView({ y: d.getFullYear(), m: d.getMonth() }); // 그 달로 이동
@@ -126,7 +129,9 @@ export default function ScheduleManager({
   };
   // 일정 카드의 납품/회수 날짜를 눌렀을 때: 상세 탭으로 전환 후 그 날짜의 해당 줄로 이동
   //  type: "install"(납품) | "pickup"(회수). nonce로 같은 곳을 다시 눌러도 이동이 다시 실행되게 함
-  const [dispatchTarget, setDispatchTarget] = useState(null);
+  const [dispatchTarget, setDispatchTarget] = useState(
+    initialTarget ? { ...initialTarget, nonce: 0 } : null
+  );
   const openInDispatch = (ev, type) => {
     const date = type === "install" ? ev.start_date : ev.end_date || ev.start_date;
     if (!date) return;
@@ -136,10 +141,27 @@ export default function ScheduleManager({
   useEffect(() => {
     // 상세 탭에 있을 땐 일정 카드가 화면에 없으므로, 일정 탭이 그려진 뒤에 실행
     if (!highlightId || mode !== "list") return;
-    const el = document.getElementById(`sch-${highlightId}`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    // 주소로 바로 들어오면(대시보드에서 업무를 누른 경우) 항목이 아직 없거나,
+    // 옮겨놔도 화면 복원이 맨 위로 되돌린다. 제자리에 올 때까지 다시 맞춘다.
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries += 1;
+      const el = document.getElementById(`sch-${highlightId}`);
+      if (el) {
+        const top = el.getBoundingClientRect().top;
+        if (top > 0 && top < window.innerHeight * 0.9) {
+          clearInterval(timer);
+          return;
+        }
+        el.scrollIntoView({ behavior: "auto", block: "center" });
+      }
+      if (tries >= 20) clearInterval(timer); // 약 2초까지만
+    }, 100);
     const t = setTimeout(() => setHighlightId(null), 2500);
-    return () => clearTimeout(t);
+    return () => {
+      clearInterval(timer);
+      clearTimeout(t);
+    };
   }, [highlightId, mode, view]);
 
   // 일정별 행사 기간 + 납품/회수 일시 인라인 편집

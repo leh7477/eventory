@@ -99,15 +99,38 @@ export default function DispatchView({
   };
   useEffect(() => {
     if (!scrollTo) return;
-    // 일정 탭에서 넘어온 경우엔 그 줄로, '오늘' 버튼은 오늘 날짜 블록 맨 위로
-    const row = flashKey ? document.getElementById(`disp-row-${flashKey}`) : null;
-    if (row) row.scrollIntoView({ behavior: "smooth", block: "center" });
-    else {
-      const el = document.getElementById(`disp-${scrollTo}`);
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-    const t = setTimeout(() => setScrollTo(null), 100);
-    return () => clearTimeout(t);
+    // 일정 탭에서 넘어온 경우엔 그 줄로, '오늘' 버튼은 오늘 날짜 블록 맨 위로.
+    //
+    // 주소로 바로 들어오면(대시보드에서 누른 경우) 두 가지가 방해한다.
+    //   1) 줄이 아직 그려지기 전이라 대상을 못 찾는다
+    //   2) 찾아서 옮겨놔도 화면 복원이 맨 위로 되돌린다
+    // 그래서 잠깐 동안 여러 번 확인하며, 제자리에 올 때까지 다시 맞춘다.
+    const block = flashKey ? "center" : "start";
+    const find = () =>
+      (flashKey ? document.getElementById(`disp-row-${flashKey}`) : null) ??
+      document.getElementById(`disp-${scrollTo}`);
+
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries += 1;
+      const el = find();
+      if (el) {
+        const top = el.getBoundingClientRect().top;
+        const 제자리 = top > 0 && top < window.innerHeight * 0.9;
+        if (제자리) {
+          clearInterval(timer);
+          setScrollTo(null);
+          return;
+        }
+        el.scrollIntoView({ behavior: "auto", block });
+      }
+      // 약 2초(20회)까지만 시도하고 포기한다
+      if (tries >= 20) {
+        clearInterval(timer);
+        setScrollTo(null);
+      }
+    }, 100);
+    return () => clearInterval(timer);
   }, [scrollTo, days]);
 
   // 일정 탭에서 이미 상세를 열어둔 채 다른 날짜를 눌러 target이 바뀐 경우도 처리

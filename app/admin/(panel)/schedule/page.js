@@ -9,6 +9,18 @@ export default async function AdminSchedulePage({ searchParams }) {
   const monthParam = String(searchParams?.month || "");
   const initialMonth = /^\d{4}-(0[1-9]|1[0-2])$/.test(monthParam) ? monthParam : null;
 
+  // 대시보드의 오늘·내일 일정에서 눌러 넘어온 경우
+  //   goto=<일정id>&date=YYYY-MM-DD&type=install|pickup  → 상세 탭의 그 줄로
+  //   focus=<일정id>                                      → 일정 탭에서 그 항목 강조
+  const gotoId = String(searchParams?.goto || "").trim() || null;
+  const gotoDate = String(searchParams?.date || "").trim();
+  const gotoType = searchParams?.type === "pickup" ? "pickup" : "install";
+  const initialTarget =
+    gotoId && /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(gotoDate)
+      ? { evId: gotoId, date: gotoDate, type: gotoType }
+      : null;
+  const focusId = String(searchParams?.focus || "").trim() || null;
+
   const [{ data: schedules }, { data: equipment }, { data: items }, { data: vendors }] =
     await Promise.all([
       admin.from("schedules").select("*").order("start_date", { ascending: true }),
@@ -42,6 +54,8 @@ export default async function AdminSchedulePage({ searchParams }) {
           scheduleItems={items ?? []}
           vendors={(vendors ?? []).map((v) => v.name)}
           initialMonth={initialMonth}
+          initialTarget={initialTarget}
+          initialFocusId={focusId}
         />
       </div>
     </div>

@@ -57,30 +57,44 @@ function OccurrenceItem({ o, showDate, warn }) {
       ? "text-amber-700"
       : "text-slate-600";
   const sub = o.ev.location || o.ev.memo || "";
+
+  // 눌렀을 때 갈 곳
+  //   납품·회수 → 일정 관리 상세 탭의 그 줄 (배차 화면에 줄이 있다)
+  //   업무      → 상세에는 줄이 없으므로 일정 탭에서 그 항목을 강조
+  const href =
+    o.type === "업무"
+      ? `/admin/schedule?month=${o.date.slice(0, 7)}&focus=${o.ev.id}`
+      : `/admin/schedule?goto=${o.ev.id}&date=${o.date}&type=${o.type === "회수" ? "pickup" : "install"}`;
+
   return (
-    <li className="px-5 py-3">
-      <p className="text-sm font-semibold text-ink">
-        <span className={`mr-1.5 rounded px-1.5 py-0.5 text-[10px] font-bold align-middle ${badge}`}>
-          {o.type}
-        </span>
-        {o.time && <span className={`mr-1.5 font-bold ${timeColor}`}>{o.time}</span>}
-        {o.ev.title}
-        {warn && (
-          <span className={`ml-1.5 rounded px-1.5 py-0.5 text-[10px] font-bold align-middle ${warn.state === "overdue" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
-            ⚠ {warn.label}
+    <li>
+      <Link
+        href={href}
+        className="block px-5 py-3 transition hover:bg-ink/[0.03]"
+        title="일정 관리에서 보기"
+      >
+        <p className="text-sm font-semibold text-ink">
+          <span className={`mr-1.5 rounded px-1.5 py-0.5 text-[10px] font-bold align-middle ${badge}`}>
+            {o.type}
           </span>
-        )}
-      </p>
-      {(showDate || sub) && (
-        <p className="mt-0.5 text-xs text-ink/50">
-          {showDate ? `${o.date}${sub ? " · " : ""}` : ""}
-          {sub}
+          {o.time && <span className={`mr-1.5 font-bold ${timeColor}`}>{o.time}</span>}
+          {o.ev.title}
+          {warn && (
+            <span className={`ml-1.5 rounded px-1.5 py-0.5 text-[10px] font-bold align-middle ${warn.state === "overdue" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
+              ⚠ {warn.label}
+            </span>
+          )}
         </p>
-      )}
+        {(showDate || sub) && (
+          <p className="mt-0.5 text-xs text-ink/50">
+            {showDate ? `${o.date}${sub ? " · " : ""}` : ""}
+            {sub}
+          </p>
+        )}
+      </Link>
     </li>
   );
 }
-
 function ScheduleGroup({ title, occurrences, emptyText, showDate = false, dayKind, today }) {
   // dayKind가 있는 목록(오늘·내일)에서만 경고 표시
   const warnOf = (o) => (dayKind ? prepWarning(o, today) : null);
@@ -382,7 +396,13 @@ export default async function DashboardPage({ searchParams }) {
                 (new Date(`${ev.start_date}T00:00:00+09:00`) - new Date(`${todayS}T00:00:00+09:00`)) / 86400000
               );
               return (
-                <li key={ev.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 px-5 py-3">
+                <li key={ev.id}>
+                  {/* 눌러서 그 일정으로 바로 가기 — 준비가 늦었으면 처리하러 가야 하므로 */}
+                  <Link
+                    href={`/admin/schedule?goto=${ev.id}&date=${ev.start_date}&type=install`}
+                    className="flex flex-wrap items-center gap-x-2 gap-y-1 px-5 py-3 transition hover:bg-ink/[0.03]"
+                    title="일정 관리에서 처리하기"
+                  >
                   <span
                     className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
                       w.state === "overdue" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
@@ -402,6 +422,7 @@ export default async function DashboardPage({ searchParams }) {
                       {dueDateOf(ev, w.stage.step)}
                     </b>
                   </span>
+                  </Link>
                 </li>
               );
             })}
