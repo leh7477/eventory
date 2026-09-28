@@ -34,13 +34,12 @@ const thisMonth = () => {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`;
 };
 
-export default function SettlementCalculator({ deals = [], nameA = "이은호", nameB = "권순복" }) {
+export default function SettlementCalculator({ deals = [], people = 2 }) {
   const [month, setMonth] = useState(thisMonth());
   const [exVat, setExVat] = useState(true); // 부가세분을 빼고 나눌지
   const [expense, setExpense] = useState("");
   const [reservePct, setReservePct] = useState("20");
   const [fee, setFee] = useState(""); // 홈페이지 관리비
-  const [feeTo, setFeeTo] = useState("A"); // 관리비를 받는 쪽
   const [manual, setManual] = useState(""); // 실입금 직접 입력 (비우면 자동)
 
   // 그 달에 들어온 입금 (입금일 기준)
@@ -62,10 +61,10 @@ export default function SettlementCalculator({ deals = [], nameA = "이은호", 
   const pct = Math.min(100, Math.max(0, toNum(reservePct)));
   const 유보 = Math.round((순수익 * pct) / 100);
   const 분배대상 = 순수익 - 유보;
-  const 절반 = Math.round(분배대상 / 2);
+  const 인당 = Math.round(분배대상 / people);
   const 관리비 = toNum(fee);
-  const aFinal = feeTo === "A" ? 절반 + 관리비 : 절반 - 관리비;
-  const bFinal = feeTo === "A" ? 절반 - 관리비 : 절반 + 관리비;
+  // 청구할 때는 부가세를 얹어 받으므로 포함 금액도 같이 보여준다
+  const withVat = (n) => Math.round(n * 1.1);
 
   const inputCls =
     "w-40 rounded-md border border-ink/15 px-2.5 py-1.5 text-right text-sm outline-none focus:border-primary";
@@ -212,43 +211,34 @@ export default function SettlementCalculator({ deals = [], nameA = "이은호", 
         </div>
       </div>
 
-      {/* 반반 */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        {[
-          { name: nameA, v: aFinal, key: "A" },
-          { name: nameB, v: bFinal, key: "B" },
-        ].map((p) => (
-          <div key={p.key} className="rounded-2xl border border-ink/10 bg-white p-4">
-            <p className="text-xs text-ink/50">{p.name}</p>
-            <p
-              className={`mt-1 text-xl font-extrabold tabular-nums ${
-                p.v < 0 ? "text-red-600" : "text-ink"
-              }`}
-            >
-              ₩ {won(p.v)}
-            </p>
-            <p className="mt-0.5 text-xs text-ink/40">
-              반반 {won(절반)}
-              {관리비 > 0 &&
-                (feeTo === p.key ? ` + 관리비 ${won(관리비)}` : ` − 관리비 ${won(관리비)}`)}
-            </p>
-          </div>
-        ))}
+      {/* 인당 */}
+      <div className="rounded-2xl border-2 border-ink/15 bg-white p-5">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-sm font-bold text-ink">
+            인당
+            <span className="ml-1.5 text-xs font-normal text-ink/40">{people}명으로 나눔</span>
+          </span>
+          <span className="shrink-0 text-2xl font-extrabold tabular-nums text-ink">
+            ₩ {won(인당)}
+          </span>
+        </div>
+        <div className="mt-2 flex items-baseline justify-between gap-3 border-t border-ink/10 pt-2">
+          <span className="text-sm text-ink/55">
+            부가세 포함
+            <span className="ml-1.5 text-xs text-ink/35">청구 시 10% 추가</span>
+          </span>
+          <span className="shrink-0 text-lg font-extrabold tabular-nums text-primary">
+            ₩ {won(withVat(인당))}
+          </span>
+        </div>
       </div>
 
-      {/* 관리비 */}
+      {/* 홈페이지 관리비 — 분배와 별개로 청구하는 금액 */}
       <div className="rounded-2xl border border-ink/10 bg-white p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="flex items-center gap-2 text-sm text-ink/60">
+          <span className="text-sm text-ink/60">
             홈페이지 관리비
-            <select
-              value={feeTo}
-              onChange={(e) => setFeeTo(e.target.value)}
-              className="rounded-md border border-ink/15 px-2 py-1 text-xs outline-none focus:border-primary"
-            >
-              <option value="A">{nameA}가 받음</option>
-              <option value="B">{nameB}가 받음</option>
-            </select>
+            <span className="ml-1.5 text-xs text-ink/35">분배와 별개로 청구</span>
           </span>
           <input
             value={fee === "" ? "" : Number(onlyNum(fee)).toLocaleString("ko-KR")}
@@ -257,8 +247,18 @@ export default function SettlementCalculator({ deals = [], nameA = "이은호", 
             className={inputCls}
           />
         </div>
+        {관리비 > 0 && (
+          <div className="mt-2 flex items-baseline justify-between gap-3 border-t border-ink/10 pt-2">
+            <span className="text-sm text-ink/55">
+              부가세 포함
+              <span className="ml-1.5 text-xs text-ink/35">청구 시 10% 추가</span>
+            </span>
+            <span className="shrink-0 text-sm font-bold tabular-nums text-primary">
+              ₩ {won(withVat(관리비))}
+            </span>
+          </div>
+        )}
       </div>
-
       {/* 근거가 되는 입금 내역 */}
       {monthPaid.rows.length > 0 && manual.trim() === "" && (
         <details className="rounded-2xl border border-ink/10 bg-white p-4">
