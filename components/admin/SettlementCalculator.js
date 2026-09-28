@@ -60,6 +60,17 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
     };
   }, [deals, month]);
 
+  // 그 달에 발행한 계산서 (발행일 기준) — 참고용, 분배 계산에는 쓰지 않는다
+  const monthInvoiced = useMemo(() => {
+    const rows = deals.filter(
+      (d) => (d.invoice_date || "").slice(0, 7) === month && Number(d.contract_amount) > 0
+    );
+    return {
+      rows,
+      total: rows.reduce((s, d) => s + Number(d.contract_amount || 0), 0),
+    };
+  }, [deals, month]);
+
   const 실입금 = manual.trim() === "" ? monthPaid.total : toNum(manual);
   const 공급가 = Math.round(실입금 / 1.1); // 부가세는 매출이 아니다
   const 지출 = toNum(expense);
@@ -226,6 +237,52 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
             ₩ {won(withVat(인당))}
           </span>
         </div>
+      </div>
+
+      {/* 참고 — 그 달 계산서 발행분. 위 분배 계산과는 무관하다. */}
+      <div className="rounded-2xl border border-dashed border-ink/20 bg-ink/[0.02] p-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <span className="text-sm font-bold text-ink/70">
+            계산서 발행
+            <span className="ml-1.5 text-xs font-normal text-ink/40">
+              참고 · 위 계산에는 들어가지 않음
+            </span>
+          </span>
+          <span className="shrink-0 text-xs text-ink/45">
+            발행일 기준 · {monthInvoiced.rows.length}건
+          </span>
+        </div>
+
+        <div className="mt-2 divide-y divide-ink/5">
+          <Row label="공급가" value={monthInvoiced.total} />
+          <Row label="청구액" sub="부가세 포함" value={withVat(monthInvoiced.total)} bold />
+        </div>
+
+        {monthInvoiced.rows.length > 0 && (
+          <details className="mt-1">
+            <summary className="cursor-pointer py-1 text-xs font-bold text-ink/50">
+              발행 내역 보기
+            </summary>
+            <ul className="mt-2 divide-y divide-ink/5 text-sm">
+              {monthInvoiced.rows.map((d, i) => (
+                <li key={i} className="flex items-baseline justify-between gap-3 py-1.5">
+                  <span className="min-w-0 truncate text-ink/70">
+                    {d.company_name || d.contact_name || "(업체명 없음)"}
+                    <span className="ml-1.5 text-xs text-ink/35">{d.invoice_date}</span>
+                  </span>
+                  <span className="shrink-0 tabular-nums text-ink">
+                    ₩ {won(d.contract_amount)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
+
+        <p className="mt-2 text-xs leading-relaxed text-ink/40">
+          부가세 신고는 <b>발행일</b> 기준이고, 위 분배 계산은 <b>입금일</b> 기준입니다.
+          발행한 달과 돈이 들어온 달이 다르면 두 금액이 서로 다를 수 있습니다.
+        </p>
       </div>
 
       {/* 근거가 되는 입금 내역 */}
