@@ -397,11 +397,12 @@ export default async function DashboardPage({ searchParams }) {
               );
               return (
                 <li key={ev.id}>
-                  {/* 눌러서 그 일정으로 바로 가기 — 준비가 늦었으면 처리하러 가야 하므로 */}
+                  {/* 일정 탭으로 보낸다 — 단계를 실제로 체크하는 버튼이 거기 있다.
+                      상세 탭의 단계 칩은 보기 전용이라 여기서 갈 곳이 아니다. */}
                   <Link
-                    href={`/admin/schedule?goto=${ev.id}&date=${ev.start_date}&type=install`}
+                    href={`/admin/schedule?month=${ev.start_date.slice(0, 7)}&focus=${ev.id}`}
                     className="flex flex-wrap items-center gap-x-2 gap-y-1 px-5 py-3 transition hover:bg-ink/[0.03]"
-                    title="일정 관리에서 처리하기"
+                    title="일정 관리에서 단계 체크하기"
                   >
                   <span
                     className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
