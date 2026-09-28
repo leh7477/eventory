@@ -172,7 +172,7 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
         <div className="mt-2 divide-y divide-ink/5">
           <Row
             label="공급가"
-            sub="실입금 ÷ 1.1 · 부가세는 매출이 아님"
+            sub="실입금 ÷ 1.1"
             value={공급가}
             bold
           />
@@ -208,7 +208,7 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
                 className="w-12 rounded-md border border-ink/15 px-1.5 py-1 text-center text-sm outline-none focus:border-primary"
               />
               %
-              <span className="text-xs text-ink/35">소득세 10 + 여유 10</span>
+              <span className="text-xs text-ink/35">소득세 10% + 여유 자금 10%</span>
             </span>
             <span className="shrink-0 text-sm tabular-nums text-ink/60">− ₩ {won(유보)}</span>
           </div>
