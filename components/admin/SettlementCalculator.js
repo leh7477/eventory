@@ -278,11 +278,6 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
             </ul>
           </details>
         )}
-
-        <p className="mt-2 text-xs leading-relaxed text-ink/40">
-          부가세 신고는 <b>발행일</b> 기준이고, 위 분배 계산은 <b>입금일</b> 기준입니다.
-          발행한 달과 돈이 들어온 달이 다르면 두 금액이 서로 다를 수 있습니다.
-        </p>
       </div>
 
       {/* 근거가 되는 입금 내역 */}
