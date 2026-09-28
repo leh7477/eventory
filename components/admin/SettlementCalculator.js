@@ -3,20 +3,29 @@
 import { useMemo, useState } from "react";
 
 /**
- * 정산 계산기 — 한 달 실입금을 둘이 어떻게 나눌지 계산한다.
+ * 정산 계산기 — 이벤트랜드 한 달 순수익을 둘이 어떻게 나눌지 계산한다.
+ *
+ * 사업 구조
+ *   이벤트랜드 = 친구 명의 사업자. 매출·지출이 모두 여기서 일어난다.
+ *   이벤토리   = 이은호 사업자. 이벤트랜드에 홈페이지 관리비로 세금계산서를 발행한다.
+ *   → 둘 사이는 B2B 거래라 마지막 +10%(부가세)는 실제로 오간다.
  *
  * 계산 순서
- *   실입금 (그 달에 들어온 돈, 부가세 포함)
- *    − 업무 지출 (카드로 산 것 — 이것도 부가세 포함이라 기준이 맞는다)
+ *   실입금 (그 달 통장에 들어온 돈 — 부가세 포함)
+ *    ÷ 1.1 → 공급가          ← 부가세는 매출이 아니라 맡아둔 돈
+ *    − 업무 지출 (영수증 총액 그대로)
  *   = 순수익
- *    − 세금·여유 (기본 20% — 부가세 10 + 소득세·여유 10)
+ *    − 세금·여유 (기본 20%)
  *   = 분배 대상 → 인원수로 나눔
+ *    이벤토리 몫은 +10% 붙여 세금계산서로 청구
  *
- * 부가세를 앞에서 따로 빼지 않는 이유:
- *   20% 중 세금 몫이 곧 부가세다. 앞에서 1/11을 또 빼면 이중으로 빠진다.
+ * 지출을 공급가(÷1.1)로 환산하지 않는 이유:
+ *   매입세액 공제는 지출을 실제로 한 이벤트랜드가 받는다. 총액으로 빼두면
+ *   그 공제분이 저절로 회사 통장에 남아 세금 재원이 된다. 대신 면세·불공제
+ *   (기름값 등) 구분을 할 필요가 없어 입력이 단순해지고, 틀리는 방향이
+ *   항상 안전한 쪽(실제로는 더 남는 쪽)이다.
  *
  * 입력한 지출은 저장하지 않는다. 화면을 벗어나면 사라진다.
- * (기록이 필요해지면 지출 표를 따로 만드는 편이 낫다)
  */
 
 const won = (n) => Math.round(Number(n) || 0).toLocaleString("ko-KR");
@@ -52,13 +61,14 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
   }, [deals, month]);
 
   const 실입금 = manual.trim() === "" ? monthPaid.total : toNum(manual);
+  const 공급가 = Math.round(실입금 / 1.1); // 부가세는 매출이 아니다
   const 지출 = toNum(expense);
-  const 순수익 = 실입금 - 지출;
+  const 순수익 = 공급가 - 지출;
   const pct = Math.min(100, Math.max(0, toNum(reservePct)));
   const 유보 = Math.round((순수익 * pct) / 100);
   const 분배대상 = 순수익 - 유보;
   const 인당 = Math.round(분배대상 / people);
-  // 청구할 때는 부가세를 얹어 받으므로 포함 금액도 같이 보여준다
+  // 이벤토리가 세금계산서를 끊을 때는 부가세를 얹는다
   const withVat = (n) => Math.round(n * 1.1);
 
   const inputCls =
@@ -149,11 +159,18 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
         </div>
 
         <div className="mt-2 divide-y divide-ink/5">
+          <Row
+            label="공급가"
+            sub="실입금 ÷ 1.1 · 부가세는 매출이 아님"
+            value={공급가}
+            bold
+          />
+
           {/* 지출 */}
           <div className="flex flex-wrap items-center justify-between gap-2 py-2">
             <span className="text-sm text-ink/60">
               업무 지출
-              <span className="ml-1.5 text-xs text-ink/35">기름값·택배·부자재 등</span>
+              <span className="ml-1.5 text-xs text-ink/35">영수증 총액 그대로</span>
             </span>
             <input
               value={expense === "" ? "" : Number(onlyNum(expense)).toLocaleString("ko-KR")}
@@ -180,7 +197,7 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
                 className="w-12 rounded-md border border-ink/15 px-1.5 py-1 text-center text-sm outline-none focus:border-primary"
               />
               %
-              <span className="text-xs text-ink/35">부가세 10 + 소득세·여유 10</span>
+              <span className="text-xs text-ink/35">소득세 10 + 여유 10</span>
             </span>
             <span className="shrink-0 text-sm tabular-nums text-ink/60">− ₩ {won(유보)}</span>
           </div>
@@ -202,8 +219,8 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
         </div>
         <div className="mt-2 flex items-baseline justify-between gap-3 border-t border-ink/10 pt-2">
           <span className="text-sm text-ink/55">
-            부가세 포함
-            <span className="ml-1.5 text-xs text-ink/35">청구 시 10% 추가</span>
+            이벤토리 청구액
+            <span className="ml-1.5 text-xs text-ink/35">부가세 포함 · 세금계산서</span>
           </span>
           <span className="shrink-0 text-lg font-extrabold tabular-nums text-primary">
             ₩ {won(withVat(인당))}
