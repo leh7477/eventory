@@ -254,8 +254,9 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
         </div>
 
         <div className="mt-2 divide-y divide-ink/5">
-          <Row label="공급가" value={monthInvoiced.total} />
-          <Row label="청구액" sub="부가세 포함" value={withVat(monthInvoiced.total)} bold />
+          {/* 위 계산이 공급가에서 시작하므로 여기서도 공급가를 강조해 나란히 비교한다 */}
+          <Row label="공급가" value={monthInvoiced.total} bold />
+          <Row label="청구액" sub="부가세 포함" value={withVat(monthInvoiced.total)} />
         </div>
 
         {monthInvoiced.rows.length > 0 && (
