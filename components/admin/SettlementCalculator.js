@@ -219,8 +219,8 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
         </div>
         <div className="mt-2 flex items-baseline justify-between gap-3 border-t border-ink/10 pt-2">
           <span className="text-sm text-ink/55">
-            이벤토리 청구액
-            <span className="ml-1.5 text-xs text-ink/35">부가세 포함 · 세금계산서</span>
+            부가세 포함
+            <span className="ml-1.5 text-xs text-ink/35">청구 시 10% 추가</span>
           </span>
           <span className="shrink-0 text-lg font-extrabold tabular-nums text-primary">
             ₩ {won(withVat(인당))}
