@@ -6,16 +6,16 @@ import { useMemo, useState } from "react";
  * 정산 계산기 — 한 달 실입금을 둘이 어떻게 나눌지 계산한다.
  *
  * 계산 순서
- *   실입금 (그 달에 들어온 돈)
- *    − 부가세분 (입금액의 1/11)   ← 국세청에 낼 돈. 끄면 포함해서 나눈다
- *   = 매출
- *    − 업무 지출
+ *   실입금 (그 달에 들어온 돈, 부가세 포함)
+ *    − 업무 지출 (카드로 산 것 — 이것도 부가세 포함이라 기준이 맞는다)
  *   = 순수익
- *    − 세금·여유 (기본 20%)
- *   = 분배 대상 → 반반
- *    ± 홈페이지 관리비 (한쪽이 받고 한쪽이 냄)
+ *    − 세금·여유 (기본 20% — 부가세 10 + 소득세·여유 10)
+ *   = 분배 대상 → 인원수로 나눔
  *
- * 입력한 지출·관리비는 저장하지 않는다. 화면을 벗어나면 사라진다.
+ * 부가세를 앞에서 따로 빼지 않는 이유:
+ *   20% 중 세금 몫이 곧 부가세다. 앞에서 1/11을 또 빼면 이중으로 빠진다.
+ *
+ * 입력한 지출은 저장하지 않는다. 화면을 벗어나면 사라진다.
  * (기록이 필요해지면 지출 표를 따로 만드는 편이 낫다)
  */
 
@@ -36,10 +36,8 @@ const thisMonth = () => {
 
 export default function SettlementCalculator({ deals = [], people = 2 }) {
   const [month, setMonth] = useState(thisMonth());
-  const [exVat, setExVat] = useState(true); // 부가세분을 빼고 나눌지
   const [expense, setExpense] = useState("");
   const [reservePct, setReservePct] = useState("20");
-  const [fee, setFee] = useState(""); // 홈페이지 관리비
   const [manual, setManual] = useState(""); // 실입금 직접 입력 (비우면 자동)
 
   // 그 달에 들어온 입금 (입금일 기준)
@@ -54,15 +52,12 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
   }, [deals, month]);
 
   const 실입금 = manual.trim() === "" ? monthPaid.total : toNum(manual);
-  const 부가세 = exVat ? Math.round(실입금 / 11) : 0;
-  const 매출 = 실입금 - 부가세;
   const 지출 = toNum(expense);
-  const 순수익 = 매출 - 지출;
+  const 순수익 = 실입금 - 지출;
   const pct = Math.min(100, Math.max(0, toNum(reservePct)));
   const 유보 = Math.round((순수익 * pct) / 100);
   const 분배대상 = 순수익 - 유보;
   const 인당 = Math.round(분배대상 / people);
-  const 관리비 = toNum(fee);
   // 청구할 때는 부가세를 얹어 받으므로 포함 금액도 같이 보여준다
   const withVat = (n) => Math.round(n * 1.1);
 
@@ -154,23 +149,6 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
         </div>
 
         <div className="mt-2 divide-y divide-ink/5">
-          {/* 부가세 */}
-          <div className="flex items-center justify-between gap-3 py-2">
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-ink/60">
-              <input
-                type="checkbox"
-                checked={exVat}
-                onChange={(e) => setExVat(e.target.checked)}
-                className="h-4 w-4 accent-primary"
-              />
-              부가세분 빼기
-              <span className="text-xs text-ink/35">입금액의 1/11 · 국세청에 낼 몫</span>
-            </label>
-            <span className="shrink-0 text-sm tabular-nums text-ink/60">− ₩ {won(부가세)}</span>
-          </div>
-
-          <Row label="매출" value={매출} bold />
-
           {/* 지출 */}
           <div className="flex flex-wrap items-center justify-between gap-2 py-2">
             <span className="text-sm text-ink/60">
@@ -202,7 +180,7 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
                 className="w-12 rounded-md border border-ink/15 px-1.5 py-1 text-center text-sm outline-none focus:border-primary"
               />
               %
-              <span className="text-xs text-ink/35">소득세 10 + 여유 10</span>
+              <span className="text-xs text-ink/35">부가세 10 + 소득세·여유 10</span>
             </span>
             <span className="shrink-0 text-sm tabular-nums text-ink/60">− ₩ {won(유보)}</span>
           </div>
@@ -233,32 +211,6 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
         </div>
       </div>
 
-      {/* 홈페이지 관리비 — 분배와 별개로 청구하는 금액 */}
-      <div className="rounded-2xl border border-ink/10 bg-white p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-sm text-ink/60">
-            홈페이지 관리비
-            <span className="ml-1.5 text-xs text-ink/35">분배와 별개로 청구</span>
-          </span>
-          <input
-            value={fee === "" ? "" : Number(onlyNum(fee)).toLocaleString("ko-KR")}
-            onChange={(e) => setFee(onlyNum(e.target.value))}
-            placeholder="0"
-            className={inputCls}
-          />
-        </div>
-        {관리비 > 0 && (
-          <div className="mt-2 flex items-baseline justify-between gap-3 border-t border-ink/10 pt-2">
-            <span className="text-sm text-ink/55">
-              부가세 포함
-              <span className="ml-1.5 text-xs text-ink/35">청구 시 10% 추가</span>
-            </span>
-            <span className="shrink-0 text-sm font-bold tabular-nums text-primary">
-              ₩ {won(withVat(관리비))}
-            </span>
-          </div>
-        )}
-      </div>
       {/* 근거가 되는 입금 내역 */}
       {monthPaid.rows.length > 0 && manual.trim() === "" && (
         <details className="rounded-2xl border border-ink/10 bg-white p-4">
@@ -280,7 +232,7 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
       )}
 
       <p className="text-xs leading-relaxed text-ink/40">
-        입력한 지출·관리비는 저장되지 않습니다. 화면을 벗어나면 사라집니다.
+        입력한 지출은 저장되지 않습니다. 화면을 벗어나면 사라집니다.
         <br />
         참고용 계산이며, 실제 세금은 세무 전문가의 확인을 받으세요.
       </p>
