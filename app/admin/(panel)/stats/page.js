@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import StatsYearList from "@/components/admin/StatsYearList";
 import SettlementManager from "@/components/admin/SettlementManager";
 import SalesTabs from "@/components/admin/SalesTabs";
+import SettlementCalculator from "@/components/admin/SettlementCalculator";
 import { kstParts } from "@/lib/date";
 import { attachSettlements } from "@/lib/admin/settlements";
 
@@ -108,7 +109,7 @@ export default async function AdminStatsPage({ searchParams }) {
       </p>
 
       <div className="mt-5">
-      <SalesTabs tabs={["정산", "통계"]} initial={initialTab}>
+      <SalesTabs tabs={["정산", "통계", "계산기"]} initial={initialTab}>
         {/* 정산 (먼저) */}
         <SettlementManager deals={deals} />
 
@@ -239,6 +240,9 @@ export default async function AdminStatsPage({ searchParams }) {
         </div>
       )}
         </div>
+
+        {/* 계산기 — 한 달 실입금을 둘이 어떻게 나눌지 */}
+        <SettlementCalculator deals={rows} />
       </SalesTabs>
       </div>
     </div>
