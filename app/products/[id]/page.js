@@ -11,7 +11,29 @@ export const revalidate = 0;
 
 export async function generateMetadata({ params }) {
   const product = await getProductById(params.id);
-  return { title: product ? `${product.name} | 이벤트랜드` : "장비 | 이벤트랜드" };
+  if (!product) return { title: "장비 | 이벤트랜드" };
+
+  // 검색 노출용 자동 생성 — 사례 상세(app/cases/[id])와 같은 방식.
+  // 관리자에서 따로 입력하는 값이 없으므로 장비명으로 조합한다.
+  const n = product.name;
+  const title = `${n} 렌탈·대여·임대 | 팝업스토어·전시회·박람회 이벤트 장비 맞춤 제작`;
+  const desc =
+    `${product.description ? product.description + " — " : ""}` +
+    `${n} 렌탈·대여와 브랜드 랩핑 맞춤 제작. 팝업스토어, 전시회·전시장, 박람회, ` +
+    `기업행사, 지역축제 등 행사장에서 활용되는 ${n}렌탈, ${n}대여, ${n}임대, ` +
+    `${n}제작 문의는 이벤트랜드(EVENT LAND).`;
+  const cover = product.thumbnail;
+
+  return {
+    title,
+    description: desc,
+    openGraph: {
+      title,
+      description: desc,
+      type: "website",
+      images: cover ? [{ url: cover }] : [],
+    },
+  };
 }
 
 export default async function ProductDetailPage({ params }) {

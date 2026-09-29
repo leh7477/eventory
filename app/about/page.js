@@ -4,7 +4,9 @@ import QuoteButton from "@/components/QuoteButton";
 import { SITE } from "@/lib/constants";
 
 export const metadata = {
-  title: "회사소개 | 이벤트랜드",
+  title: "회사소개 | 팝업스토어·전시회·박람회 이벤트 장비 렌탈 이벤트랜드",
+  description:
+    "이벤트랜드는 가챠머신, 룰렛, 에어볼추첨기, 스톱워치 등 이벤트 장비 렌탈·대여와 브랜드 랩핑 맞춤 제작 전문입니다. 팝업스토어, 전시회·전시장, 박람회, 기업행사, 지역축제 등 행사장에 맞는 구성을 제안합니다.",
 };
 
 const POINTS = [

@@ -25,7 +25,7 @@ export async function generateMetadata({ params }) {
     `${item.title} 렌탈·대여·임대 | 기업행사·축제·팝업스토어 이벤트 맞춤 제작`;
   // 검색 설명 자동값: 행사명(있으면) + 장비명 키워드 조합 (검색 스니펫용)
   const t = item.title;
-  const autoDesc = `${item.description ? item.description + " — " : ""}${t} 렌탈·대여 및 맞춤 제작 사례입니다. 기업 행사·박람회·팝업스토어·축제 현장에 어울리는 ${t}렌탈, ${t}대여, ${t}제작 문의는 이벤트랜드(EVENT LAND).`;
+  const autoDesc = `${item.description ? item.description + " — " : ""}${t} 렌탈·대여 및 맞춤 제작 사례입니다. 기업행사·박람회·전시회·전시장·팝업스토어·지역축제 행사장에 어울리는 ${t}렌탈, ${t}대여, ${t}제작 문의는 이벤트랜드(EVENT LAND).`;
   const desc = item.seoDescription || autoDesc;
   const cover = item.images?.[0];
 

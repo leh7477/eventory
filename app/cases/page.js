@@ -8,7 +8,9 @@ import { SAMPLE_CASES } from "@/lib/samples";
 export const revalidate = 0;
 
 export const metadata = {
-  title: "Stories | 이벤트랜드",
+  title: "행사 사례 | 팝업스토어·전시회·박람회 이벤트 장비 렌탈 이벤트랜드",
+  description:
+    "이벤트랜드가 진행한 행사 사례입니다. 팝업스토어, 전시회·전시장, 박람회, 기업행사, 지역축제 등 다양한 행사장에서 가챠머신·룰렛·에어볼추첨기 등 이벤트 장비 렌탈·대여와 맞춤 제작을 진행했습니다.",
 };
 
 export default async function CasesPage({ searchParams }) {

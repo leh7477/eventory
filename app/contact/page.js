@@ -3,7 +3,9 @@ import SiteFooter from "@/components/SiteFooter";
 import QuoteForm from "@/components/QuoteForm";
 
 export const metadata = {
-  title: "견적 문의 | 이벤트랜드",
+  title: "견적 문의 | 이벤트 장비 렌탈·대여·제작 이벤트랜드",
+  description:
+    "가챠머신, 룰렛, 에어볼추첨기 등 이벤트 장비 렌탈·대여·임대·제작 견적 문의. 팝업스토어, 전시회·전시장, 박람회, 기업행사, 지역축제 등 행사장 일정과 장비를 남겨주시면 빠르게 회신드립니다.",
 };
 
 export default function ContactPage() {
