@@ -7,7 +7,7 @@ export const revalidate = 0;
 export default async function sitemap() {
   const [cases, products] = await Promise.all([getCases(), getProducts()]);
 
-  const staticRoutes = ["", "/cases", "/about", "/contact"].map((p) => ({
+  const staticRoutes = ["", "/products", "/cases", "/about", "/contact"].map((p) => ({
     url: `${SITE_URL}${p}`,
     lastModified: new Date(),
     changeFrequency: "weekly",
