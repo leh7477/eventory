@@ -37,7 +37,7 @@ function readEnv(file) {
     if (!line || line.startsWith("#")) continue;
     const eq = line.indexOf("=");
     if (eq < 0) continue;
-    out[line.slice(0, eq).trim()] = line.slice(eq + 1).trim().replace(/^["']|["']$/g, "").replace(/$/, "");
+    out[line.slice(0, eq).trim()] = line.slice(eq + 1).trim().replace(/^["']|["']$/g, "").replace(/\r$/, "");
   }
   return out;
 }

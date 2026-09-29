@@ -33,7 +33,7 @@ function env(key) {
     if (!line || line.startsWith("#")) continue;
     const eq = line.indexOf("=");
     if (eq > 0 && line.slice(0, eq).trim() === key) {
-      return line.slice(eq + 1).trim().replace(/^["']|["']$/g, "").replace(/$/, "");
+      return line.slice(eq + 1).trim().replace(/^["']|["']$/g, "").replace(/\r$/, "");
     }
   }
   return null;
