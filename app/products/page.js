@@ -7,9 +7,9 @@ import { getProducts, getCategories } from "@/lib/data";
 export const revalidate = 0;
 
 export const metadata = {
-  title: "장비 목록 | 가챠머신·룰렛·에어볼추첨기 이벤트 장비 렌탈 이벤트랜드",
+  title: "가챠머신·룰렛 대여 | 팝업스토어·행사 이벤트 장비 렌탈 이벤트랜드",
   description:
-    "이벤트랜드가 보유한 이벤트 장비 목록입니다. 가챠머신, 룰렛, 에어볼추첨기, 스톱워치 등 렌탈·대여·임대는 물론 브랜드 랩핑 맞춤 제작까지. 팝업스토어, 전시회·전시장, 박람회, 기업행사, 지역축제 등 행사장에 맞는 장비를 확인해보세요.",
+    "이벤트랜드가 보유한 대여 장비입니다. 가챠머신, 룰렛, 에어볼추첨기, 스톱워치 등 렌탈·대여는 물론 브랜드 로고를 입힌 랩핑 제작까지. 팝업스토어, 전시회·전시장, 박람회, 기업행사, 지역축제 등 행사장에 맞는 장비를 확인해보세요.",
 };
 
 export default async function ProductsPage({ searchParams }) {
@@ -30,9 +30,9 @@ export default async function ProductsPage({ searchParams }) {
       <main className="mx-auto max-w-[1440px] px-5 py-12">
         <header className="mb-8">
           <p className="font-heading text-sm font-bold tracking-[0.25em] text-primary">
-            EVENT LAND
+            EQUIPMENT
           </p>
-          <h1 className="mt-1 text-3xl font-bold text-ink sm:text-4xl">장비 목록</h1>
+          <h1 className="mt-1 text-3xl font-bold text-ink sm:text-4xl">대여 장비</h1>
           <p className="mt-3 text-sm text-ink/60">
             팝업스토어, 전시회·전시장, 박람회, 기업행사, 지역축제 등 행사장에서
             활용되는 이벤트 장비입니다. 장비를 누르면 자세히 볼 수 있어요.

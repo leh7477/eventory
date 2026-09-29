@@ -8,7 +8,7 @@ import { SITE, DEFAULT_CATEGORIES } from "@/lib/constants";
 
 // 보조 메뉴 (드로어 하단)
 const SECONDARY = [
-  { href: "/cases", label: "행사 사례" },
+  { href: "/cases", label: "행사 현장" },
   { href: "/about", label: "회사소개" },
 ];
 
@@ -127,7 +127,7 @@ export default function SiteHeaderClient({ categories = [] }) {
                   href="/cases"
                   className="rounded-md px-2 py-2 text-sm font-semibold text-ink transition hover:bg-ink/5 hover:text-primary"
                 >
-                  행사 사례 전체 보기
+                  행사 현장 전체 보기
                 </Link>
               </div>
             </div>

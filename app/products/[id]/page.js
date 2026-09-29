@@ -46,7 +46,7 @@ export default async function ProductDetailPage({ params }) {
       <main className="mx-auto max-w-[1440px] px-5 py-10 pb-28">
         <nav className="mb-6 text-sm text-ink/50">
           <Link href="/products" className="hover:text-primary">
-            장비 목록
+            대여 장비
           </Link>
           <span className="mx-2">/</span>
           <span className="text-ink">{product.name}</span>

@@ -32,7 +32,7 @@ export default function AboutPage() {
         {/* 인트로 */}
         <header className="max-w-2xl">
           <p className="font-heading text-sm font-bold tracking-[0.25em] text-primary">
-            ABOUT EVENT LAND
+            ABOUT
           </p>
           <h1 className="mt-2 font-heading text-4xl font-extrabold leading-tight text-ink sm:text-5xl">
             EVENT <span className="text-primary">+</span> STORY
