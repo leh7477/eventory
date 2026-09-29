@@ -645,11 +645,14 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               <td />
               <td className="print-hide" />
             </tr>
-            {!isMade && shipMethod !== "quick" && (
+            {/* 배송 방식에 따라 어디까지 해드리는지 안내 — 퀵은 물품만 가고 사람이 가지 않는다 */}
+            {!isMade && (
               <tr className="border-b border-ink/10">
                 <td colSpan={6} className="pb-2 pl-3 align-top">
                   <div className="text-[13px] leading-snug text-ink/75">
-                    ※ 이벤트랜드에서 출장 설치·현장 테스트 및 행사 종료 후 회수를 진행합니다.
+                    {shipMethod === "quick"
+                      ? "※ 퀵 배송은 물품만 전달됩니다. 수령·배치와 행사 종료 후 반납 포장은 고객사에서 직접 진행해 주시기 바랍니다. (출장 설치·현장 테스트는 포함되지 않습니다)"
+                      : "※ 이벤트랜드에서 출장 설치·현장 테스트 및 행사 종료 후 회수를 진행합니다."}
                   </div>
                 </td>
                 <td className="print-hide" />
