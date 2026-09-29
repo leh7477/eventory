@@ -227,10 +227,18 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
 
   const handlePrint = () => {
     if (autoRecord && supply > 0) recordQuote();
-    // PDF 저장 파일명 = "고객사명 - 이벤트랜드" (인쇄 시 document.title 사용)
-    const company = inquiry.company_name || inquiry.name || "견적서";
+    // PDF 저장 파일명 = "2026-09-29 고객사명 - 이벤트랜드" (인쇄 시 document.title 사용)
+    // 날짜를 앞에 두면 폴더에서 이름순 정렬이 곧 날짜순이 된다.
+    // 견적일자·업체명은 자유 입력이라 파일명에 못 쓰는 문자를 걸러낸다.
+    const safe = (s) =>
+      String(s ?? "")
+        .replace(/[\\/:*?"<>|]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    const company = safe(inquiry.company_name || inquiry.name) || "견적서";
+    const date = safe(quoteDate) || todayStr();
     const prevTitle = document.title;
-    document.title = `${company} - 이벤트랜드`;
+    document.title = `${date} ${company} - 이벤트랜드`;
     window.print();
     setTimeout(() => {
       document.title = prevTitle;
