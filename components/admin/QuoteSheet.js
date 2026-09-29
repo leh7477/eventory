@@ -491,8 +491,8 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
             <table className="w-full [&_td]:py-1.5 [&_td]:align-top">
               <tbody>
                 <tr>
-                  <td className="w-24 text-ink/50">상호(대표)</td>
-                  <td className="text-ink">{`${SITE.nameKo}(${SITE.ceo})`}</td>
+                  <td className="w-24 whitespace-nowrap text-ink/50">상호 / 대표</td>
+                  <td className="text-ink">{`${SITE.nameKo} / ${SITE.ceo}`}</td>
                 </tr>
                 <tr>
                   <td className="py-1.5 text-ink/50">사업자번호</td>
@@ -507,8 +507,8 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                   <td className="text-ink">{SITE.email}</td>
                 </tr>
                 <tr>
-                  <td className="py-1.5 text-ink/50">홈페이지</td>
-                  <td className="text-ink">{SITE.homepage}</td>
+                  <td className="py-1.5 text-ink/50">주소</td>
+                  <td className="text-ink">{SITE.address}</td>
                 </tr>
               </tbody>
             </table>
