@@ -124,6 +124,15 @@ async function main() {
   const restored = {};
   const problems = [];
 
+  // 넣기 전에 비운다. 빈 DB 라도 schema.sql 과 마이그레이션이 기본 행을
+  // 미리 넣어두는 표가 있어(settings, schema_migrations) 그대로 insert 하면
+  // 키 충돌로 복구가 멈춘다. 백업이 원본이므로 덮어쓰는 게 맞다.
+  // 참조하는 쪽(자식)부터 지워야 외래키에 걸리지 않는다.
+  for (const table of [...ordered].reverse()) {
+    if (!colsOf.has(table)) continue;
+    await db.query(`delete from ${table}`);
+  }
+
   for (const table of ordered) {
     const rows = readTable(dir, table);
     if (rows === null) {
