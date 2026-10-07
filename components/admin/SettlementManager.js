@@ -61,7 +61,9 @@ export default function SettlementManager({ deals, initialFocusId = null }) {
   const router = useRouter();
   const [filter, setFilter] = useState("all");
   const [month, setMonth] = useState(todayStr().slice(0, 7));
-  const [allMonths, setAllMonths] = useState(false);
+  // 다른 화면에서 특정 건으로 넘어왔으면 전체 보기로 시작한다 — 안 그러면
+  // 그 건의 행사월이 이번 달이 아닐 때 목록에 없어 아무 일도 일어나지 않는다.
+  const [allMonths, setAllMonths] = useState(!!initialFocusId);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [pending, startTransition] = useTransition();
@@ -87,13 +89,13 @@ export default function SettlementManager({ deals, initialFocusId = null }) {
   // 다른 패널(발행 계산서 내역)이나 계산기에서 넘어온 건으로 이동
   const [focusId, setFocusId] = useState(initialFocusId);
 
-  // 목록은 행사월로 걸러져 있어 그냥 스크롤만 하면 안 보일 수 있다.
-  // 필터를 풀고 그 건의 행사월로 옮긴 뒤 찾아간다.
+  // 목록은 행사월로 걸러져 있는데, 계산서 발행월·입금월은 행사월과 다를 수 있다
+  // (10월 행사를 9월에 청구·입금하는 식). 그래서 달을 옮기는 대신 전체 보기로
+  // 바꾼다 — 행사월이 뭐든 목록에 반드시 있고, 달이 멋대로 바뀌지도 않는다.
   const focusTo = (d) => {
     setFilter("all");
     setQuery("");
-    setAllMonths(false);
-    setMonth(monthOf(d));
+    setAllMonths(true);
     setFocusId(d.id);
   };
 
