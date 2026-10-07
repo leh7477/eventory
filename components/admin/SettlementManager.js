@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import DatePicker from "@/components/DatePicker";
-import { updateSettlement } from "@/app/admin/(panel)/stats/actions";
+import {
+  updateSettlement,
+  addPayment,
+  deletePayment,
+} from "@/app/admin/(panel)/stats/actions";
 
 const won = (n) => (Number(n) || 0).toLocaleString("ko-KR");
 const digits = (s) => String(s ?? "").replace(/\D/g, "");
@@ -79,6 +83,46 @@ export default function SettlementManager({ deals }) {
   );
 
   const setField = (id, k, v) => setRows((r) => ({ ...r, [id]: { ...r[id], [k]: v } }));
+
+  // 입금 추가 폼 (건별 임시값) — 계약금·잔금처럼 여러 번 받는 경우가 있다
+  const [payForm, setPayForm] = useState({});
+  const setPay = (id, k, v) =>
+    setPayForm((f) => ({ ...f, [id]: { ...(f[id] || {}), [k]: v } }));
+
+  // payments 가 있으면 그 합계, 없으면 기존 컬럼 하나를 쓴다
+  const paysOf = (d) => (Array.isArray(d.payments) ? d.payments : []);
+  const paidSumOf = (d) => {
+    const list = paysOf(d);
+    if (list.length > 0) return list.reduce((a, x) => a + (Number(x.amount) || 0), 0);
+    return Number(d.paid_amount) || 0;
+  };
+
+  const addPay = (d, after) =>
+    startTransition(async () => {
+      const f = payForm[d.id] || {};
+      const res = await addPayment(d.id, {
+        paid_date: f.date,
+        amount: f.amount,
+        memo: f.memo,
+      });
+      if (res?.error) {
+        alert(res.error);
+        return;
+      }
+      setPayForm((x) => ({ ...x, [d.id]: {} }));
+      after?.();
+      router.refresh();
+    });
+
+  const delPay = (pid) =>
+    startTransition(async () => {
+      const res = await deletePayment(pid);
+      if (res?.error) {
+        alert(res.error);
+        return;
+      }
+      router.refresh();
+    });
 
   // 전달된 항목만 저장 (계산서 / 입금 각각 독립)
   const commit = (d, fields, after) =>
@@ -430,13 +474,14 @@ export default function SettlementManager({ deals }) {
                   </button>
 
                   {/* 입금 확인 */}
-                  {d.paid_date ? (
+                  {paidSumOf(d) > 0 ? (
                     <span className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
-                      입금 {d.paid_date} · ₩ {won(d.paid_amount)}
-                      {(d.paid_by || d.paid_at) && (
-                        <span className="text-green-500">
-                          · {d.paid_by}
-                          {d.paid_at ? ` ${fmtStamp(d.paid_at)}` : ""}
+                      {paysOf(d).length > 1
+                        ? `입금 ${paysOf(d).length}건 · ₩ ${won(paidSumOf(d))}`
+                        : `입금 ${paysOf(d)[0]?.paid_date || d.paid_date} · ₩ ${won(paidSumOf(d))}`}
+                      {paidSumOf(d) < vat && (
+                        <span className="font-bold text-orange-600">
+                          · 미수 ₩ {won(vat - paidSumOf(d))}
                         </span>
                       )}
                     </span>
@@ -449,14 +494,16 @@ export default function SettlementManager({ deals }) {
                       setOpenInvoice(null);
                       if (openPay === d.id) setOpenPay(null);
                       else {
-                        if (!r.paid_date) setField(d.id, "paid_date", todayStr());
-                        if (!digits(r.paid_amount)) setField(d.id, "paid_amount", String(vat));
+                        // 남은 금액을 기본값으로 — 보통 잔금을 그대로 받는다
+                        const rest = Math.max(0, vat - paidSumOf(d));
+                        setPay(d.id, "date", todayStr());
+                        setPay(d.id, "amount", rest > 0 ? String(rest) : "");
                         setOpenPay(d.id);
                       }
                     }}
                     className="rounded-md border border-green-300 px-2.5 py-1 text-xs font-bold text-green-700 hover:bg-green-50"
                   >
-                    {d.paid_date ? "입금 수정" : "입금 확인"}
+                    {paidSumOf(d) > 0 ? "입금 내역" : "입금 확인"}
                   </button>
                 </div>
 
@@ -503,49 +550,113 @@ export default function SettlementManager({ deals }) {
                 {/* 입금 확인 팝오버 */}
                 {openPay === d.id && (
                   <div className="mt-2 rounded-lg border border-green-200 bg-green-50/50 p-3">
-                    <p className="mb-1.5 text-xs font-bold text-ink/60">
-                      입금 확인{" "}
+                    <p className="mb-2 text-xs font-bold text-ink/60">
+                      입금 내역{" "}
                       <span className="font-normal text-ink/45">
-                        (예상 부가세 포함 ₩ {won(vat)})
+                        (청구 부가세 포함 ₩ {won(vat)})
                       </span>
                     </p>
+
+                    {/* 받은 내역 — 계약금·잔금처럼 여러 번 받으면 줄이 늘어난다 */}
+                    {paysOf(d).length > 0 && (
+                      <ul className="mb-2 divide-y divide-green-200/60 rounded-md border border-green-200 bg-white">
+                        {paysOf(d).map((x) => (
+                          <li
+                            key={x.id ?? x.paid_date}
+                            className="flex items-center gap-2 px-2.5 py-1.5 text-xs"
+                          >
+                            <span className="w-24 shrink-0 tabular-nums text-ink/70">
+                              {x.paid_date}
+                            </span>
+                            <span className="w-28 shrink-0 text-right font-bold tabular-nums text-ink">
+                              ₩ {won(x.amount)}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate text-ink/45">
+                              {x.memo || ""}
+                              {x.created_by ? ` · ${x.created_by}` : ""}
+                            </span>
+                            {x.id && (
+                              <button
+                                type="button"
+                                disabled={pending}
+                                onClick={() => {
+                                  if (confirm(`${x.paid_date} ₩ ${won(x.amount)} 입금을 삭제할까요?`))
+                                    delPay(x.id);
+                                }}
+                                title="이 입금 삭제"
+                                className="shrink-0 rounded px-1.5 text-sm text-ink/30 hover:bg-red-50 hover:text-red-600"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {/* 합계 / 미수 */}
+                    {paidSumOf(d) > 0 && (
+                      <p className="mb-2 text-xs text-ink/60">
+                        합계 <b className="text-green-700">₩ {won(paidSumOf(d))}</b>
+                        {paidSumOf(d) < vat ? (
+                          <>
+                            {" · "}미수{" "}
+                            <b className="text-orange-600">₩ {won(vat - paidSumOf(d))}</b>
+                          </>
+                        ) : (
+                          <span className="ml-1 font-bold text-green-700">· 완납</span>
+                        )}
+                      </p>
+                    )}
+
+                    {/* 입금 추가 */}
                     <div className="flex flex-wrap items-end gap-2">
                       <label className="text-xs text-ink/50">
                         입금일
-                        <div className="mt-0.5 w-40">
+                        <div className="mt-0.5 w-36">
                           <DatePicker
-                            value={r.paid_date}
-                            onChange={(v) => setField(d.id, "paid_date", v)}
+                            value={payForm[d.id]?.date || ""}
+                            onChange={(v) => setPay(d.id, "date", v)}
                           />
                         </div>
                       </label>
                       <label className="text-xs text-ink/50">
-                        실입금액 (부가세 포함)
+                        입금액 (부가세 포함)
                         <input
                           inputMode="numeric"
-                          value={r.paid_amount ? Number(digits(r.paid_amount)).toLocaleString("ko-KR") : ""}
-                          onChange={(e) => setField(d.id, "paid_amount", digits(e.target.value))}
+                          value={
+                            payForm[d.id]?.amount
+                              ? Number(digits(payForm[d.id].amount)).toLocaleString("ko-KR")
+                              : ""
+                          }
+                          onChange={(e) => setPay(d.id, "amount", digits(e.target.value))}
                           className="mt-0.5 block w-32 rounded-md border border-ink/15 px-2 py-1.5 text-right text-sm font-bold outline-none focus:border-primary"
+                        />
+                      </label>
+                      <label className="text-xs text-ink/50">
+                        메모
+                        <input
+                          value={payForm[d.id]?.memo || ""}
+                          onChange={(e) => setPay(d.id, "memo", e.target.value)}
+                          placeholder="계약금 / 잔금"
+                          className="mt-0.5 block w-28 rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
                         />
                       </label>
                       <button
                         type="button"
                         disabled={pending}
-                        onClick={() => commit(d, { paid_date: r.paid_date, paid_amount: r.paid_amount }, () => setOpenPay(null))}
+                        onClick={() => addPay(d)}
                         className="rounded-md bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700"
                       >
-                        확인
+                        + 입금 추가
                       </button>
-                      {d.paid_date && (
-                        <button
-                          type="button"
-                          disabled={pending}
-                          onClick={() => commit(d, { paid_date: null, paid_amount: null }, () => setOpenPay(null))}
-                          className="rounded-md border border-ink/15 px-2.5 py-1.5 text-xs text-ink/50 hover:bg-ink/5"
-                        >
-                          입금 취소
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => setOpenPay(null)}
+                        className="rounded-md border border-ink/15 px-2.5 py-1.5 text-xs text-ink/50 hover:bg-ink/5"
+                      >
+                        닫기
+                      </button>
                     </div>
                   </div>
                 )}

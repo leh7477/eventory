@@ -5,7 +5,7 @@ import SettlementManager from "@/components/admin/SettlementManager";
 import SalesTabs from "@/components/admin/SalesTabs";
 import SettlementCalculator from "@/components/admin/SettlementCalculator";
 import { kstParts } from "@/lib/date";
-import { attachSettlements } from "@/lib/admin/settlements";
+import { attachSettlements, attachPayments } from "@/lib/admin/settlements";
 
 export const revalidate = 0;
 
@@ -25,7 +25,8 @@ export default async function AdminStatsPage({ searchParams }) {
 
   // 정산은 별도 표(settlements)로 옮기는 중이다.
   // 새 표가 있으면 그 값을, 없으면 기존 inquiries 컬럼을 쓴다.
-  const rows = await attachSettlements(admin, data ?? []);
+  // 입금은 계약금·잔금처럼 나눠 받을 수 있어 건별 내역(payments)을 함께 붙인다.
+  const rows = await attachPayments(admin, await attachSettlements(admin, data ?? []));
 
   const deals = rows.filter(
     (d) => d.contract_amount && d.contract_amount > 0

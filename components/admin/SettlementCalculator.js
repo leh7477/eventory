@@ -50,13 +50,34 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
   const [manual, setManual] = useState(""); // 실입금 직접 입력 (비우면 자동)
 
   // 그 달에 들어온 입금 (입금일 기준)
+  // 그 달에 들어온 입금 — 건별로 센다.
+  // 계약금을 9월에, 잔금을 10월에 받으면 각 달에 그만큼만 잡혀야 한다.
+  // payments 가 없으면 기존 컬럼 하나를 1회 입금으로 취급한다.
   const monthPaid = useMemo(() => {
-    const rows = deals.filter(
-      (d) => (d.paid_date || "").slice(0, 7) === month && Number(d.paid_amount) > 0
-    );
+    const rows = [];
+    for (const d of deals) {
+      const list =
+        Array.isArray(d.payments) && d.payments.length > 0
+          ? d.payments
+          : d.paid_date && Number(d.paid_amount) > 0
+          ? [{ paid_date: d.paid_date, amount: d.paid_amount, memo: null }]
+          : [];
+      for (const x of list) {
+        if ((x.paid_date || "").slice(0, 7) !== month) continue;
+        if (!(Number(x.amount) > 0)) continue;
+        rows.push({
+          company_name: d.company_name,
+          contact_name: d.contact_name,
+          paid_date: x.paid_date,
+          paid_amount: Number(x.amount),
+          memo: x.memo || null,
+        });
+      }
+    }
+    rows.sort((a, b) => (a.paid_date < b.paid_date ? -1 : 1));
     return {
       rows,
-      total: rows.reduce((s, d) => s + Number(d.paid_amount || 0), 0),
+      total: rows.reduce((s, x) => s + x.paid_amount, 0),
     };
   }, [deals, month]);
 
@@ -292,7 +313,10 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
               <li key={i} className="flex items-baseline justify-between gap-3 py-1.5">
                 <span className="min-w-0 truncate text-ink/70">
                   {d.company_name || d.contact_name || "(업체명 없음)"}
-                  <span className="ml-1.5 text-xs text-ink/35">{d.paid_date}</span>
+                  <span className="ml-1.5 text-xs text-ink/35">
+                    {d.paid_date}
+                    {d.memo ? ` · ${d.memo}` : ""}
+                  </span>
                 </span>
                 <span className="shrink-0 tabular-nums text-ink">₩ {won(d.paid_amount)}</span>
               </li>

@@ -7,8 +7,12 @@ export default async function run(db) {
   const t = await db.query(`select to_regclass('public.settlements') as t`);
   c.ok("settlements 표 생성됨", t.rows[0].t !== null);
 
-  // seed 에서 넣은 3건 중 정산 흔적이 있는 2건만 복사돼야 한다
-  const copied = await db.query(`select count(*)::int as n from settlements`);
+  // seed 에서 넣은 3건 중 정산 흔적이 있는 2건만 복사돼야 한다.
+  // 전체 건수를 세면 다른 모듈의 표본에 흔들리므로 이 모듈 표본만 센다.
+  const copied = await db.query(`
+    select count(*)::int as n from settlements s
+    join inquiries i on i.id = s.inquiry_id
+    where i.company_name like ${String.fromCharCode(39)}스모크_정산%${String.fromCharCode(39)}`);
   c.eq("정산 기록 있는 건만 복사됨", copied.rows[0].n, 2);
 
   const moved = await db.query(`

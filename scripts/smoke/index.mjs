@@ -28,6 +28,7 @@ import settlementLogic from "./modules/settlement-logic.mjs";
 import stage6, { seed as seedStage6 } from "./modules/stage6.mjs";
 import stageLogic from "./modules/stage-logic.mjs";
 import inquiryLogic from "./modules/inquiry-logic.mjs";
+import payments, { seed as seedPayments } from "./modules/payments.mjs";
 
 const MODULES = [
   { name: "privacy", run: privacy },
@@ -40,6 +41,7 @@ const MODULES = [
   { name: "stage6", run: stage6, seed: seedStage6 },
   { name: "stage-logic", run: stageLogic },
   { name: "inquiry-logic", run: inquiryLogic },
+  { name: "payments", run: payments, seed: seedPayments },
 ];
 
 async function main() {
@@ -65,14 +67,30 @@ async function main() {
 
   // 5) 두 번 실행해도 안전한지 — 운영에서 실수로 다시 돌릴 수 있다
   const idem = makeChecker("재실행 안전성 (같은 SQL 을 두 번 실행)");
+  // 고정 숫자로 비교하면 표본이 늘 때마다 깨지고, 전후 건수 비교도 틀린다.
+  // 모듈이 마이그레이션 사이에 문의를 새로 넣으면 두 번째 실행에서
+  // 정상적으로 복사되기 때문이다. 확인해야 할 것은 "같은 건이 두 번
+  // 들어가지 않는가" 이므로 중복 자체를 센다.
+  const dupOf = async (sql) => (await db.query(sql)).rows[0].n;
   try {
     await applyMigrations(db);
     idem.ok("마이그레이션 재실행 성공", true);
   } catch (e) {
     idem.ok("마이그레이션 재실행 성공", false, e.message.slice(0, 90));
   }
-  const dup = await db.query(`select count(*)::int as n from settlements`);
-  idem.ok("재실행해도 정산 데이터가 중복되지 않음", dup.rows[0].n <= 2, `현재 ${dup.rows[0].n}건`);
+  idem.eq(
+    "한 문의에 정산 행이 둘 이상 생기지 않음",
+    await dupOf(`select count(*)::int as n from (
+       select inquiry_id from settlements group by inquiry_id having count(*) > 1) t`),
+    0
+  );
+  idem.eq(
+    "같은 입금이 두 번 들어가지 않음",
+    await dupOf(`select count(*)::int as n from (
+       select inquiry_id, paid_date, amount from payments
+       group by inquiry_id, paid_date, amount having count(*) > 1) t`),
+    0
+  );
   checkers.push(idem);
 
   // 6) 통합본이 개별 파일과 같은 결과를 내는지 — 깨끗한 DB 에서 따로 확인
