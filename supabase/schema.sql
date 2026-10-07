@@ -336,6 +336,10 @@ alter table rental_rates add column if not exists made_price integer;
 -- 단계 처리자 (출력물 발주/랩핑 등 단계별)
 alter table schedules add column if not exists stage_by jsonb default '{}'::jsonb;
 
+-- 가챠머신 캡슐 발송 — 진행 단계 체인과 별개의 병렬 작업 (20261007-capsule.sql)
+alter table schedules add column if not exists capsule_sent_at timestamptz;
+alter table schedules add column if not exists capsule_by      text;
+
 -- 일정 취소(소프트) 상태
 alter table schedules add column if not exists cancelled boolean default false;
 

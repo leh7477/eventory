@@ -5,6 +5,7 @@ import { requireSection, requireAnySection } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { availableFor } from "@/lib/inventory";
 import { logActor } from "@/lib/admin/sections";
+import { MAX_STAGE } from "@/lib/admin/stages";
 
 function rv() {
   revalidatePath("/admin/schedule");
@@ -237,11 +238,12 @@ export async function setScheduleVendor(id, vendor) {
   return { ok: true };
 }
 
-// 행사 일정 진행 단계 설정 (0~4) — 단계별 체크 시각 기록
+// 행사 일정 진행 단계 설정 (0~MAX_STAGE) — 단계별 체크 시각 기록
 export async function setScheduleStage(id, stage) {
   const user = await requireSection("schedule");
   const n = parseInt(stage, 10);
-  if (!Number.isFinite(n) || n < 0 || n > 4) return { error: "단계 값이 올바르지 않습니다." };
+  if (!Number.isFinite(n) || n < 0 || n > MAX_STAGE)
+    return { error: "단계 값이 올바르지 않습니다." };
   const admin = createAdminClient();
   const actor = logActor(user);
 
@@ -298,6 +300,32 @@ export async function setScheduleStage(id, stage) {
     if (lastVendor) {
       await admin.from("schedules").update({ vendor: lastVendor }).eq("id", id);
     }
+  }
+
+  rv();
+  return { ok: true };
+}
+
+// 가챠머신 캡슐 발송 체크 — 진행 단계와 무관한 독립 플래그다.
+// 출력물 발주와 같이 보내는 병렬 작업이라 순서에 묶지 않는다.
+export async function setScheduleCapsule(id, sent) {
+  const user = await requireSection("schedule");
+  const admin = createAdminClient();
+  const on = !!sent;
+
+  const { error } = await admin
+    .from("schedules")
+    .update({
+      capsule_sent_at: on ? new Date().toISOString() : null,
+      capsule_by: on ? logActor(user) : null,
+    })
+    .eq("id", id);
+
+  if (error) {
+    if (/capsule|column/i.test(error.message)) {
+      return { error: "캡슐 발송(capsule_sent_at) 컬럼이 아직 없습니다. 안내된 SQL을 먼저 실행해주세요." };
+    }
+    return { error: error.message };
   }
 
   rv();

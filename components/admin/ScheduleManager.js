@@ -11,6 +11,7 @@ import {
   restoreSchedule,
   updateScheduleDatetime,
   setScheduleStage,
+  setScheduleCapsule,
   setScheduleVendor,
 } from "@/app/admin/(panel)/schedule/actions";
 
@@ -18,7 +19,16 @@ import {
 
 import TimeSelect from "@/components/admin/TimeSelect";
 import DatePicker from "@/components/DatePicker";
-import { stagesFor, stageState, dueDateOf, isComplete } from "@/lib/admin/stages";
+import {
+  stagesFor,
+  stageState,
+  dueDateOf,
+  isComplete,
+  CAPSULE,
+  CAPSULE_CATEGORY,
+  capsuleState,
+  capsuleDue,
+} from "@/lib/admin/stages";
 import ScheduleEquipment from "@/components/admin/ScheduleEquipment";
 import ScheduleInfo from "@/components/admin/ScheduleInfo";
 import DispatchView from "@/components/admin/DispatchView";
@@ -882,8 +892,56 @@ export default function ScheduleManager({
                          완료
                        </span>
                      )}
+
+                     {/* 가챠머신 캡슐 발송 — 체인과 별개의 병렬 작업이라
+                         순서에 묶지 않고 아무 때나 켜고 끌 수 있다. */}
+                     {(() => {
+                       const qty = itemsBySchedule(ev.id)
+                         .filter((x) => x.category === CAPSULE_CATEGORY)
+                         .reduce((a, b) => a + Number(b.quantity || 0), 0);
+                       if (qty <= 0) return null;
+                       const st = capsuleState({ ...ev, gachaQty: qty }, today);
+                       const on = st === "done";
+                       const tone =
+                         st === "done"
+                           ? "bg-emerald-600 text-white"
+                           : st === "overdue"
+                           ? "bg-red-600 text-white"
+                           : st === "soon"
+                           ? "bg-amber-500 text-white"
+                           : "bg-ink/5 text-ink/45 hover:bg-ink/10";
+                       const due = capsuleDue(ev);
+                       return (
+                         <>
+                           <span className="mx-1.5 h-4 w-px shrink-0 bg-ink/10" />
+                           <button
+                             type="button"
+                             disabled={pending}
+                             onClick={() => run(() => setScheduleCapsule(ev.id, !on))}
+                             title={
+                               on
+                                 ? `${CAPSULE.full} 완료 (클릭해 되돌리기)`
+                                 : `${CAPSULE.full} — 기한 ${due ?? "-"}${
+                                     st === "overdue" ? " (지남)" : st === "soon" ? " (임박)" : ""
+                                   }`
+                             }
+                             className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold transition ${tone}`}
+                           >
+                             {on ? "✓ " : st === "overdue" ? "⚠ " : ""}
+                             {CAPSULE.label} {qty}세트
+                           </button>
+                         </>
+                       );
+                     })()}
                    </div>
                    {/* 단계별 체크 시각 */}
+                   {ev.capsule_sent_at && (
+                     <div className="mt-1 text-[10px] text-ink/45">
+                       <b className="font-semibold text-ink/55">{CAPSULE.label}</b>{" "}
+                       {fmtStamp(ev.capsule_sent_at)}
+                       {ev.capsule_by ? ` · ${ev.capsule_by}` : ""}
+                     </div>
+                   )}
                    {(ev.stage || 0) >= 1 && ev.stage_dates && (
                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-ink/45">
                        {stagesFor(ev).filter((st) => st.step <= (ev.stage || 0)).map((st) => {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { todayKST, kstPlusDays } from "@/lib/date";
-import { worstStage, dueDateOf } from "@/lib/admin/stages";
+import { worstStage, dueDateOf, CAPSULE_CATEGORY } from "@/lib/admin/stages";
 
 export const revalidate = 0;
 
@@ -168,7 +168,8 @@ export default async function DashboardPage({ searchParams }) {
   // 이번 달이면 "이번 달", 다른 달이면 "2026년 8월" 식으로 표기
   const monthLabel = isCurrentMonth ? "이번 달" : `${ySel}년 ${mSel}월`;
 
-  const [inqRes, schRes, schedInqRes, monthSchRes, upcomingRes] = await Promise.all([
+  const [inqRes, schRes, schedInqRes, monthSchRes, upcomingRes, schItemRes] =
+    await Promise.all([
     admin
       .from("inquiries")
       .select("id, status, is_read, created_at, event_start, event_end"),
@@ -192,9 +193,24 @@ export default async function DashboardPage({ searchParams }) {
       .gte("start_date", todayS)
       .lte("start_date", kstPlusDays(30))
       .order("start_date", { ascending: true }),
+    // 캡슐 발송 대상(가챠머신) 판단용 — 일정별 배정 기기
+    admin.from("schedule_items").select("schedule_id, category, quantity"),
   ]);
 
-  const schedules = schRes.data ?? [];
+  // 일정별 가챠머신 대수 — stages.js 가 ev.gachaQty 로 캡슐 발송 여부를 본다
+  const gachaBySchedule = new Map();
+  for (const it of schItemRes.data ?? []) {
+    if (it.category !== CAPSULE_CATEGORY) continue;
+    gachaBySchedule.set(
+      it.schedule_id,
+      (gachaBySchedule.get(it.schedule_id) || 0) + Number(it.quantity || 0)
+    );
+  }
+
+  const schedules = (schRes.data ?? []).map((ev) => ({
+    ...ev,
+    gachaQty: gachaBySchedule.get(ev.id) || 0,
+  }));
   const scheduledSet = new Set(
     (schedInqRes.data ?? []).map((s) => s.inquiry_id).filter(Boolean)
   );
@@ -217,6 +233,7 @@ export default async function DashboardPage({ searchParams }) {
   // (지난 행사는 stages.js 가 제외한다)
   const latePrep = (upcomingRes.data ?? [])
     .filter((ev) => !ev.cancelled && ev.kind !== "task")
+    .map((ev) => ({ ...ev, gachaQty: gachaBySchedule.get(ev.id) || 0 }))
     .map((ev) => ({ ev, w: worstStage(ev, todayS) }))
     .filter((x) => x.w)
     .sort((a, b) => {
