@@ -260,17 +260,18 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
         </div>
       </div>
 
-      {/* 참고 — 그 달 계산서 발행분. 위 분배 계산과는 무관하다. */}
-      <div className="rounded-2xl border border-dashed border-ink/20 bg-ink/[0.02] p-4">
+      {/* 참고 — 그 달 고객사에 끊은 계산서. 위 분배 계산(입금 기준)과는 기준이 달라
+          바로 위 금액에 대한 계산서로 오해하지 않도록 제목에 주체를 밝힌다. */}
+      <div className="mt-6 rounded-2xl border border-dashed border-ink/20 bg-ink/[0.02] p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <span className="text-sm font-bold text-ink/70">
-            계산서 발행
+            고객사 발행 계산서
             <span className="ml-1.5 text-xs font-normal text-ink/40">
-              참고 · 위 계산에는 들어가지 않음
+              참고 · 발행일 기준 (위는 입금일 기준)
             </span>
           </span>
           <span className="shrink-0 text-xs text-ink/45">
-            발행일 기준 · {monthInvoiced.rows.length}건
+            {monthInvoiced.rows.length}건 발행
           </span>
         </div>
 
