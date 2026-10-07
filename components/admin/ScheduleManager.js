@@ -80,6 +80,15 @@ export default function ScheduleManager({
     schedules.map((s) => [s.id, { start_date: s.start_date, end_date: s.end_date }])
   );
   const itemsBySchedule = (id) => scheduleItems.filter((it) => it.schedule_id === id);
+
+  // 기기를 배정해야 단계를 시작할 수 있다. 무엇을 몇 대 보낼지 모르는 채로
+  // AI파일·발주를 체크하면 뒤가 전부 어긋난다. 제작 건은 배정이 없고,
+  // 이미 시작된 건은 잠그지 않는다 — 기기를 나중에 지웠을 때 단계를
+  // 되돌리지도 못하고 갇히기 때문이다.
+  const blockedByItems = (ev) =>
+    usageOf(ev) !== "제작" &&
+    (ev.stage || 0) === 0 &&
+    itemsBySchedule(ev.id).filter((x) => Number(x.quantity) > 0).length === 0;
   const [equipEditId, setEquipEditId] = useState(null);
   const [infoEditId, setInfoEditId] = useState(null);
   // 대시보드에서 납품·회수를 눌러 오면 바로 상세 탭으로 연다
@@ -842,12 +851,13 @@ export default function ScheduleManager({
                        기한은 납품일에서 역산하며, 지나면 빨강 / 임박하면 주황 */}
                    <div className="mt-3 flex items-center gap-1 overflow-x-auto pb-0.5">
                      {stagesFor(ev).map((st, i, arr) => {
+                       const blocked = blockedByItems(ev);
                        const step = st.step;
                        const cur = (ev.stage || 0) === step;
                        const done = (ev.stage || 0) >= step;
                        const state = stageState(ev, step, today);
                        const due = dueDateOf(ev, step);
-                       const locked = step > (ev.stage || 0) + 1;
+                       const locked = blocked || step > (ev.stage || 0) + 1;
                        // 완료=초록, 기한 지남=빨강, 임박=주황, 그 외=회색
                        const tone =
                          state === "done"
@@ -864,7 +874,9 @@ export default function ScheduleManager({
                              disabled={pending || locked}
                              onClick={() => run(() => setScheduleStage(ev.id, cur ? step - 1 : step))}
                              title={
-                               locked
+                               blocked
+                                 ? "먼저 아래 ‘기기’에서 장비를 배정하세요"
+                                 : locked
                                  ? "이전 단계를 먼저 진행하세요"
                                  : done
                                  ? `${st.full} 완료 (클릭해 되돌리기)`
@@ -890,6 +902,11 @@ export default function ScheduleManager({
                      {isComplete(ev) && (
                        <span className="ml-1.5 shrink-0 rounded bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
                          완료
+                       </span>
+                     )}
+                     {blockedByItems(ev) && (
+                       <span className="ml-1.5 shrink-0 whitespace-nowrap text-[11px] font-bold text-amber-600">
+                         ⚠ 아래 ‘기기’에서 장비를 먼저 배정하세요
                        </span>
                      )}
 
