@@ -280,7 +280,7 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
           <span className="text-sm font-bold text-ink/70">
             실입금 대상 계산서
             <span className="ml-1.5 text-xs font-normal text-ink/40">
-              참고 · 이 달 입금된 건
+              참고 · 위 실입금이 들어온 건의 청구액
             </span>
           </span>
           <span className="shrink-0 text-xs text-ink/45">
