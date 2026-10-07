@@ -66,6 +66,7 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
         if ((x.paid_date || "").slice(0, 7) !== month) continue;
         if (!(Number(x.amount) > 0)) continue;
         rows.push({
+          id: d.id,
           company_name: d.company_name,
           contact_name: d.contact_name,
           paid_date: x.paid_date,
@@ -300,16 +301,22 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
             </summary>
             <ul className="mt-2 divide-y divide-ink/5 text-sm">
               {monthInvoiced.rows.map((d, i) => (
-                <li key={i} className="flex items-baseline justify-between gap-3 py-1.5">
-                  <span className="min-w-0 truncate text-ink/70">
-                    {d.company_name || d.contact_name || "(업체명 없음)"}
-                    <span className="ml-1.5 text-xs text-ink/35">
-                      {d.invoice_date ? `계산서 ${d.invoice_date}` : "계산서 미발행"}
+                <li key={i}>
+                  <a
+                    href={`/admin/stats?focus=${d.id}`}
+                    title="정산에서 이 건 보기"
+                    className="flex items-baseline justify-between gap-3 rounded px-1 py-1.5 transition hover:bg-primary/5"
+                  >
+                    <span className="min-w-0 truncate text-ink/70">
+                      {d.company_name || d.contact_name || "(업체명 없음)"}
+                      <span className="ml-1.5 text-xs text-ink/35">
+                        {d.invoice_date ? `계산서 ${d.invoice_date}` : "계산서 미발행"}
+                      </span>
                     </span>
-                  </span>
-                  <span className="shrink-0 tabular-nums text-ink">
-                    ₩ {won(d.contract_amount)}
-                  </span>
+                    <span className="shrink-0 tabular-nums text-ink">
+                      ₩ {won(d.contract_amount)}
+                    </span>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -325,15 +332,23 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
           </summary>
           <ul className="mt-3 divide-y divide-ink/5 text-sm">
             {monthPaid.rows.map((d, i) => (
-              <li key={i} className="flex items-baseline justify-between gap-3 py-1.5">
-                <span className="min-w-0 truncate text-ink/70">
-                  {d.company_name || d.contact_name || "(업체명 없음)"}
-                  <span className="ml-1.5 text-xs text-ink/35">
-                    {d.paid_date}
-                    {d.memo ? ` · ${d.memo}` : ""}
+              <li key={i}>
+                <a
+                  href={`/admin/stats?focus=${d.id}`}
+                  title="정산에서 이 건 보기"
+                  className="flex items-baseline justify-between gap-3 rounded px-1 py-1.5 transition hover:bg-primary/5"
+                >
+                  <span className="min-w-0 truncate text-ink/70">
+                    {d.company_name || d.contact_name || "(업체명 없음)"}
+                    <span className="ml-1.5 text-xs text-ink/35">
+                      {d.paid_date}
+                      {d.memo ? ` · ${d.memo}` : ""}
+                    </span>
                   </span>
-                </span>
-                <span className="shrink-0 tabular-nums text-ink">₩ {won(d.paid_amount)}</span>
+                  <span className="shrink-0 tabular-nums text-ink">
+                    ₩ {won(d.paid_amount)}
+                  </span>
+                </a>
               </li>
             ))}
           </ul>

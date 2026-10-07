@@ -57,7 +57,7 @@ function shiftMonth(ym, delta) {
 const monthOf = (d) => (d.event_start || d.created_at || "").slice(0, 7);
 const PAGE_SIZE = 30;
 
-export default function SettlementManager({ deals }) {
+export default function SettlementManager({ deals, initialFocusId = null }) {
   const router = useRouter();
   const [filter, setFilter] = useState("all");
   const [month, setMonth] = useState(todayStr().slice(0, 7));
@@ -83,6 +83,19 @@ export default function SettlementManager({ deals }) {
   );
 
   const setField = (id, k, v) => setRows((r) => ({ ...r, [id]: { ...r[id], [k]: v } }));
+
+  // 다른 패널(발행 계산서 내역)이나 계산기에서 넘어온 건으로 이동
+  const [focusId, setFocusId] = useState(initialFocusId);
+
+  // 목록은 행사월로 걸러져 있어 그냥 스크롤만 하면 안 보일 수 있다.
+  // 필터를 풀고 그 건의 행사월로 옮긴 뒤 찾아간다.
+  const focusTo = (d) => {
+    setFilter("all");
+    setQuery("");
+    setAllMonths(false);
+    setMonth(monthOf(d));
+    setFocusId(d.id);
+  };
 
   // 입금 추가 폼 (건별 임시값) — 계약금·잔금처럼 여러 번 받는 경우가 있다
   const [payForm, setPayForm] = useState({});
@@ -210,9 +223,37 @@ export default function SettlementManager({ deals }) {
     setPage(1);
   }, [month, allMonths, filter, q]);
 
+  // 대상이 몇 페이지에 있는지 계산해 그 페이지로 옮기고, 그려진 뒤 스크롤한다.
+  useEffect(() => {
+    if (!focusId) return;
+    const i = filtered.findIndex((d) => d.id === focusId);
+    if (i < 0) return;
+    const want = Math.floor(i / PAGE_SIZE) + 1;
+    if (want !== curPage) {
+      setPage(want);
+      return; // 페이지가 바뀌면 다시 들어와 스크롤한다
+    }
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries += 1;
+      const el = document.getElementById(`settle-${focusId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        clearInterval(timer);
+        // 하이라이트는 잠깐만
+        setTimeout(() => setFocusId(null), 2000);
+        return;
+      }
+      if (tries >= 20) clearInterval(timer);
+    }, 50);
+    return () => clearInterval(timer);
+  }, [focusId, filtered, curPage]);
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const curPage = Math.min(page, totalPages);
   const paged = filtered.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+
+
   const pageNums = [];
   for (let i = Math.max(1, curPage - 2); i <= Math.min(totalPages, curPage + 2); i++)
     pageNums.push(i);
@@ -379,7 +420,15 @@ export default function SettlementManager({ deals }) {
             const unpaid = vat - paidSaved;
             const st = statusOf(d);
             return (
-              <li key={d.id} className="rounded-xl border border-ink/10 p-3">
+              <li
+                key={d.id}
+                id={`settle-${d.id}`}
+                className={`rounded-xl border p-3 transition ${
+                  focusId === d.id
+                    ? "border-primary bg-primary/[0.04] ring-2 ring-primary/30"
+                    : "border-ink/10"
+                }`}
+              >
                 <div className="mb-1 flex items-center gap-2">
                   <span className="text-sm font-semibold text-ink">{label(d)}</span>
                   {d.event_start && <span className="text-xs text-ink/40">{d.event_start}</span>}
@@ -737,14 +786,21 @@ export default function SettlementManager({ deals }) {
                 </summary>
                 <ul className="mt-2 divide-y divide-ink/5 text-sm">
                   {issued.rows.map((d) => (
-                    <li key={d.id} className="flex items-baseline justify-between gap-3 py-1.5">
-                      <span className="min-w-0 truncate text-ink/70">
-                        {d.company_name || d.contact_name || "(업체명 없음)"}
-                        <span className="ml-1.5 text-xs text-ink/35">{d.invoice_date}</span>
-                      </span>
-                      <span className="shrink-0 tabular-nums text-ink">
-                        ₩ {won(d.contract_amount)}
-                      </span>
+                    <li key={d.id}>
+                      <button
+                        type="button"
+                        onClick={() => focusTo(d)}
+                        title="정산 목록에서 이 건 보기"
+                        className="flex w-full items-baseline justify-between gap-3 rounded px-1 py-1.5 text-left transition hover:bg-primary/5"
+                      >
+                        <span className="min-w-0 truncate text-ink/70">
+                          {d.company_name || d.contact_name || "(업체명 없음)"}
+                          <span className="ml-1.5 text-xs text-ink/35">{d.invoice_date}</span>
+                        </span>
+                        <span className="shrink-0 tabular-nums text-ink">
+                          ₩ {won(d.contract_amount)}
+                        </span>
+                      </button>
                     </li>
                   ))}
                 </ul>

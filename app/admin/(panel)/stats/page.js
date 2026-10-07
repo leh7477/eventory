@@ -81,6 +81,8 @@ export default async function AdminStatsPage({ searchParams }) {
   const yPaidN = yFullN + yPartialN;
   const yUnpaidN = yNoneN + yPartialN;
   const initialTab = searchParams?.tab === "stats" ? 1 : 0;
+  // 계산기 내역에서 넘어온 건 — 정산 탭에서 그 줄로 이동시킨다
+  const focusId = String(searchParams?.focus || "").trim() || null;
 
   const count = deals.length;
   const thisYearRevenue = byYear[thisYear] || 0;
@@ -112,7 +114,7 @@ export default async function AdminStatsPage({ searchParams }) {
       <div className="mt-5">
       <SalesTabs tabs={["정산", "통계", "계산기"]} initial={initialTab}>
         {/* 정산 (먼저) */}
-        <SettlementManager deals={deals} />
+        <SettlementManager deals={deals} initialFocusId={focusId} />
 
         {/* 통계 */}
         <div>
