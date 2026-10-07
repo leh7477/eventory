@@ -622,6 +622,8 @@ export default function SettlementManager({ deals }) {
                       </label>
                       <label className="text-xs text-ink/50">
                         입금액 (부가세 포함)
+                        {/* 남은 금액이 미리 채워져 있다. 누르면 전체 선택되어
+                            새로 치는 숫자가 뒤에 붙지 않고 덮어쓰인다. */}
                         <input
                           inputMode="numeric"
                           value={
@@ -630,16 +632,8 @@ export default function SettlementManager({ deals }) {
                               : ""
                           }
                           onChange={(e) => setPay(d.id, "amount", digits(e.target.value))}
+                          onFocus={(e) => e.target.select()}
                           className="mt-0.5 block w-32 rounded-md border border-ink/15 px-2 py-1.5 text-right text-sm font-bold outline-none focus:border-primary"
-                        />
-                      </label>
-                      <label className="text-xs text-ink/50">
-                        메모
-                        <input
-                          value={payForm[d.id]?.memo || ""}
-                          onChange={(e) => setPay(d.id, "memo", e.target.value)}
-                          placeholder="계약금 / 잔금"
-                          className="mt-0.5 block w-28 rounded-md border border-ink/15 px-2 py-1.5 text-sm outline-none focus:border-primary"
                         />
                       </label>
                       <button
