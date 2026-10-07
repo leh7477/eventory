@@ -433,7 +433,17 @@ export default function SettlementManager({ deals, initialFocusId = null }) {
                 }`}
               >
                 <div className="mb-1 flex items-center gap-2">
-                  <span className="text-sm font-semibold text-ink">{label(d)}</span>
+                  {d.schedule_id ? (
+                    <a
+                      href={`/admin/schedule?month=${d.schedule_month}&focus=${d.schedule_id}`}
+                      title="일정 관리에서 이 행사 보기"
+                      className="text-sm font-semibold text-ink underline decoration-ink/20 underline-offset-2 transition hover:text-primary hover:decoration-primary"
+                    >
+                      {label(d)}
+                    </a>
+                  ) : (
+                    <span className="text-sm font-semibold text-ink">{label(d)}</span>
+                  )}
                   {d.event_start && <span className="text-xs text-ink/40">{d.event_start}</span>}
                   <span className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold ${ST[st].cls}`}>
                     {ST[st].label}
@@ -441,7 +451,16 @@ export default function SettlementManager({ deals, initialFocusId = null }) {
                 </div>
                 {(d.contact_name || d.phone) && (
                   <p className="mb-2 text-xs text-ink/45">
-                    {d.contact_name}
+                    {d.schedule_id ? (
+                      <a
+                        href={`/admin/schedule?month=${d.schedule_month}&focus=${d.schedule_id}`}
+                        className="underline decoration-ink/15 underline-offset-2 transition hover:text-primary"
+                      >
+                        {d.contact_name}
+                      </a>
+                    ) : (
+                      d.contact_name
+                    )}
                     {d.contact_name && d.phone ? " · " : ""}
                     {d.phone}
                   </p>

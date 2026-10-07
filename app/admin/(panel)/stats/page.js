@@ -28,6 +28,21 @@ export default async function AdminStatsPage({ searchParams }) {
   // 입금은 계약금·잔금처럼 나눠 받을 수 있어 건별 내역(payments)을 함께 붙인다.
   const rows = await attachPayments(admin, await attachSettlements(admin, data ?? []));
 
+  // 정산에서 업체명을 누르면 그 행사의 일정으로 가야 한다.
+  // 일정은 문의에서 '일정 등록'을 눌러야 생기므로 없을 수도 있다(그땐 링크를 걸지 않는다).
+  const { data: schedules } = await admin
+    .from("schedules")
+    .select("id, inquiry_id, start_date")
+    .not("inquiry_id", "is", null);
+  const schByInquiry = new Map(
+    (schedules ?? []).map((s) => [s.inquiry_id, s])
+  );
+  for (const r of rows) {
+    const s = schByInquiry.get(r.id);
+    r.schedule_id = s?.id ?? null;
+    r.schedule_month = s?.start_date ? s.start_date.slice(0, 7) : null;
+  }
+
   const deals = rows.filter(
     (d) => d.contract_amount && d.contract_amount > 0
   );
