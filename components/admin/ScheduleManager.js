@@ -961,7 +961,7 @@ export default function ScheduleManager({
                    {/* 출력물 발주 단계 → 발주처(거래처) 선택 */}
                    {(ev.stage || 0) >= 2 && (
                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                       <span className="text-xs font-bold text-ink/50">발주처</span>
+                       <span className="text-xs font-bold text-ink/50">출력물 발주처</span>
                        <select
                          value={ev.vendor || ""}
                          disabled={pending}
