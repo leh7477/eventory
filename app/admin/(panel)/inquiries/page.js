@@ -44,6 +44,16 @@ export default async function AdminInquiriesPage() {
     ...new Set((scheds ?? []).map((s) => s.inquiry_id).filter(Boolean)),
   ];
 
+  // '일정 관리에서 보기' 가 그 일정으로 바로 가도록 id·월을 함께 넘긴다
+  const scheduleByInquiry = Object.fromEntries(
+    (scheds ?? [])
+      .filter((s) => s.inquiry_id)
+      .map((s) => [
+        s.inquiry_id,
+        { id: s.id, month: (s.start_date || "").slice(0, 7) },
+      ])
+  );
+
   return (
     <div className="max-w-3xl">
       <div className="flex items-center gap-3">
@@ -68,6 +78,7 @@ export default async function AdminInquiriesPage() {
           scheduleItems={items ?? []}
           schedById={schedById}
           scheduledInquiryIds={scheduledInquiryIds}
+          scheduleByInquiry={scheduleByInquiry}
           actorNames={actorNames}
         />
       </div>

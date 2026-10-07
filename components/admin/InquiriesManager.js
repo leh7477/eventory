@@ -137,6 +137,7 @@ export default function InquiriesManager({
   scheduleItems = [],
   schedById = {},
   scheduledInquiryIds = [],
+  scheduleByInquiry = {},
   actorNames = {},
 }) {
   const router = useRouter();
@@ -904,7 +905,11 @@ export default function InquiriesManager({
                               일정에 등록됨
                             </span>
                             <a
-                              href="/admin/schedule"
+                              href={
+                                scheduleByInquiry[q.id]
+                                  ? `/admin/schedule?month=${scheduleByInquiry[q.id].month}&focus=${scheduleByInquiry[q.id].id}`
+                                  : "/admin/schedule"
+                              }
                               className="rounded-md border border-ink/15 px-3 py-1.5 text-xs text-ink/70 hover:bg-ink/5"
                             >
                               일정 관리에서 보기 →
