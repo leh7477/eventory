@@ -266,7 +266,7 @@ export default function SettlementManager({ deals, initialFocusId = null }) {
 
   const exportCSV = () => {
     const head = [
-      "업체명", "담당자", "연락처", "행사일", "견적(공급가)", "청구(VAT포함)",
+      "업체명", "담당자", "연락처", "행사일", "계약(공급가)", "청구(VAT포함)",
       "실입금", "미수금", "계산서발행일", "계산서처리", "입금일", "입금액", "입금처리", "상태", "비고",
     ];
     const body = filtered.map((d) => {
@@ -274,7 +274,7 @@ export default function SettlementManager({ deals, initialFocusId = null }) {
       const paid = Number(d.paid_amount) || 0;
       return [
         d.company_name || "", d.contact_name || d.name || "", d.phone || "",
-        d.event_start || "", Number(d.quoted_amount) || 0, vat, paid, vat - paid,
+        d.event_start || "", Number(d.contract_amount) || 0, vat, paid, vat - paid,
         d.invoice_date || "",
         [d.invoice_by, d.invoice_at ? fmtStamp(d.invoice_at) : ""].filter(Boolean).join(" "),
         d.paid_date || "", paid,
@@ -450,8 +450,8 @@ export default function SettlementManager({ deals, initialFocusId = null }) {
                 {/* 금액 요약 */}
                 <div className="mb-2 grid grid-cols-4 gap-2 text-center">
                   <div className="rounded-md bg-ink/[0.03] py-1.5">
-                    <p className="text-[10px] text-ink/45">견적(공급가)</p>
-                    <p className="text-xs font-bold text-ink/70">₩ {won(d.quoted_amount)}</p>
+                    <p className="text-[10px] text-ink/45">계약(공급가)</p>
+                    <p className="text-xs font-bold text-ink/70">₩ {won(d.contract_amount)}</p>
                   </div>
                   <div className="rounded-md bg-ink/[0.03] py-1.5">
                     <p className="text-[10px] text-ink/45">청구(VAT포함)</p>
