@@ -223,6 +223,11 @@ export default function SettlementManager({ deals, initialFocusId = null }) {
     setPage(1);
   }, [month, allMonths, filter, q]);
 
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const curPage = Math.min(page, totalPages);
+  const paged = filtered.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
+
   // 대상이 몇 페이지에 있는지 계산해 그 페이지로 옮기고, 그려진 뒤 스크롤한다.
   useEffect(() => {
     if (!focusId) return;
@@ -248,10 +253,6 @@ export default function SettlementManager({ deals, initialFocusId = null }) {
     }, 50);
     return () => clearInterval(timer);
   }, [focusId, filtered, curPage]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const curPage = Math.min(page, totalPages);
-  const paged = filtered.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE);
 
 
   const pageNums = [];
