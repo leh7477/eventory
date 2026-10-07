@@ -448,7 +448,7 @@ export default function ScheduleManager({
                     past ? "bg-ink/[0.05] text-ink/40" : "bg-slate-200 text-slate-700"
                   }`}
                 >
-                  <span className="shrink-0 font-bold">●업무</span>
+                  <span className="shrink-0 font-bold">업무</span>
                   {t && <span className="shrink-0 font-semibold">{t}</span>}
                   <span className="truncate">{ev.title}</span>
                 </div>
@@ -523,7 +523,7 @@ export default function ScheduleManager({
             회수 나가는 날
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="rounded bg-slate-200 px-1 py-0.5 font-bold text-slate-700">●업무</span>{" "}
+            <span className="rounded bg-slate-200 px-1 py-0.5 font-bold text-slate-700">업무</span>{" "}
             행사 외 일정
           </span>
           <span className="flex items-center gap-1.5">

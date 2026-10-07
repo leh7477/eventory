@@ -116,11 +116,9 @@ function ScheduleGroup({ title, occurrences, emptyText, showDate = false, dayKin
           <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-700">
             회수 {pickup}
           </span>
-          {task > 0 && (
-            <span className="rounded bg-slate-200 px-1.5 py-0.5 text-slate-700">
-              업무 {task}
-            </span>
-          )}
+          <span className="rounded bg-slate-200 px-1.5 py-0.5 text-slate-700">
+            업무 {task}
+          </span>
           {warnCount > 0 && (
             <span className="rounded bg-red-100 px-1.5 py-0.5 text-red-700">
               ⚠ 준비 {warnCount}
