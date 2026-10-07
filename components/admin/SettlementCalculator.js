@@ -82,10 +82,22 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
   }, [deals, month]);
 
   // 그 달에 발행한 계산서 (발행일 기준) — 참고용, 분배 계산에는 쓰지 않는다
+  // 위 실입금에 대응하는 계산서 — 그 달에 '발행한' 것이 아니라
+  // 그 달에 '입금이 들어온 건'의 계산서를 모은다. 실입금과 짝이 맞아야
+  // 받은 돈과 청구한 돈을 나란히 비교할 수 있다.
   const monthInvoiced = useMemo(() => {
-    const rows = deals.filter(
-      (d) => (d.invoice_date || "").slice(0, 7) === month && Number(d.contract_amount) > 0
-    );
+    const rows = deals.filter((d) => {
+      if (!(Number(d.contract_amount) > 0)) return false;
+      const list =
+        Array.isArray(d.payments) && d.payments.length > 0
+          ? d.payments
+          : d.paid_date && Number(d.paid_amount) > 0
+          ? [{ paid_date: d.paid_date, amount: d.paid_amount }]
+          : [];
+      return list.some(
+        (x) => (x.paid_date || "").slice(0, 7) === month && Number(x.amount) > 0
+      );
+    });
     return {
       rows,
       total: rows.reduce((s, d) => s + Number(d.contract_amount || 0), 0),
@@ -260,18 +272,18 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
         </div>
       </div>
 
-      {/* 참고 — 그 달 고객사에 끊은 계산서. 위 분배 계산(입금 기준)과는 기준이 달라
-          바로 위 금액에 대한 계산서로 오해하지 않도록 제목에 주체를 밝힌다. */}
+      {/* 참고 — 위 실입금이 어느 건에서 왔는지, 그 건들의 계산서는 얼마인지.
+          받은 돈(실입금)과 청구한 돈(계산서)을 나란히 두면 미수가 바로 보인다. */}
       <div className="mt-6 rounded-2xl border border-dashed border-ink/20 bg-ink/[0.02] p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <span className="text-sm font-bold text-ink/70">
-            고객사 발행 계산서
+            실입금 대상 계산서
             <span className="ml-1.5 text-xs font-normal text-ink/40">
-              참고 · 발행일 기준 (위는 입금일 기준)
+              참고 · 이 달 입금된 건
             </span>
           </span>
           <span className="shrink-0 text-xs text-ink/45">
-            {monthInvoiced.rows.length}건 발행
+            {monthInvoiced.rows.length}건
           </span>
         </div>
 
@@ -284,14 +296,16 @@ export default function SettlementCalculator({ deals = [], people = 2 }) {
         {monthInvoiced.rows.length > 0 && (
           <details className="mt-1">
             <summary className="cursor-pointer py-1 text-xs font-bold text-ink/50">
-              발행 내역 보기
+              내역 보기
             </summary>
             <ul className="mt-2 divide-y divide-ink/5 text-sm">
               {monthInvoiced.rows.map((d, i) => (
                 <li key={i} className="flex items-baseline justify-between gap-3 py-1.5">
                   <span className="min-w-0 truncate text-ink/70">
                     {d.company_name || d.contact_name || "(업체명 없음)"}
-                    <span className="ml-1.5 text-xs text-ink/35">{d.invoice_date}</span>
+                    <span className="ml-1.5 text-xs text-ink/35">
+                      {d.invoice_date ? `계산서 ${d.invoice_date}` : "계산서 미발행"}
+                    </span>
                   </span>
                   <span className="shrink-0 tabular-nums text-ink">
                     ₩ {won(d.contract_amount)}

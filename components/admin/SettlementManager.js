@@ -191,6 +191,20 @@ export default function SettlementManager({ deals }) {
     };
   }, [monthDeals]);
 
+  // 이 달에 '발행한' 계산서 — 목록은 행사월로 거르지만 이건 발행일 기준이라
+  // 전체 건에서 따로 센다. 부가세 신고·세무 정리 때 보는 숫자다.
+  const issued = useMemo(() => {
+    const rows = deals
+      .filter(
+        (d) =>
+          (d.invoice_date || "").slice(0, 7) === month &&
+          Number(d.contract_amount) > 0
+      )
+      .sort((a, b) => (a.invoice_date < b.invoice_date ? -1 : 1));
+    const supply = rows.reduce((a, d) => a + (Number(d.contract_amount) || 0), 0);
+    return { rows, supply, vat: Math.round(supply * 1.1) };
+  }, [deals, month]);
+
   // 필터/월/검색 바뀌면 첫 페이지로
   useEffect(() => {
     setPage(1);
@@ -692,6 +706,53 @@ export default function SettlementManager({ deals }) {
           >
             ›
           </button>
+        </div>
+      )}
+
+      {/* 이 달 발행한 계산서 — 위 목록(행사월)과 달리 발행일 기준이라 따로 둔다 */}
+      {!allMonths && !q && (
+        <div className="mt-6 rounded-2xl border border-dashed border-ink/20 bg-ink/[0.02] p-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <span className="text-sm font-bold text-ink/70">
+              {month.replace("-", ". ")} 발행 계산서
+              <span className="ml-1.5 text-xs font-normal text-ink/40">발행일 기준</span>
+            </span>
+            <span className="shrink-0 text-xs text-ink/45">{issued.rows.length}건</span>
+          </div>
+
+          {issued.rows.length > 0 ? (
+            <>
+              <div className="mt-2 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm">
+                <span className="text-ink/60">
+                  공급가 <b className="text-ink">₩ {won(issued.supply)}</b>
+                </span>
+                <span className="text-ink/60">
+                  청구액 <span className="text-xs text-ink/40">부가세 포함</span>{" "}
+                  <b className="text-ink">₩ {won(issued.vat)}</b>
+                </span>
+              </div>
+              <details className="mt-1">
+                <summary className="cursor-pointer py-1 text-xs font-bold text-ink/50">
+                  내역 보기
+                </summary>
+                <ul className="mt-2 divide-y divide-ink/5 text-sm">
+                  {issued.rows.map((d) => (
+                    <li key={d.id} className="flex items-baseline justify-between gap-3 py-1.5">
+                      <span className="min-w-0 truncate text-ink/70">
+                        {d.company_name || d.contact_name || "(업체명 없음)"}
+                        <span className="ml-1.5 text-xs text-ink/35">{d.invoice_date}</span>
+                      </span>
+                      <span className="shrink-0 tabular-nums text-ink">
+                        ₩ {won(d.contract_amount)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-ink/40">이 달에 발행한 계산서가 없습니다.</p>
+          )}
         </div>
       )}
     </div>
