@@ -15,7 +15,8 @@
     "deploy": "bash scripts/deploy.sh",
     "db:apply": "node scripts/db-apply.mjs",
     "db:project": "node scripts/supabase-project.mjs",
-    "build:sql": "node scripts/build-apply-all.mjs"
+    "build:sql": "node scripts/build-apply-all.mjs",
+    "restore:drill": "node scripts/restore-drill.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
