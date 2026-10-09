@@ -48,7 +48,11 @@ export default function DispatchView({
   const [supText, setSupText] = useState("");
   const [editRemarkId, setEditRemarkId] = useState(null);
   const [remarkText, setRemarkText] = useState("");
-  const [scrollTo, setScrollTo] = useState(target?.date || null);
+  // 스크롤 요청 — { date, key }. key 는 강조할 줄(없으면 날짜 블록 맨 위로).
+  // 요청 시점의 값을 그대로 들고 다녀야 효과가 중간에 바뀐 강조를 따라가지 않는다.
+  const [scrollTo, setScrollTo] = useState(
+    target ? { date: target.date, key: `${target.evId}-${target.type}` } : null
+  );
   const rowsRef = useRef(null);
 
   // 일정별 기기 요약
@@ -95,7 +99,7 @@ export default function DispatchView({
   const goToday = () => {
     setFlashKey(null); // 이전 강조가 남아 있으면 그 줄로 스크롤하므로 해제
     setMonth(today.slice(0, 7));
-    setScrollTo(today);
+    setScrollTo({ date: today, key: null }); // 줄이 아니라 날짜 블록 맨 위로
   };
   useEffect(() => {
     if (!scrollTo) return;
@@ -105,10 +109,10 @@ export default function DispatchView({
     //   1) 줄이 아직 그려지기 전이라 대상을 못 찾는다
     //   2) 찾아서 옮겨놔도 화면 복원이 맨 위로 되돌린다
     // 그래서 잠깐 동안 여러 번 확인하며, 제자리에 올 때까지 다시 맞춘다.
-    const block = flashKey ? "center" : "start";
+    const block = scrollTo.key ? "center" : "start";
     const find = () =>
-      (flashKey ? document.getElementById(`disp-row-${flashKey}`) : null) ??
-      document.getElementById(`disp-${scrollTo}`);
+      (scrollTo.key ? document.getElementById(`disp-row-${scrollTo.key}`) : null) ??
+      document.getElementById(`disp-${scrollTo.date}`);
 
     let tries = 0;
     const timer = setInterval(() => {
@@ -137,8 +141,12 @@ export default function DispatchView({
   useEffect(() => {
     if (!target) return;
     setMonth(target.date.slice(0, 7));
-    setScrollTo(target.date);
+    setScrollTo({ date: target.date, key: `${target.evId}-${target.type}` });
     setFlashKey(`${target.evId}-${target.type}`);
+    // nonce 만 본다. target 전체를 넣으면 같은 곳을 다시 눌렀을 때(내용은 같고
+    // 객체만 새로) 이동이 안 되거나, 부모가 다시 그릴 때마다 또 스크롤된다.
+    // nonce 는 누를 때마다 Date.now() 로 갱신돼 '다시 눌렀다'만 정확히 잡는다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target?.nonce]);
   // 강조는 잠깐만 보여주고 해제
   useEffect(() => {
