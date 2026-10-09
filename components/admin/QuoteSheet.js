@@ -40,10 +40,6 @@ function todayStr() {
 
 const won = (n) => (isNaN(n) ? 0 : n).toLocaleString("ko-KR");
 
-// 운송비 프로모션 — 해당 연도 견적에만 자동으로 붙고, 해가 바뀌면 멈춘다.
-// 금액은 견적서에서 고칠 수 있고, 운송비보다 크게는 깎이지 않는다.
-const SHIP_PROMO = { year: 2026, amount: 50000 };
-
 export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: [] } }) {
   const days = daysBetween(inquiry.event_start, inquiry.event_end);
   const period =
@@ -216,9 +212,6 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
     "· 본 견적은 견적일로부터 30일간 유효합니다.\n· 행사 일정 변경·취소는 사전 협의 부탁드립니다.\n· 대금 지급 일정은 귀사의 내부 결제 규정(지정 결제일)에 맞춰 상호 협의하에 조정 가능합니다.\n· 과실로 인한 제품 파손·분실 시 변상 책임이 부과됩니다."
   );
   const [quoteDate, setQuoteDate] = useState(todayStr());
-  const [shipPromo, setShipPromo] = useState(() =>
-    todayStr().slice(0, 4) === String(SHIP_PROMO.year) ? String(SHIP_PROMO.amount) : ""
-  );
   const router = useRouter();
   const [saving, startSave] = useTransition();
   const [savedMsg, setSavedMsg] = useState("");
@@ -285,12 +278,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
     0
   );
   const shippingFee = parseInt(String(shipping).replace(/\D/g, ""), 10) || 0;
-  // 운송비가 0원이거나 할인보다 적으면 그만큼만 깎는다 (음수 방지)
-  const shipDiscount = Math.min(
-    parseInt(String(shipPromo).replace(/\D/g, ""), 10) || 0,
-    shippingFee
-  );
-  const supply = itemsTotal + shippingFee - shipDiscount - serviceDiscount;
+  const supply = itemsTotal + shippingFee - serviceDiscount;
   const vat = vatIncluded ? Math.round(supply * 0.1) : 0;
   const total = supply + vat;
   // 인쇄 글씨 크기 — 품목이 적으면 여유있게 크게, 많으면 자동으로 줄여 1장 유지
@@ -674,29 +662,6 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
               <td />
               <td className="print-hide" />
             </tr>
-
-            {/* 운송비 할인 — 깎인 게 보이도록 운송비 바로 아래 둔다 */}
-            {shipDiscount > 0 && (
-              <tr className="text-ink">
-                <td colSpan={4} className="py-1 text-right text-ink/60">
-                  운송비 할인{" "}
-                  <span className="text-xs text-ink/40">
-                    ({SHIP_PROMO.year}년 한정)
-                  </span>
-                </td>
-                <td className="py-1 pr-4 text-right">
-                  <input
-                    value={won(shipDiscount)}
-                    onChange={(e) =>
-                      setShipPromo(e.target.value.replace(/\D/g, ""))
-                    }
-                    className={`${inputCls} text-right font-medium text-primary`}
-                  />
-                </td>
-                <td />
-                <td className="print-hide" />
-              </tr>
-            )}
             {/* 배송 방식에 따라 어디까지 해드리는지 안내 — 퀵은 물품만 가고 사람이 가지 않는다 */}
             {!isMade && (
               <tr className="border-b border-ink/10">
