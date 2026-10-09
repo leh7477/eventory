@@ -6,7 +6,6 @@ import { worstStage, dueDateOf, CAPSULE_CATEGORY } from "@/lib/admin/stages";
 export const revalidate = 0;
 
 const pad = (n) => String(n).padStart(2, "0");
-const ds = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const hm = (t) => (t ? String(t).slice(0, 5) : null);
 
 // 일정 → 납품/회수 발생일로 분리

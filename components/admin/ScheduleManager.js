@@ -95,17 +95,6 @@ export default function ScheduleManager({
   const [mode, setMode] = useState(initialTarget ? "dispatch" : "list"); // 'list' | 'dispatch'
   const [cancelTarget, setCancelTarget] = useState(null); // 취소 확인 대상 일정
 
-  const doCancel = (alsoInquiry) => {
-    const ev = cancelTarget;
-    if (!ev) return;
-    run(async () => {
-      const res = await cancelSchedule(ev.id, alsoInquiry);
-      if (res?.error) alert(res.error);
-      setCancelTarget(null);
-      return res;
-    });
-  };
-
   // 행사 외(업무) 일정 — 추가/편집
   const emptyTask = { date: "", start_time: "", end_time: "", title: "", memo: "" };
   const [showTaskAdd, setShowTaskAdd] = useState(false);
@@ -132,6 +121,25 @@ export default function ScheduleManager({
   });
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
+
+  const run = (fn) =>
+    startTransition(async () => {
+      setError("");
+      const res = await fn();
+      if (res?.error) setError(res.error);
+      else router.refresh();
+    });
+
+  const doCancel = (alsoInquiry) => {
+    const ev = cancelTarget;
+    if (!ev) return;
+    run(async () => {
+      const res = await cancelSchedule(ev.id, alsoInquiry);
+      if (res?.error) alert(res.error);
+      setCancelTarget(null);
+      return res;
+    });
+  };
   const [showAdd, setShowAdd] = useState(false); // 직접 추가 폼 접힘(기본)
 
   // 달력/요약에서 클릭 시 하단 목록의 해당 건으로 스크롤·강조
@@ -204,14 +212,6 @@ export default function ScheduleManager({
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const setD = (k) => (v) => setForm((f) => ({ ...f, [k]: v })); // DatePicker용(값 직접)
-
-  const run = (fn) =>
-    startTransition(async () => {
-      setError("");
-      const res = await fn();
-      if (res?.error) setError(res.error);
-      else router.refresh();
-    });
 
   const onAdd = (e) => {
     e.preventDefault();

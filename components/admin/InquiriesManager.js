@@ -211,6 +211,12 @@ export default function InquiriesManager({
   const schQtyNum = parseInt(schQty, 10) || 0;
   const schOver = schAvail && schQtyNum > schAvail.available;
 
+  const run = (fn) =>
+    startTransition(async () => {
+      await fn();
+      router.refresh();
+    });
+
   const submitSchedule = () => {
     if (!schLocation.trim()) {
       alert("행사 장소(주소)를 입력하세요. 주소 미정이면 배차·일정 진행이 불가합니다.");
@@ -274,12 +280,6 @@ export default function InquiriesManager({
     script.onload = open;
     document.body.appendChild(script);
   };
-
-  const run = (fn) =>
-    startTransition(async () => {
-      await fn();
-      router.refresh();
-    });
 
   const onOpen = (q) => {
     if (openId === q.id) {

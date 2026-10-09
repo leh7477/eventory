@@ -217,6 +217,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const [savedMsg, setSavedMsg] = useState("");
   const [autoRecord, setAutoRecord] = useState(true); // 인쇄 시 견적 금액 자동 기록
 
+  // supply 는 아래에서 계산되지만, 이 핸들러들은 렌더가 끝난 뒤에만
+  // 실행되므로 그때는 이미 값이 있다. (계산 사슬을 끌어올리는 것보다
+  //  여기서 규칙을 끄는 편이 안전하다)
+  /* eslint-disable no-use-before-define */
   const recordQuote = () =>
     startSave(async () => {
       setSavedMsg("");
@@ -247,6 +251,8 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
       document.title = prevTitle;
     }, 800);
   };
+
+  /* eslint-enable no-use-before-define */
 
   const setItem = (i, k, v) =>
     setItems((rows) => rows.map((r, idx) => (idx === i ? { ...r, [k]: v } : r)));
