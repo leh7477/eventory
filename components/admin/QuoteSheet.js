@@ -6,7 +6,7 @@ import { SITE } from "@/lib/constants";
 import { saveQuotedAmount } from "@/app/admin/(panel)/inquiries/actions";
 import { matchCategory, parseQty } from "@/lib/inventory";
 
-// 머신별 서비스 소모품 (측면 랩핑 다음에 자동 추가, 회수/폐기용 · 무상)
+// 머신별 서비스 소모품 (렌탈 줄 다음에 자동 추가, 회수/폐기용 · 무상)
 // 수량은 기본값이며 견적서에서 수정 가능
 const CONSUMABLES = {
   가챠머신: { name: "6cm 캡슐", qty: 200, unit: "개", note: "서비스 (회수용)" },
@@ -85,15 +85,6 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
     : firstMatch
     ? priceOf(firstMatch)
     : "";
-  // 측면(좌,우) 랩핑 — 10만원 상당이나 서비스 제공
-  const sideWrapItem = () => ({
-    name: "측면(좌,우) 랩핑 추가",
-    qty: 1,
-    unit: "대",
-    price: "100000",
-    note: "서비스",
-    service: true,
-  });
   // 머신별 소모품 서비스(있으면) — 캡슐/너프건·총알/우드락볼 등
   const consumableItem = (category) => {
     const c = CONSUMABLES[category];
@@ -101,7 +92,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
       ? { name: c.name, qty: c.qty, unit: c.unit, price: "", note: c.note, service: true }
       : null;
   };
-  const isRental = !!firstMatch && !isMade; // 대여 매칭 건(전면 랩핑 기본 포함)
+  const isRental = !!firstMatch && !isMade; // 대여 매칭 건(전체 랩핑 기본 포함)
   const [items, setItems] = useState(() => {
     const rows = [
       {
@@ -111,11 +102,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
         qty: firstQty,
         unit: "대",
         price: firstPrice,
-        note: isRental ? "전면 랩핑 포함" : "",
+        note: isRental ? "전체 랩핑 (전면 + 측면 좌·우)" : "",
       },
     ];
     if (isRental) {
-      rows.push(sideWrapItem());
       const c = consumableItem(firstMatch.product);
       if (c) rows.push(c);
     }
@@ -178,7 +168,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const addRentalItem = (product) => {
     const r = rentalRates.find((x) => x.product === product);
     if (!r) return;
-    const extra = [sideWrapItem()];
+    const extra = [];
     const c = consumableItem(r.product);
     if (c) extra.push(c);
     setItems((rows) => [
@@ -188,7 +178,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
         qty: 1,
         unit: "대",
         price: priceOf(r),
-        note: "전면 랩핑 포함",
+        note: "전체 랩핑 (전면 + 측면 좌·우)",
       },
       ...extra,
     ]);
