@@ -85,12 +85,12 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
     : firstMatch
     ? priceOf(firstMatch)
     : "";
-  // 랩핑 — 전면·측면을 한 품목으로 묶는다. 10만원 상당이나 서비스 제공.
+  // 랩핑 — 전면·측면을 한 품목으로 묶는다. 20만원 상당이나 서비스 제공.
   const wrapItem = () => ({
     name: "전체 랩핑",
     qty: 1,
     unit: "대",
-    price: "100000",
+    price: "200000",
     note: "전면, 측면(좌, 우)",
     service: true,
   });
