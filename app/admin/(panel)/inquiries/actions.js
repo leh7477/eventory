@@ -183,9 +183,20 @@ export async function updateInquiry(id, fields) {
   return { ok: true };
 }
 
-export async function deleteInquiry(id) {
+// 문의 삭제. alsoSchedule 이면 이 문의로 등록된 일정도 함께 지운다.
+//
+// 정산·입금 내역은 문의를 지우면 따라 지워지지만(CASCADE), 일정은 SET NULL 로
+// 묶여 있어 그냥 두면 '문의 없는 유령 일정' 으로 남는다. 배정 기기는 일정이
+// 지워질 때 함께 사라진다.
+export async function deleteInquiry(id, alsoSchedule = false) {
   await requireSection("inquiries");
   const admin = createAdminClient();
+
+  if (alsoSchedule) {
+    const { error: se } = await admin.from("schedules").delete().eq("inquiry_id", id);
+    if (se) return { error: "일정 삭제에 실패했습니다: " + se.message };
+  }
+
   const { error } = await admin.from("inquiries").delete().eq("id", id);
   if (error) return { error: error.message };
   rv();

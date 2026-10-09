@@ -983,8 +983,19 @@ export default function InquiriesManager({
                       <button
                         type="button"
                         onClick={() => {
-                          if (confirm("이 문의를 완전히 삭제할까요? (복구 불가)"))
-                            run(() => deleteInquiry(q.id));
+                          if (!confirm("이 문의를 완전히 삭제할까요? (복구 불가)")) return;
+                          // 일정이 등록된 건에만 묻는다. 없는데 물으면 헷갈린다.
+                          const alsoSchedule = scheduleByInquiry[q.id]
+                            ? confirm(
+                                [
+                                  "이 문의로 등록된 일정도 함께 삭제할까요?",
+                                  "",
+                                  "확인 — 일정과 배정 기기까지 삭제",
+                                  "취소 — 문의만 삭제 (일정은 연결이 끊긴 채 남습니다)",
+                                ].join("\n")
+                              )
+                            : false;
+                          run(() => deleteInquiry(q.id, alsoSchedule));
                         }}
                         disabled={pending}
                         className="ml-auto rounded-md border border-primary/30 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/5"
