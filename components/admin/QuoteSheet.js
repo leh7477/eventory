@@ -85,6 +85,15 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
     : firstMatch
     ? priceOf(firstMatch)
     : "";
+  // 랩핑 — 전면·측면을 한 품목으로 묶는다. 10만원 상당이나 서비스 제공.
+  const wrapItem = () => ({
+    name: "전체 랩핑",
+    qty: 1,
+    unit: "대",
+    price: "100000",
+    note: "전면, 측면(좌, 우)",
+    service: true,
+  });
   // 머신별 소모품 서비스(있으면) — 캡슐/너프건·총알/우드락볼 등
   const consumableItem = (category) => {
     const c = CONSUMABLES[category];
@@ -102,10 +111,11 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
         qty: firstQty,
         unit: "대",
         price: firstPrice,
-        note: isRental ? "전체 랩핑 (전면 + 측면 좌·우)" : "",
+        note: "",
       },
     ];
     if (isRental) {
+      rows.push(wrapItem());
       const c = consumableItem(firstMatch.product);
       if (c) rows.push(c);
     }
@@ -168,7 +178,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
   const addRentalItem = (product) => {
     const r = rentalRates.find((x) => x.product === product);
     if (!r) return;
-    const extra = [];
+    const extra = [wrapItem()];
     const c = consumableItem(r.product);
     if (c) extra.push(c);
     setItems((rows) => [
@@ -178,7 +188,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
         qty: 1,
         unit: "대",
         price: priceOf(r),
-        note: "전체 랩핑 (전면 + 측면 좌·우)",
+        note: "",
       },
       ...extra,
     ]);
