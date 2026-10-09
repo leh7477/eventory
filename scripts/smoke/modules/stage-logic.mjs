@@ -2,13 +2,20 @@
 import fs from "node:fs";
 import path from "node:path";
 import { makeChecker, ROOT } from "../harness.mjs";
+import { kstDate } from "../../../lib/date.js";
 
+// stages.js 를 텍스트로 읽어 실행한다 — 실제 코드를 그대로 검증하기 위함.
+// new Function 안에서는 import 를 쓸 수 없으므로 그 줄은 걷어내고,
+// 의존하는 kstDate 는 진짜 lib/date.js 것을 넣어준다.
 function load() {
   const src = fs.readFileSync(path.join(ROOT, "lib", "admin", "stages.js"), "utf8");
-  const pure = src.replace(/^export /gm, "");
+  const pure = src
+    .replace(/^export /gm, "")
+    .replace(/^import .*$/gm, "");
   return new Function(
+    "kstDate",
     `${pure}; return { STAGES, isMade, stagesFor, isComplete, dueDateOf, stageState, worstStage, MAX_STAGE, MAX_STAGE_MADE };`
-  )();
+  )(kstDate);
 }
 
 export default async function run() {

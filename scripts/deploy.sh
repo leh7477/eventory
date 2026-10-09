@@ -12,10 +12,14 @@ KEY="${EVENTLAND_SSH_KEY:-/c/Users/LEE/Desktop/somtip/ssh/ssh-key-2026-06-04.key
 HOST="${EVENTLAND_HOST:-ubuntu@134.185.108.37}"
 BASE="${EVENTLAND_URL:-http://134.185.108.37}"
 
-# 올리기 전에 lint. no-use-before-define 이 켜져 있어 TDZ(선언 전 사용)를 잡는다.
-# 빌드는 이런 오류를 통과시키고 실행해야만 흰 화면으로 터지므로 여기서 거른다.
+# 올리기 전에 lint + 스모크.
+#   lint  : no-use-before-define 이 TDZ(선언 전 사용)를 잡는다. 빌드는 이런
+#           오류를 통과시키고 실행해야만 흰 화면으로 터지므로 여기서 거른다.
+#   smoke : 마이그레이션·로직 163건. 운영 DB 는 건드리지 않는다.
 echo "lint 확인"
 npm run lint
+echo "스모크 확인"
+npm run smoke > /dev/null
 
 want=$(git rev-parse --short HEAD)
 echo "배포할 버전: $want"
