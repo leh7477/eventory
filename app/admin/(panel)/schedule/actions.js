@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { availableFor } from "@/lib/inventory";
 import { logActor } from "@/lib/admin/sections";
 import { MAX_STAGE } from "@/lib/admin/stages";
+import { appendActivityLog } from "@/lib/admin/activity";
 
 function rv() {
   revalidatePath("/admin/schedule");
@@ -95,9 +96,17 @@ export async function updateScheduleDatetime(
   id,
   { event_start, event_end, start_date, end_date, start_time, end_time }
 ) {
-  await requireSection("schedule");
+  const user = await requireSection("schedule");
   if (!start_date) return { error: "납품 날짜를 선택하세요." };
   const admin = createAdminClient();
+
+  // 바뀌기 전 값 — 문의에 반영할지, 이력에 뭐라 남길지 판단에 쓴다
+  const { data: before } = await admin
+    .from("schedules")
+    .select("inquiry_id, event_start, event_end")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await admin
     .from("schedules")
     .update({
@@ -110,6 +119,31 @@ export async function updateScheduleDatetime(
     })
     .eq("id", id);
   if (error) return { error: error.message };
+
+  // 행사 기간이 바뀌었으면 문의에도 반영한다.
+  // 견적서는 문의의 행사일로 일수를 계산하므로, 여기만 고치면 일정은 6일인데
+  // 견적서는 5일로 나오는 어긋남이 생긴다. 바꾼 사실은 문의 이력에 남긴다.
+  if (before?.inquiry_id) {
+    // 비어 있을 때 표기를 양쪽 똑같이 맞춰야 "바뀜" 판정이 어긋나지 않는다
+    const was = `${before.event_start ?? "-"} ~ ${before.event_end ?? "-"}`;
+    const now = `${event_start || "-"} ~ ${event_end || event_start || "-"}`;
+    if (was !== now) {
+      await admin
+        .from("inquiries")
+        .update({
+          event_start: event_start || null,
+          event_end: event_end || event_start || null,
+        })
+        .eq("id", before.inquiry_id);
+      await appendActivityLog(
+        admin,
+        before.inquiry_id,
+        logActor(user),
+        `행사 기간 변경 ${was} → ${now} (일정에서 수정)`
+      );
+    }
+  }
+
   rv();
   return { ok: true };
 }

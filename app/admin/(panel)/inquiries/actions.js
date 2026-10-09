@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { requireSection } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logActor } from "@/lib/admin/sections";
+import { appendActivityLog } from "@/lib/admin/activity";
+import { saveSettlement } from "@/lib/admin/settlements";
 
 function rv() {
   revalidatePath("/admin/inquiries");
@@ -101,11 +103,11 @@ export async function setContractAmount(id, amount) {
   const admin = createAdminClient();
   const digits = String(amount ?? "").replace(/\D/g, "");
   const val = digits === "" ? null : parseInt(digits, 10);
-  const { error } = await admin
-    .from("inquiries")
-    .update({ contract_amount: val })
-    .eq("id", id);
-  if (error) return { error: "계약 금액 저장에 실패했습니다." };
+
+  // settlements 와 inquiries 양쪽에 쓴다. 매출 관리는 settlements 를 우선해
+  // 읽으므로, 여기만 고치면 금액을 바꿔도 화면이 그대로다.
+  const res = await saveSettlement(admin, id, { contract_amount: digits }, logActor(user));
+  if (res?.error) return { error: res.error };
   const who = logActor(user);
   await appendActivityLog(
     admin,
@@ -118,16 +120,6 @@ export async function setContractAmount(id, amount) {
 }
 
 // 활동 로그 추가 (best-effort — 컬럼 없어도 본 동작은 막지 않음)
-async function appendActivityLog(admin, id, by, action) {
-  const { data } = await admin
-    .from("inquiries")
-    .select("activity_log")
-    .eq("id", id)
-    .maybeSingle();
-  const log = Array.isArray(data?.activity_log) ? data.activity_log : [];
-  log.push({ at: new Date().toISOString(), by, action });
-  await admin.from("inquiries").update({ activity_log: log }).eq("id", id);
-}
 
 // 문의 내용 수정 (고객 오입력 정정용) — 어떤 항목을 수정했는지 로그 기록
 export async function updateInquiry(id, fields) {
