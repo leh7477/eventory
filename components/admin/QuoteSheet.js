@@ -299,8 +299,10 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
     "--qs-h2": qsDensity.h2,
   };
 
+  // block — 입력칸은 기본이 베이스라인 정렬이라 같은 줄의 글자(라벨·금액)보다
+  // 디센더 공간만큼 내려앉는다. block 으로 두면 칸 위쪽에서 시작해 맞는다.
   const inputCls =
-    "w-full rounded border border-ink/15 px-2 py-1 text-sm outline-none focus:border-primary print:border-0 print:p-0";
+    "block w-full rounded border border-ink/15 px-2 py-1 text-sm outline-none focus:border-primary print:border-0 print:p-0";
 
   return (
     <div className="quote-sheet">
@@ -458,7 +460,7 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
                     <input
                       value={quoteDate}
                       onChange={(e) => setQuoteDate(e.target.value)}
-                      className="w-full rounded bg-transparent outline-none focus:bg-primary/10"
+                      className="block w-full rounded bg-transparent leading-5 outline-none focus:bg-primary/10"
                     />
                   </td>
                 </tr>
