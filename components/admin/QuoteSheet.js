@@ -86,12 +86,13 @@ export default function QuoteSheet({ inquiry, rates = { shipping: [], rental: []
     ? priceOf(firstMatch)
     : "";
   // 랩핑 — 전면·측면을 한 품목으로 묶는다. 20만원 상당이나 서비스 제공.
+  // 인쇄하면 서비스 뱃지가 안 나오므로 내역은 품목에, 서비스 표시는 비고에 둔다.
   const wrapItem = () => ({
-    name: "전체 랩핑",
+    name: "전체 랩핑 — 전면, 측면(좌, 우)",
     qty: 1,
     unit: "대",
     price: "200000",
-    note: "전면, 측면(좌, 우)",
+    note: "서비스",
     service: true,
   });
   // 머신별 소모품 서비스(있으면) — 캡슐/너프건·총알/우드락볼 등
